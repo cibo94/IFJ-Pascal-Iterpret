@@ -37,4 +37,4 @@ doc:
 	@echo "Building documentation ..."
 	@doxygen $(DOXCONF)
 
--include $(OBJECT:.o=.d)
+-include  $(patsubst %.o,%.o.d,$(OBJECT))

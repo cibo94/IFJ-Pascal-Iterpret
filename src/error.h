@@ -48,21 +48,6 @@ static inline void warning (const char *format, ...)
  */
 static inline void __log(const int line, const char *function, const char *file, const char *format, ...) 
     __attribute__ ((unused, format(printf, 4, 5))); 
-#ifdef DEBUG
-/**
- * \brief Logovacia pomocna premenna ktora vypise typ premennej Pozivat typeof!!!
- * \param lexema Struktura lexemy
- * \param format Mozny format ... nie povinny
- * \param ... Dalsie argumenty
- * \return nic
- * \see typeof
- */
-static inline void __lex_type (TStructLex *lexema, const char *format, ...)
-    __attribute__ ((unused, format(printf, 2, 3)));
-
-#define typeof(...) _lex_type(__VA_ARGS__)
-#define _lex_type(lex, ...) __lex_type(lex, __VA_ARGS__)
-#endif /*defined(DEBUG)*/
 
 #define log(...) __log(__LINE__, __FUNCTION__, __FILE__, ##__VA_ARGS__)
 
@@ -107,42 +92,7 @@ static const char *ERROR_MSG[] = {
     "Interna chyba programu"
 };
 
-#ifdef DEBUG
-__attribute__((unused))
-static const char *c_lex_type[] = {
-    "Int const",
-    "Real const",
-    "String const",
-    "Key word",
-    "Identificator",
-    "Lava zatvorka",
-    "Prava zatvorka",
-    "Dvojbodka",
-    "Strednik",
-    "Ciarka",
-    "Bodka",
-    "Operator +",
-    "Operator -",
-    "Operator *",
-    "Operator /",
-    "Operator :=",
-    "Operator >",
-    "Operator <",
-    "Operator >=",
-    "Operator <=",
-    "Operator =",
-    "Operator <>",
-    "begin", "boolean", "do", "else", "end", "false", "find", "forward",
-    "function", "if", "integer", "readln", "real", "sort", "string",
-    "then", "true", "var", "while", "write", "array", "repeat", "until", NULL
-};
-__attribute__((unused))
-static char ** KEY_WORDS = NULL;
-__attribute__((constructor, unused))
-static void __debug_init() {
-    KEY_WORDS = (char **)c_lex_type+22;    
-}
-#endif /*defined(DEBUG)*/
+extern char *KEY_WORDS[]; 
 
 static inline void
 error(const int retCode,
@@ -232,33 +182,6 @@ __log(const int   line,
  * Ak nie tak vystupy pojdu do logovacieho suboru "log"
  */
 #else /*not defined(DEBUG)*/
-static inline void 
-__lex_type (TStructLex *lexema, 
-            const char *format,
-            ...) {
-    FORMAT_TIME;
-    va_list args;
-    va_start(args, format);
-    fprintf (stdout,
-#ifdef h_LEX_lexem
-            "[%s] Type of lexem '%s' on line %d from file <%s> is %s\n\t",
-            cas,
-            lexema->lex != NULL ? lexema->lex : "???",
-            LINE_NUM,
-#else
-            "[%s] Type of lexem '%s' from file <%s> is %s\n\t",
-            cas,
-            lexema->lex != NULL ? lexema->lex : "???",
-#endif /*defined(h_INIT)*/
-            FILE_NAME != NULL ? FILE_NAME : "UNKNOWN",
-            lexema != NULL ? c_lex_type[lexema->type] : "UNDEFINED");
-    vfprintf(stdout,
-             format,
-             args
-     );
-    fprintf (stdout, "\n");
-    va_end(args);
-}
 static inline void
 __log(const int   line,
       const char *function,

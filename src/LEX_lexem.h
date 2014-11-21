@@ -7,25 +7,25 @@
 #ifndef h_LEX_lexem
 #define h_LEX_lexem
 
-#define STD_LNGTH 32              //!< pociatocna dlzka stringu
+#define STD_LNGTH 32                //!< pociatocna dlzka stringu
 
 
 typedef enum {
-    BASE,                         //!< Zakladny stav
-    SLOVO,                        //!< Stav slovo
-    OPER,                         //!< operator
-    TERM_NUM,                     //!< cislo
-    TERM_STR,                     //!< string
-    SPACE,                        //!< medzery, nove riadky a pod
-    COMMENT                       //!< komentare
-} TEnumStatus;                    //!< status
+    BASE,                           //!< Zakladny stav
+    SLOVO,                          //!< Stav slovo
+    OPER,                           //!< operator
+    TERM_NUM,                       //!< cislo
+    TERM_STR,                       //!< string
+    SPACE,                          //!< medzery, nove riadky a pod
+    COMMENT                         //!< komentare
+} TEnumStatus;                      //!< status
 
 typedef enum {
-    START,                        //!< zakladny stav
-    RETAZEC,                      //!< retazcovy stav
-    MEDZI,                        //!< stav medzi uvodzovkami
-    CISLO                         //!< stav za #
-} TEnumLexStr;                    //!< stavovy enum pre LEX_str
+    START,                          //!< zakladny stav
+    RETAZEC,                        //!< retazcovy stav
+    MEDZI,                          //!< stav medzi uvodzovkami
+    CISLO                           //!< stav za #
+} TEnumLexStr;                      //!< stavovy enum pre LEX_str
 
 typedef enum {
     KEY_BEGIN,
@@ -48,42 +48,61 @@ typedef enum {
     KEY_VAR,
     KEY_WHILE,
     KEY_WRITE,
-    KEY_ARRAY,
-    KEY_REPEAT,
-    KEY_UNTIL,                    //!< KLUCOVE SLOVO
-    INT_CONST,                    //!< cele cislo
-    REAL_CONST,                   //!< desatine cislo
-    STRING_CONST,                 //!< znakovy retazec
-    IDENTIFICATOR,                //!< identifikator
-    LBRACKET,                     //!< lava zatvorka        (
-    RBRACKET,                     //!< prava zatvorka       )
-    DDOT,                         //!< dvojbodka            :
-    STREDNIK,                     //!< ukoncenie prikazu    ;
-    CIARKA,                       //!< ciarka               ,
-    BODKA,                        //!< bodka                .
-    OPERATOR_PLUS,                //!< operator plus        +
-    OPERATOR_MINUS,               //!< operator minus       -
-    OPERATOR_TIMES,               //!< operator krat        *
-    OPERATOR_DIV,                 //!< operator delene      /
-    OPERATOR_ASSIGN,              //!< operator rovna sa    :=
-    OPERATOR_GREATER,             //!< operator vecsi       >
-    OPERATOR_SMALLER,             //!< operator mensi       <
-    OPERATOR_GREATEQ,             //!< operator vecsi rovny >=
-    OPERATOR_SMALLEQ,             //!< operator mensi rovny <=
-    OPERATOR_EQUAL,               //!< operator rovny       =
-    OPERATOR_NEQUAL               //!< operator nerovny     <>
-} TEnumLexem;                     //!< Enumerator ktory popisuje tym lexemy
+//    KEY_ARRAY,
+//    KEY_REPEAT,
+//    KEY_UNTIL,                      
+    IDENTIFICATOR,                  //!< identifikator
+    LBRACKET,                       //!< lava zatvorka        (
+    RBRACKET,                       //!< prava zatvorka       )
+    DDOT,                           //!< dvojbodka            :
+    STREDNIK,                       //!< ukoncenie prikazu    ;
+    CIARKA,                         //!< ciarka               ,
+    BODKA,                          //!< bodka                .
+    OP_CONSTANT     = 1 << (sizeof(int)*8 -1),
+    OP_RELATION     = 1 << (sizeof(int)*8 -2),
+    OP_MATH         = 1 << (sizeof(int)*8 -3),
+    OP_ASS          = 1 << (sizeof(int)*8 -4),
+    INT_CONST       = 1 | OP_CONSTANT, //!< cele cislo
+    REAL_CONST      = 2 | OP_CONSTANT, //!< desatine cislo
+    STRING_CONST    = 3 | OP_CONSTANT, //!< znakovy retazec
+    OPERATOR_PLUS   = 1 | OP_MATH,  //!< operator plus        +
+    OPERATOR_MINUS  = 2 | OP_MATH,  //!< operator minus       -
+    OPERATOR_TIMES  = 3 | OP_MATH,  //!< operator krat        *
+    OPERATOR_DIV    = 4 | OP_MATH,  //!< operator delene      /
+    OPERATOR_ASSIGN = 1 | OP_ASS,   //!< operator rovna sa    :=
+    OPERATOR_GREATER
+                = 1 | OP_RELATION,  //!< operator vecsi       >
+    OPERATOR_SMALLER
+                = 2 | OP_RELATION,  //!< operator mensi       <
+    OPERATOR_GREATEQ
+                = 3 | OP_RELATION,  //!< operator vecsi rovny >=
+    OPERATOR_SMALLEQ
+                = 4 | OP_RELATION,  //!< operator mensi rovny <=
+    OPERATOR_EQUAL
+                = 5 | OP_RELATION,  //!< operator rovny       =
+    OPERATOR_NEQUAL
+                = 6 | OP_RELATION   //!< operator nerovny     <>
+} TEnumLexem;                       //!< Enumerator ktory popisuje tym lexemy
 
 typedef struct {
-    char *lex;                    //!< Stringova representacia lexemy
-    TEnumLexem type;              //!< druh lexemy
-} TStructLex, *PTStructLex;        //!< struktura ktora obsahuje info o lexeme
+    char *lex;                      //!< Stringova representacia lexemy
+    TEnumLexem type;                //!< druh lexemy
+} TStructLex, *PTStructLex;         //!< struktura ktora obsahuje info o lexeme
 
 typedef struct {
-    bool realPart;                //!< stav v casti za .
-    bool expPart;                 //!< stav v casti za e
-    bool partInit;                //!< stav v casti ktora nebola inicializovana este
-} *TStructNumStat, SNumStat;      //!< pomocna struktura pre lukasovu funkciu LEX_num
+    bool realPart;                  //!< stav v casti za .
+    bool expPart;                   //!< stav v casti za e
+    bool partInit;                  //!< stav v casti ktora nebola inicializovana este
+} *TStructNumStat, SNumStat;        //!< pomocna struktura pre lukasovu funkciu LEX_num
+
+__attribute__ ((unused))
+static char *KEY_WORDS[] = {
+    "begin", "boolean", "do", "else", "end", "false", "find", "forward",
+    "function", "if", "integer", "readln", "real", "sort", "string",
+    "then", "true", "var", "while", "write", 
+//    "array", "repeat", "until", 
+    NULL
+};
 
 extern unsigned int LINE_NUM;     //!< pozicia v subore podla riadkov
 
