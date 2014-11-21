@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+export dir="HELLWRLD"
+export name="HELLWRLD"
+export file="../src/LEX_lexem.c"
+export src='#include "../src/inc.h"
+int main(int argc, char **argv) {
+    FILE *f;
+    if((f = fopen(argv[argc-1], "r")) == NULL) return -1;
+    TStructLex *ret = malloc(sizeof(TStructLex));
+    ret->lex = NULL;
+    ret->type = 0;
+    while(LEX_getLexem(ret, f) != true) {
+        printf("%s\n", ret->lex);
+    }
+    printf("%s\n", ret->lex);
+    free(ret);
+    fclose(f);
+    return 0;
+}'
+export input="program Hello;
+begin
+	writeln ('Hello, world.')
+end."
+export output="program
+hello
+;
+begin
+writeln
+(
+Hello, world.
+)
+end
+.
+"
+export retCode=0

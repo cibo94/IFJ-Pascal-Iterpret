@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+export dir="JOIN"
+export name="JOIN"
+export file="../src/LEX_lexem.c"
+export src='#include "../src/inc.h"
+int main(int argc, char ** argv) {
+	char *s = malloc(sizeof(char)*32);
+	if (!s) error(99, "Chyba alokovanie testovacieho stringu!");
+	int  c  = 0;
+	unsigned *p = malloc(sizeof(int));
+	*p = 0;
+	FILE * f = fopen (argv[argc-1], "r");
+	if (!f) error(99, "Chyba otvorenia suboru!");
+	while ((c = fgetc(f)) != EOF) {
+		LEX_string(&s, c, p);
+		printf("%s\n", s);
+	}
+	fclose(f);
+	free(s);
+	return 0;
+}'
+export input="Hello World!"
+export output="H
+He
+Hel
+Hell
+Hello
+Hello 
+Hello W
+Hello Wo
+Hello Wor
+Hello Worl
+Hello World
+Hello World!
+"
+export retCode=0

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+export dir="ISKEYWORD"
+export name="ISKEYWORD"
+export file="../src/LEX_lexem.c"
+export src='#include "../src/inc.h"
+int main() {
+    PTStructLex lex = malloc(sizeof(TStructLex));
+    lex->lex = "until";
+    lex->type = 0;
+    isKeyWord(lex);
+    printf("%s, %s\n", lex->lex, KEY_WORDS[lex->type]);
+    free(lex);
+    return 0;
+}'
+export input=""
+export output="until, until
+"
+export retCode=0

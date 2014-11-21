@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+export dir="LENGTH"
+export name="LENGTH"
+export file="../src/emb_func.c ../src/LEX_lexem.c"
+export src='#include "../src/inc.h"
+int main(int argc, char**argv) {
+    FILE*f=fopen(argv[argc-1], "r");
+    char *tmp = malloc(11);
+    int s = EMB_length(fgets(tmp,11,f));
+    printf("%s %d", tmp, s);
+	fclose(f);
+	return 0;
+}'
+export input="7894561230"
+export output="7894561230 10"
+export retCode=0
