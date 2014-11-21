@@ -16,7 +16,7 @@ DOXCONF=config.dox
 all: init $(TARGET)
 
 init:
-	+@[ -d $(BUILDDIR) ] && mkdir -p $(BUILDDIR)
+	+@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
 
 clean:
 	@echo "Cleaning working directory ..."
@@ -25,16 +25,16 @@ clean:
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(eval NthSRC=$(shell echo $(NthSRC)+1 | bc))
 	$(eval PERCENT=$(shell echo 100\*$(NthSRC)/$(NSRC) | bc))
-	@echo "Building ... $(PERCENT)%: 	$(CC) $(CFLAGS) -o $@ -c $<"
+	@echo -e "\e[34mCC\e[39m \e[32m\e[1mBuilding\e[21m\e[39m ... \e[31m$(PERCENT)%\e[39m: 	$(CC) $(CFLAGS) -o $@ -c $<"
 	@$(CC)	$(CFLAGS)	-o $@	-c $<
 	@$(CC) $^ -MM > $@.d
 
 $(TARGET): $(OBJECT)
-	@echo "Linking  ... 100%: 	$(LD) $(LDFLAGS) $^ -o $@"
+	@echo -e  "\e[34mLD\e[39m \e[32m\e[1mLinking\e[21m\e[39m  ... \e[31m100%\e[39m: 	$(LD) $(LDFLAGS) $^ -o $@"
 	@$(LD) $(LDFLAGS)	$^ -o $@ 
 
 doc:
-	@echo "Building documentation ..."
+	@echo -e "DOXYGEN \e[32m\e[1mBuilding documentation\e[21m\e[39m ..."
 	@doxygen $(DOXCONF)
 
 -include  $(patsubst %.o,%.o.d,$(OBJECT))
