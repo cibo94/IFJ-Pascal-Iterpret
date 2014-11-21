@@ -25,12 +25,12 @@ clean:
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(eval NthSRC=$(shell echo $(NthSRC)+1 | bc))
 	$(eval PERCENT=$(shell echo 100\*$(NthSRC)/$(NSRC) | bc))
-	@echo "Building ... $(PERCENT)%: $(CC) $(CFLAGS) -o $@ -c $<"
+	@echo "Building ... $(PERCENT)%: 	$(CC) $(CFLAGS) -o $@ -c $<"
 	@$(CC)	$(CFLAGS)	-o $@	-c $<
 	@$(CC) $^ -MM > $@.d
 
 $(TARGET): $(OBJECT)
-	@echo "Linking  ... 100%: $(LD) $(LDFLAGS) $^ -o $@"
+	@echo "Linking  ... 100%: 	$(LD) $(LDFLAGS) $^ -o $@"
 	@$(LD) $(LDFLAGS)	$^ -o $@ 
 
 doc:
