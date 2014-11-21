@@ -85,6 +85,7 @@ typedef enum {
 } TEnumLexem;                       //!< Enumerator ktory popisuje tym lexemy
 
 typedef struct {
+    uint32_t flags;                 //!< flagy pre blizsiu specifikaciu
     char *lex;                      //!< Stringova representacia lexemy
     TEnumLexem type;                //!< druh lexemy
 } TStructLex, *PTStructLex;         //!< struktura ktora obsahuje info o lexeme
