@@ -1,0 +1,4 @@
+build/
+tests/TEST_*/*/
+html/
+latex/
