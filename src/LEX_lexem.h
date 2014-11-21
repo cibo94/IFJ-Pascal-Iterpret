@@ -81,7 +81,8 @@ typedef enum {
     OPERATOR_EQUAL
                 = 5 | OP_RELATION,  //!< operator rovny       =
     OPERATOR_NEQUAL
-                = 6 | OP_RELATION   //!< operator nerovny     <>
+                = 6 | OP_RELATION,  //!< operator nerovny     <>
+    TYPE_EOF    = ~0                //!< koniec suboru
 } TEnumLexem;                       //!< Enumerator ktory popisuje tym lexemy
 
 typedef struct {
