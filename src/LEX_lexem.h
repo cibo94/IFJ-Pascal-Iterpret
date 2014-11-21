@@ -208,14 +208,12 @@ LEX_base(FILE               *f,
  * \param f File handle
  * \return TRUE ak skoncil ak nie tak FALSE
  */
-bool
+void
 LEX_getLexem(TStructLex *Ret, 
              FILE       *f);
 
 int
 isKeyWord(PTStructLex lex);
 
-TStructLex *
-LEX_lexology(FILE *f);
 
 #endif

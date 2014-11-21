@@ -10,16 +10,18 @@ int main(int argc, char **argv) {
     if (!ret) return 1;
     ret->lex = NULL;
     ret->type = 0;
-    while(LEX_getLexem(ret, f) != true) {
+    LEX_getLexem(ret, f);
+    while(ret->type != TYPE_EOF) {
         printf("%s\n", ret->lex);
+        LEX_getLexem(ret, f);
     }
-    printf("%s\n", ret->lex);
     free(ret);
     fclose(f);
     return 0;
 }'
 export input="sep sep;sep,sep.sep
-sep-sep_sep=sep+sep-sep/sep*sep(sep)sep<sep>sep{dude}sep:sep10"
+sep-sep_sep=sep+sep-sep/sep*sep(sep)sep<sep>sep{dude}sep:sep10
+"
 export output="sep
 sep
 ;

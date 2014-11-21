@@ -8,20 +8,16 @@ void LEX_string(char **s, int ch, unsigned *poz) {
     char *tmp;
     if (((*poz)&(STD_LNGTH-1))==(STD_LNGTH-1)) {
         nasobok = (*poz)>>5;                        // sme retardovany a toto znamena (*poz)/32
-//#ifndef DEBUG
         tmp = (char *)realloc(*s,(nasobok+2)<<5);
         if (tmp == NULL) {
             log("Realokaciu velkosti: %d realoc nedokazal spravit\n\
     pozicia %d, char %c", (nasobok+2)<<5, *poz, ch);
-//#endif
-            if ((tmp = malloc((nasobok+2)<<5)) == NULL) 
+            if ((tmp = malloc((nasobok+2)<<5)) == NULL)
                 error(ERR_INTERNAL, "Chyba alokacie pamete");
             memcpy(tmp, *s, *poz);
             free(*s);
             *s = tmp;
-//#ifndef DEBUG
         }
-//#endif
     }
     (*s)[(*poz)++] = (char)ch;
     (*s)[*poz] = '\0';
@@ -36,7 +32,7 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
     case START:
         *poz=0;
         s[*poz]='\0';
-        if (ch==EOF) error(ERR_LEX,"CHYBA Neocakavany koniec suboru.");
+        if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
         else { 
             if (ch=='\'') *stav=MEDZI;
             else {
@@ -46,7 +42,7 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
         } 
     break;
     case RETAZEC:
-        if (ch==EOF) error(ERR_LEX,"CHYBA Neocakavany koniec suboru.");
+        if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
         else {
             if (ch=='\'') *stav=MEDZI; 
             else LEX_string(&s,ch,poz);
@@ -68,7 +64,7 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
         }
     break;
     case CISLO:
-        if (ch==EOF) error(ERR_LEX,"CHYBA Neocakavany koniec suboru.");
+        if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
         else {
             if (ch=='\'') {
                 LEX_string(&s,ch,poz);
@@ -78,8 +74,8 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
                         *poz=p;
                         LEX_string(&s,cis,poz);
                         *stav=RETAZEC;
-                    } else error(ERR_LEX,"CHYBA Cislo za znakom # je v zlom intervale.");
-                } else error(ERR_LEX,"Chyba neocakavany znak za '#'");
+                    } else error(ERR_LEX,"Cislo za znakom # je v zlom intervale.");
+                } else error(ERR_LEX,"Neocakavany znak za '#'");
             } else LEX_string(&s,ch,poz);
         }
     }
@@ -158,13 +154,14 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
     else {                                          // ak je znak nieco ine
         if (!NumStatus->partInit)                             // v pripade neinicializovanej casti bude vzdy error, pretoze urcite ocakava cislo
             error(ERR_LEX, "Za '%s' bola ocakavana cislica!\n", s);
+        else if (c == EOF)
+            error(ERR_SYN, "Neocakavany koniec suboru");
         else if (((c == '*') ||
                   (c == '/') ||
                   (c == '=') ||
                   (c == '<') ||
                   (c == '>') ||
                   (c == ')'))||
-                  (c == EOF) ||
                   (c == ';') ||
                   (isspace(c))) {                   // ak je to nejaky znak ktory moze byt bezprostredne za cislom, tak ho uspesne ukonci
             if (*poz == 0 || (NumStatus->expPart &&
@@ -190,70 +187,75 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
 bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
     switch(Ret->lex[0]) {
     case '<':   //skusam <= a <> inak sa vratim na predosly znak a ukoncim
-        if(z=='=') {
-            Ret->type = OPERATOR_SMALLEQ;
-            LEX_string(&Ret->lex, z, i);
-        } else if (z=='>') {
-            Ret->type = OPERATOR_NEQUAL;
-            LEX_string(&Ret->lex, z, i);
-        } else if (z == EOF) return true;
-        else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
-        Ret->type = OPERATOR_SMALLER;
-        return false;
+            if(z=='=') {
+                Ret->type = OPERATOR_SMALLEQ;
+                LEX_string(&Ret->lex, z, i);
+            } else if (z=='>') {
+                Ret->type = OPERATOR_NEQUAL;
+                LEX_string(&Ret->lex, z, i);
+            } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
+            else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+            Ret->type = OPERATOR_SMALLER;
+            return false;
 
-    case '>':
-        if(z=='=') {
-            LEX_string(&Ret->lex, z, i);
-            Ret->type = OPERATOR_GREATEQ;
-        } else if (z == EOF) return true;
-        else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
-        Ret->type = OPERATOR_GREATER;
-        return false;
+        case '>':
+            if(z=='=') {
+                LEX_string(&Ret->lex, z, i);
+                Ret->type = OPERATOR_GREATEQ;
+            } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
+            else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+            Ret->type = OPERATOR_GREATER;
+            return false;
 
-    case ':':
-        if(z=='=') {
-            LEX_string(&Ret->lex, z, i);
-            Ret->type = OPERATOR_ASSIGN;
-        } else if (z == EOF) return true;
-        else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
-        Ret->type = DDOT;
-        return false;
+        case ':':
+            if(z=='=') {
+                LEX_string(&Ret->lex, z, i);
+                Ret->type = OPERATOR_ASSIGN;
+            } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
+            else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+            Ret->type = DDOT;
+            return false;
 
-    case '+' : Ret->type = OPERATOR_PLUS;
-    break;
+        case '+' : Ret->type = OPERATOR_PLUS;
+        break;
 
-    case '-' : Ret->type = OPERATOR_MINUS;
-    break;
+        case '-' : Ret->type = OPERATOR_MINUS;
+        break;
 
-    case '*' : Ret->type = OPERATOR_TIMES;
-    break;
+        case '*' : Ret->type = OPERATOR_TIMES;
+        break;
 
-    case '/' : Ret->type = OPERATOR_DIV;
-    break;
+        case '/' : Ret->type = OPERATOR_DIV;
+        break;
 
-    case '=' : Ret->type = OPERATOR_EQUAL;
-    break;
+        case '=' : Ret->type = OPERATOR_EQUAL;
+        break;
 
-    case ';' : Ret->type = STREDNIK;
-    break;
+        case ';' : Ret->type = STREDNIK;
+        break;
 
-    case ',' : Ret->type = CIARKA;
-    break;
+        case ',' : Ret->type = CIARKA;
+        break;
 
-    case '.' : Ret->type = BODKA;
-    break;
+        case '.' : Ret->type = BODKA;
+        break;
 
-    case '(' : Ret->type = LBRACKET;
-    break;
+        case '(' : Ret->type = LBRACKET;
+        break;
 
-    case ')' : Ret->type = RBRACKET;
-    break;
+        case ')' : Ret->type = RBRACKET;
+        break;
 
-    default:
-        error(ERR_LEX, "Neplatny operator '%c'\n", Ret->lex[0]);
+        default:
+            error(ERR_LEX, "Neplatny operator '%c'\n", Ret->lex[0]);
     }
-    if (z == EOF) return true;
-    if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+    if (z == EOF) {
+        if (Ret->type != BODKA)
+            error(ERR_LEX, "Neocakavany koniec suboru");
+        else
+            return false;
+    }
+    if (fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
     return false;
 }
 
@@ -263,7 +265,7 @@ int LEX_ident(FILE *f, TStructLex *Ret, int z, unsigned *i) {
     } else if((z>=40 && z<=47) || (z>=58 && z<=62) || isspace(z) || z == '{') { //oddelovac alebo operator, bodka je 46 - mozno nebude vhod
         if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom"); //printf("%s, %d\n", Ret->lex, state);
         return false;
-    } else if (z == EOF) return true;
+    } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
     else error(ERR_LEX, "Neocakavany znak '%c' v identifikatore '%s'", z, Ret->lex);
                             //vrati -1 ak je v slove nepoveoleny znak; ako nepovoleny beriem aj zlozenu zatvorku"}"
     LEX_string(&Ret->lex, z, i);
@@ -293,21 +295,21 @@ int LEX_base (FILE *f, TStructNumStat NumStatus, TEnumStatus *state, TStructLex 
             } else if (isspace(z)) {
                 *state = SPACE;
                 return -1;
-            } else if (z == EOF)
-                return true;
-            else error(ERR_LEX, "Neocakavany znak '%c'", z);
+            } else if (z == EOF) {
+                return 1;
+            } else error(ERR_LEX, "Neocakavany znak '%c'", z);
         }
     }
     LEX_string(&Ret->lex, z, i);
     return false;
 }
 
-bool LEX_getLexem(TStructLex *Ret, FILE* f) {
+void LEX_getLexem(TStructLex *Ret, FILE* f) {
     unsigned i = 0;
     int z = 0, base_ret, iden_ret;
     SNumStat _NumStatus = { 
         .realPart = false,
-        .expPart = false,
+        .expPart  = false,
         .partInit = true
     };
     TStructNumStat NumStatus = &_NumStatus;
@@ -323,7 +325,8 @@ bool LEX_getLexem(TStructLex *Ret, FILE* f) {
                 if (z == '\n') LINE_NUM++; 
                 base_ret = LEX_base(f, NumStatus, &state, Ret, z, &i);
                 if (base_ret == 1) {
-                    return true;
+                    Ret->type = TYPE_EOF;
+                    return;
                 } else if (base_ret == 0) {
                     break;
                 }
@@ -331,8 +334,10 @@ bool LEX_getLexem(TStructLex *Ret, FILE* f) {
 
             case SLOVO: //!< IDENTIFIKATOR
                 iden_ret = LEX_ident(f, Ret, z, &i);
-                if (iden_ret == false || iden_ret == true) {
-                    return (bool)iden_ret;
+                if (iden_ret == false) {
+                    return;
+                }else if (iden_ret == true) {
+                    error(ERR_SYN, "Neocakavany koniec suboru");
                 }
             break;
 
@@ -342,33 +347,38 @@ bool LEX_getLexem(TStructLex *Ret, FILE* f) {
                         if (NumStatus->realPart || NumStatus->expPart) Ret->type = REAL_CONST;
                         else Ret->type = INT_CONST;
                     }
-                    if (z == EOF) return true;
-                    return false;
+                    if (z == EOF) {
+                        error(ERR_SYN, "Neocakavany koniec suboru");
+                    }
+                    return;
                 }
             break;
 
             case TERM_STR:
                 if (!LEX_str(f,Ret->lex,z,&i,&stav)) {
                     Ret->type=STRING_CONST;
-                    if (z == EOF) return true;
-                    return false;
+                    if (z == EOF) {
+                        error(ERR_SYN, "Neocakavany koniec suboru");
+                    }
+                    return;
                 }
             break;
 
             case OPER:
-                return LEX_operators(f, Ret, z, &i);
+                LEX_operators(f, Ret, z, &i);
+                return;
 
             case COMMENT :
                 if (z == '}') {
                     state = BASE;
-                } else if (z == EOF) {
-                    error(ERR_LEX, "Neocakavany koniec suboru");
-                }
+                } else if (z == EOF) 
+                    error(ERR_SYN, "Neocakavany koniec suboru");
             break;
 
             case SPACE:
                 if (z == EOF) {
-                    return true;
+                    Ret->type = TYPE_EOF;
+                    return;
                 } if (!isspace(z)) {
                     state = BASE;
                     if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
@@ -376,7 +386,6 @@ bool LEX_getLexem(TStructLex *Ret, FILE* f) {
             break;
         }
     }
-    return true;
 }
 
 int isKeyWord(PTStructLex lex) {
@@ -384,12 +393,4 @@ int isKeyWord(PTStructLex lex) {
         if (strcmp(lex->lex, *key) == 0)
             return (int)(lex->type = (TEnumLexem)(key-KEY_WORDS));
     return -1;
-}
-
-TStructLex *LEX_lexology(FILE *f) {
-    PTStructLex lex = malloc(sizeof(TStructLex));
-    if (LEX_getLexem(lex, f))
-        return NULL;
-    isKeyWord(lex);
-    return lex;
 }
