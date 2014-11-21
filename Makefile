@@ -16,7 +16,7 @@ DOXCONF=config.dox
 all: init $(TARGET)
 
 init:
-	+@[ -d $(dir $@) ] && mkdir -p $(BUILDDIR)
+	+@[ -d $(BUILDDIR) ] && mkdir -p $(BUILDDIR)
 
 clean:
 	@echo "Cleaning working directory ..."

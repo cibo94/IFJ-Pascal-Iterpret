@@ -58,11 +58,11 @@ typedef enum {
     STREDNIK,                       //!< ukoncenie prikazu    ;
     CIARKA,                         //!< ciarka               ,
     BODKA,                          //!< bodka                .
-    OP_CONSTANT     = 1 << (sizeof(int)*8 -1),
+    CONSTANT        = 1 << (sizeof(int)*8 -1),
     OP_RELATION     = 1 << (sizeof(int)*8 -2),
     OP_MATH         = 1 << (sizeof(int)*8 -3),
     OP_ASS          = 1 << (sizeof(int)*8 -4),
-    INT_CONST       = 1 | OP_CONSTANT, //!< cele cislo
+    INT_CONST       = 1 | CONSTANT, //!< cele cislo
     REAL_CONST      = 2 | OP_CONSTANT, //!< desatine cislo
     STRING_CONST    = 3 | OP_CONSTANT, //!< znakovy retazec
     OPERATOR_PLUS   = 1 | OP_MATH,  //!< operator plus        +
