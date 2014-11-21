@@ -165,6 +165,7 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
                   (c == '>') ||
                   (c == ')'))||
                   (c == EOF) ||
+                  (c == ';') ||
                   (isspace(c))) {                   // ak je to nejaky znak ktory moze byt bezprostredne za cislom, tak ho uspesne ukonci
             if (*poz == 0 || (NumStatus->expPart &&
                 (s[*poz-1] == 'e' || s[*poz-1] == '+' || s[*poz-1] == '-')))
