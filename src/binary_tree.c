@@ -23,9 +23,6 @@ void BS_Add(TSbinstrom root,void *data,unsigned key){
  	bool AKTUALIZE=false;
  	bool LEFT;
 
- 	if (koren==NULL){
- 		root = BS_New(data, key);
- 		return;
  	}
  	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
  		if (key==pom->key){
