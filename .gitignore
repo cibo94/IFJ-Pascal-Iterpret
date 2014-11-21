@@ -2,3 +2,6 @@ build/
 tests/TEST_*/*/
 html/
 latex/
+proj
+CMakeLists.txt
+.idea
