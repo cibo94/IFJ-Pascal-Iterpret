@@ -16,7 +16,7 @@
 
 /** Our includes 		*/
 #include "error.h"			    //!< Error handling
-#include "init.h"               //!< Inicializacne funkcie
 #include "LEX_lexem.h"			//!< Praca s lexemami
 #include "binary_tree.h"		//!< Binarny strom
 #include "emb_func.h"
+#include "init.h"               //!< Inicializacne funkcie

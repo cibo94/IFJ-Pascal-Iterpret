@@ -1,6 +1,7 @@
 #include "inc.h"
 
 char * FILE_NAME;
+PGLOB_DEST pointers;
 
 FILE *init(const char *fn) {
     FILE *ret = fopen(fn, "r");
@@ -11,12 +12,18 @@ FILE *init(const char *fn) {
     return ret;
 }
 void  interpret() {
-
+    return;
 }
 constructor static void __init__ (void) {
+    pointers = malloc (sizeof(GLOB_DEST));
+    if (pointers == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
+    pointers->SYM_TABLE = NULL;
+ 
    // log("Initialization");
 }
 destructor static void __free__ (void) {
+    BS_Free(pointers->SYM_TABLE);
+    free(pointers);
     free(FILE_NAME);
     FILE_NAME = NULL;
     //log("Destruction");

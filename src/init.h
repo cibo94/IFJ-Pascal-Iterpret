@@ -10,6 +10,9 @@
 #define constructor __attribute__((unused, constructor))
 #define destructor __attribute__((unused, destructor))
 
+typedef struct {
+    TSbinstrom SYM_TABLE;
+} GLOB_DEST, *PGLOB_DEST;
 
 extern char *FILE_NAME;
 
