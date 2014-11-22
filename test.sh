@@ -44,7 +44,7 @@ function log {
 
 # WRAPP functions:
 function __wrapp_exe {
-    ${CC} -DDEBUG -g -std=c99 -Wall -Wextra -pedantic -o ${dir}/${name}.exe -x c - ${file} ../src/init.c 2>${dir}/${CC}.err 1>${dir}/${CC}.out <<EOF
+    ${CC} -DDEBUG -g -std=c99 -Wall -Wextra -pedantic -o ${dir}/${name}.exe -x c - ${file} ../src/init.c ../src/binary_tree.c 2>${dir}/${CC}.err 1>${dir}/${CC}.out <<EOF
 ${src}
 EOF
 }

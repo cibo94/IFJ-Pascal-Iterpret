@@ -38,3 +38,5 @@ TSbinstrom BS_Find(TSbinstrom root, unsigned key);
 /**
  * s PostOrder prejde stromom a vypise kluce vsetkych uzlov 
  */
+
+void BS_Hash (PTStructLex lex);

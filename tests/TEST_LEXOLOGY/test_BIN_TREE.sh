@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export dir="BIN_TREE"
 export name="BIN_TREE"
-export file="../src/LEX_lexem.c ../src/binary_tree.c"
+export file="../src/LEX_lexem.c"
 export src='#include "../src/inc.h"
 int main() {
     
