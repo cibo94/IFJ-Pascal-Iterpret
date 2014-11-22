@@ -42,7 +42,7 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
         } 
     break;
     case RETAZEC:
-        if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
+        if (ch==EOF) error(ERR_LEX,"Neukonceny retazcovy literal.");
         else {
             if (ch=='\'') *stav=MEDZI; 
             else LEX_string(&s,ch,poz);
@@ -163,6 +163,7 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
                   (c == '>') ||
                   (c == ')'))||
                   (c == ';') ||
+                  (c == ',') ||
                   (isspace(c))) {                   // ak je to nejaky znak ktory moze byt bezprostredne za cislom, tak ho uspesne ukonci
             if (*poz == 0 || (NumStatus->expPart &&
                 (s[*poz-1] == 'e' || s[*poz-1] == '+' || s[*poz-1] == '-')))
@@ -194,7 +195,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
                 Ret->type = OPERATOR_NEQUAL;
                 LEX_string(&Ret->lex, z, i);
             } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
-            else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+            else if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
             Ret->type = OPERATOR_SMALLER;
             return false;
 
@@ -203,7 +204,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
                 LEX_string(&Ret->lex, z, i);
                 Ret->type = OPERATOR_GREATEQ;
             } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
-            else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+            else if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
             Ret->type = OPERATOR_GREATER;
             return false;
 
@@ -212,7 +213,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
                 LEX_string(&Ret->lex, z, i);
                 Ret->type = OPERATOR_ASSIGN;
             } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
-            else if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+            else if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
             Ret->type = DDOT;
             return false;
 
@@ -255,7 +256,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
         else
             return false;
     }
-    if (fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+    if (ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
     return false;
 }
 
@@ -263,7 +264,7 @@ int LEX_ident(FILE *f, TStructLex *Ret, int z, unsigned *i) {
     if((z>='a' && z<= 'z') || (z>='A' && z<= 'Z') || z == '_' || (z>='0' && z<='9')) {
         if (z>='A' && z<= 'Z') z = z - ('a' - 'A');
     } else if((z>=40 && z<=47) || (z>=58 && z<=62) || isspace(z) || z == '{') { //oddelovac alebo operator, bodka je 46 - mozno nebude vhod
-        if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom"); //printf("%s, %d\n", Ret->lex, state);
+        if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom"); //printf("%s, %d\n", Ret->lex, state);
         return false;
     } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
     else error(ERR_LEX, "Neocakavany znak '%c' v identifikatore '%s'", z, Ret->lex);
@@ -318,7 +319,6 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
     if (!(Ret->lex = malloc(STD_LNGTH)))
         error(ERR_INTERNAL, "malloc vratil NULL");
     Ret->flags = 0;
-    Ret->value = NULL;
     while((z = fgetc(f)) || true) {
         switch (state) {
             case BASE:
@@ -382,7 +382,7 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
                     return;
                 } if (!isspace(z)) {
                     state = BASE;
-                    if(fseek(f,-1,SEEK_CUR)==-1) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
+                    if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
                 }
             break;
         }
