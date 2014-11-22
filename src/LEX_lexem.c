@@ -262,7 +262,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
 
 int LEX_ident(FILE *f, TStructLex *Ret, int z, unsigned *i) {
     if((z>='a' && z<= 'z') || (z>='A' && z<= 'Z') || z == '_' || (z>='0' && z<='9')) {
-        if (z>='A' && z<= 'Z') z = z - ('a' - 'A');
+        if (z>='A' && z<= 'Z') z = z + ('a' - 'A');
     } else if((z>=40 && z<=47) || (z>=58 && z<=62) || isspace(z) || z == '{') { //oddelovac alebo operator, bodka je 46 - mozno nebude vhod
         if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom"); //printf("%s, %d\n", Ret->lex, state);
         return false;
