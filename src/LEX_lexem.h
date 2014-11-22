@@ -219,9 +219,14 @@ LEX_base(FILE               *f,
  * \return TRUE ak skoncil ak nie tak FALSE
  */
 void
-LEX_getLexem(TStructLex *Ret, 
+LEX_getLexem(PTStructLex Ret, 
              FILE       *f);
 
+/** isKeyWord
+ * \brief Skontroluje ci je identifikator klucove SLOVO a zmeni jeho typ
+ * \param lex lexema
+ * \return cislo/enum ak nasiel ak nie -1
+ */
 int
 isKeyWord(PTStructLex lex);
 

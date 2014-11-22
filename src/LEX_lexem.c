@@ -304,7 +304,7 @@ int LEX_base (FILE *f, TStructNumStat NumStatus, TEnumStatus *state, TStructLex 
     return false;
 }
 
-void LEX_getLexem(TStructLex *Ret, FILE* f) {
+void LEX_getLexem(PTStructLex Ret, FILE* f) {
     unsigned i = 0;
     int z = 0, base_ret, iden_ret;
     SNumStat _NumStatus = { 
@@ -315,10 +315,10 @@ void LEX_getLexem(TStructLex *Ret, FILE* f) {
     TStructNumStat NumStatus = &_NumStatus;
     TEnumStatus state = BASE;
     TEnumLexStr stav = START;
-
     if (!(Ret->lex = malloc(STD_LNGTH)))
         error(ERR_INTERNAL, "malloc vratil NULL");
-
+    Ret->flags = 0;
+    Ret->value = NULL;
     while((z = fgetc(f)) || true) {
         switch (state) {
             case BASE:
@@ -335,6 +335,7 @@ void LEX_getLexem(TStructLex *Ret, FILE* f) {
             case SLOVO: //!< IDENTIFIKATOR
                 iden_ret = LEX_ident(f, Ret, z, &i);
                 if (iden_ret == false) {
+                    isKeyWord(Ret);
                     return;
                 }else if (iden_ret == true) {
                     error(ERR_SYN, "Neocakavany koniec suboru");
@@ -390,7 +391,7 @@ void LEX_getLexem(TStructLex *Ret, FILE* f) {
 
 int isKeyWord(PTStructLex lex) {
     for (char ** key = KEY_WORDS; *key != NULL; key++)
-        if (strcmp(lex->lex, *key) == 0)
+        if (!strcmp(lex->lex, *key))
             return (int)(lex->type = (TEnumLexem)(key-KEY_WORDS));
     return -1;
 }
