@@ -8,13 +8,13 @@
 #define h_LEX_lexem
 
 
-#define LEX_FLAGS_INIT              0x00000001
-#define LEX_FLAGS_TYPE_BOOL         0x00000002
-#define LEX_FLAGS_TYPE_INT          0x00000004
-#define LEX_FLAGS_TYPE_REAL         0x00000008
-#define LEX_FLAGS_TYPE_STRING       0x00000010
-#define LEX_FLAGS_TYPE_FUNCTION     0x00000020
-#define LEX_FLAGS_TYPE_FUNC_RET     0x00000040
+#define LEX_FLAGS_INIT              0x00000010      //!< premenna bola inicializovana
+#define LEX_FLAGS_TYPE_BOOL         0x00000020      //!< premenna typu bool
+#define LEX_FLAGS_TYPE_INT          0x00000004      //!< premenna typu integer
+#define LEX_FLAGS_TYPE_REAL         0x00000008      //!< premenna typu string
+#define LEX_FLAGS_TYPE_STRING       0x00000010      //!< premenna typu real
+#define LEX_FLAGS_TYPE_FUNCTION     0x00000020      //!< lexema je funkcia
+#define LEX_FLAGS_TYPE_FUNC_DEK     0x00000040      //!< funkcia bola deklarovana
 
 
 #define STD_LNGTH 32                //!< pociatocna dlzka stringu
