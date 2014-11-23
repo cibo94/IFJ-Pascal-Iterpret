@@ -39,4 +39,4 @@ TSbinstrom BS_Find(TSbinstrom root, uint64_t key);
  * s PostOrder prejde stromom a vypise kluce vsetkych uzlov 
  */
 
-void BS_Hash (PTStructLex lex);
+uint64_t hash (char *Fkey, uint64_t Ppar, char *Vkey);

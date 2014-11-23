@@ -73,13 +73,47 @@ void BS_Free(TSbinstrom root){
 	free(root);
 }
 
-void BS_Print(TSbinstrom root){
-	if (root == NULL)
-		return;
-	BS_Print(root->lptr);
-	BS_Print(root->rptr);
-	printf("%d\n",root->key);
+static void Print_tree2(TSbinstrom TempTree, char* sufix, char fromdir) {
+    if (TempTree != NULL) {
+        char* suf2 = (char*) malloc(strlen(sufix) + 4);
+        strcpy(suf2, sufix);
+        if (fromdir == 'L'){
+            suf2 = strcat(suf2, "  |");
+            printf("%s\n", suf2);
+	    }else
+	        suf2 = strcat(suf2, "   ");
+	    Print_tree2(TempTree->rptr, suf2, 'R'); 
+        if (TempTree->data != NULL)
+            printf("%s  +-[%s, %llu]\n", sufix, ((PTStructLex)TempTree->data)->lex, (long long unsigned int)TempTree->key);
+	    else
+            printf("%s  +-[NULL, %llu]\n", sufix, (long long unsigned int)TempTree->key);
+        strcpy(suf2, sufix);
+        if (fromdir == 'R')
+	        suf2 = strcat(suf2, "  |");	
+	    else
+	        suf2 = strcat(suf2, "   ");
+	    Print_tree2(TempTree->lptr, suf2, 'L');
+	    if (fromdir == 'R') printf("%s\n", suf2);
+	        free(suf2);
+    }
 }
+
+static void Print_tree(TSbinstrom TempTree) {
+    printf("Struktura binarniho stromu:\n");
+    printf("\n");
+    if (TempTree != NULL)
+        Print_tree2(TempTree, "", 'X');
+    else
+        printf("strom je prazdny\n");
+    printf("\n");
+    printf("=================================================\n");
+} 
+
+void BS_Print(TSbinstrom root){
+    Print_tree(root);
+}
+
+
 
 static uint64_t __jenkins_hash (char *key, uint64_t mask) {
     uint64_t hash, i;
@@ -96,7 +130,7 @@ static uint64_t __jenkins_hash (char *key, uint64_t mask) {
 }
 
 uint64_t hash (char *Fkey, uint64_t Ppar, char *Vkey) {
-    return (__jenkins_hash(Fkey, ((uint64_t)~0)>>(64-27))<<(63-27)) |
-            ((Ppar&(((uint64_t)~0)>>54))<<(63-37)) |
-         ((~__jenkins_hash(Vkey, ((uint64_t)~0)>>(64-26)))&(((uint64_t)~0)>>(64-26)));
+    return 0 | (__jenkins_hash(Fkey, ((uint64_t)~0)>>(64-27))<<(64-27)) |
+            ((Ppar&(((uint64_t)~0)>>54))<<(64-37)) |
+         ((~__jenkins_hash(Vkey, ((uint64_t)~0)>>(64-27)))&(((uint64_t)~0)>>(64-27)));
 }
