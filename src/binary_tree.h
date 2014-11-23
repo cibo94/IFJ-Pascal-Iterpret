@@ -3,27 +3,27 @@
 
 typedef struct Sbinstrom {
     void *data;                     //<! Dynamicke pretypovanie
-    unsigned key;                   //<! Kluc
+    uint64_t key;                   //<! Kluc
     struct Sbinstrom *rptr;         //<! Lavy branch
     struct Sbinstrom *lptr;         //<! Pravy branch
 } *TSbinstrom;                      //<! Strom
 
 
 #endif
-TSbinstrom BS_New(void *data,unsigned key);
+TSbinstrom BS_New(void *data,uint64_t key);
 /**
  * alokuje koren binarneho stromu a napni ho datami,
  * vrati pointer nan, v pripade chyby vrati NULL
  */
 
-void BS_Add(TSbinstrom root, void *data, unsigned key);
+void BS_Add(TSbinstrom root, void *data, uint64_t key);
 /**
  * ak najde kluc, tak aktualizuje data, inak
  * vytvori a prida novy uzol do binarneho stromu
  * a naplni ho datami a zaradi podla kluca
  */
 
-TSbinstrom BS_Find(TSbinstrom root, unsigned key);
+TSbinstrom BS_Find(TSbinstrom root, uint64_t key);
 /**
  * Hlada uzol podla kluca a vrati ukazovatel
  * na najdeny uzol alebo NULL

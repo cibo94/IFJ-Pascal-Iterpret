@@ -1,6 +1,6 @@
 #include "inc.h"
 
-TSbinstrom BS_New(void *data,unsigned key){
+TSbinstrom BS_New(void *data,uint64_t key){
 
 
  	TSbinstrom novy= (TSbinstrom) malloc(sizeof(struct Sbinstrom)); 	
@@ -16,7 +16,7 @@ TSbinstrom BS_New(void *data,unsigned key){
  	return novy;
 }
 
-void BS_Add(TSbinstrom root,void *data,unsigned key){
+void BS_Add(TSbinstrom root,void *data,uint64_t key){
 
  	TSbinstrom pom=root;
  	TSbinstrom koren=root;
@@ -52,7 +52,7 @@ void BS_Add(TSbinstrom root,void *data,unsigned key){
 }
 
 
-TSbinstrom BS_Find(TSbinstrom root, unsigned key){
+TSbinstrom BS_Find(TSbinstrom root, uint64_t key){
 
  	TSbinstrom pom=root;
 
@@ -79,4 +79,24 @@ void BS_Print(TSbinstrom root){
 	BS_Print(root->lptr);
 	BS_Print(root->rptr);
 	printf("%d\n",root->key);
+}
+
+static uint64_t __jenkins_hash (char *key, uint64_t mask) {
+    uint64_t hash, i;
+    size_t len = strlen(key);
+    for(hash = i = 0; i < len; ++i) {
+        hash += key[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash&mask;
+}
+
+uint64_t hash (char *Fkey, uint64_t Ppar, char *Vkey) {
+    return (__jenkins_hash(Fkey, ((uint64_t)~0)>>(64-27))<<(63-27)) |
+            ((Ppar&(((uint64_t)~0)>>54))<<(63-37)) |
+         ((~__jenkins_hash(Vkey, ((uint64_t)~0)>>(64-26)))&(((uint64_t)~0)>>(64-26)));
 }
