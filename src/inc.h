@@ -19,4 +19,5 @@
 #include "LEX_lexem.h"			//!< Praca s lexemami
 #include "binary_tree.h"		//!< Binarny strom
 #include "emb_func.h"
+#include "SYN_parser.h"
 #include "init.h"               //!< Inicializacne funkcie
