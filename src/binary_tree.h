@@ -2,41 +2,41 @@
 #define h_SYM
 
 typedef struct Sbinstrom {
-    void *data;                     //<! Dynamicke pretypovanie
-    uint64_t key;                   //<! Kluc
+    PTStructLex data;               //<! lexema
+    uint32_t key;                   //<! Kluc
+    struct SbinStrom *loc_table     //<! podstrom s lokalnou tabulkou symbolov 
     struct Sbinstrom *rptr;         //<! Lavy branch
     struct Sbinstrom *lptr;         //<! Pravy branch
 } *TSbinstrom;                      //<! Strom
 
 
 #endif
-TSbinstrom BS_New(void *data,uint64_t key);
+
 /**
  * alokuje koren binarneho stromu a napni ho datami,
  * vrati pointer nan, v pripade chyby vrati NULL
  */
+TSbinstrom BS_New(PTStructLex data);
 
-void BS_Add(TSbinstrom root, void *data, uint64_t key);
 /**
  * ak najde kluc, tak aktualizuje data, inak
  * vytvori a prida novy uzol do binarneho stromu
  * a naplni ho datami a zaradi podla kluca
  */
+void BS_Add(TSbinstrom root, PTStructLex data);
 
-TSbinstrom BS_Find(TSbinstrom root, uint64_t key);
 /**
  * Hlada uzol podla kluca a vrati ukazovatel
  * na najdeny uzol alebo NULL
  */
+TSbinstrom BS_Find(TSbinstrom root, PTStructLex dat);
 
- void BS_Free(TSbinstrom root);
- /**
+/**
  * pomocou PostOrder prejde stromom a uvolni vsetky uzly 
  */
-
- void BS_Print(TSbinstrom root);
+void BS_Free(TSbinstrom root);
+ 
 /**
  * s PostOrder prejde stromom a vypise kluce vsetkych uzlov 
  */
-
-uint64_t hash (char *Fkey, uint64_t Ppar, char *Vkey);
+void BS_Print(TSbinstrom root);
