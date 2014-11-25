@@ -1,5 +1,6 @@
 #include "inc.h"
 
+
 static uint32_t hash (char *key) {
     uint32_t hash, i;
     size_t len = strlen(key);
@@ -31,7 +32,7 @@ TSbinstrom BS_New(PTStructLex data){
  	return novy;
 }
 
-void BS_Add(TSbinstrom root,PTStructLex data){
+TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
 
  	TSbinstrom pom=root;
  	TSbinstrom koren=root;
@@ -42,7 +43,7 @@ void BS_Add(TSbinstrom root,PTStructLex data){
  	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
  		if (key==pom->key &&
            !(c=strcmp(data->lex, pom->data->lex))){
-            error(ERR_SEM_UNREDEF, "Redefinovanie funkcie: '%s'\n", data->lex);
+            //error(ERR_SEM_UNREDEF, "Redefinovanie funkcie: '%s'\n", data->lex);
  		}
  		koren=pom;
  		if (key > pom->key){        	//!< porovnavam kluce
@@ -67,42 +68,27 @@ void BS_Add(TSbinstrom root,PTStructLex data){
 
 TSbinstrom BS_Find(TSbinstrom root, PTStructLex dat){
     uint32_t key = hash(dat->lex);
- 	TSbinstrom pom=root;
-    int c = 0;
- 	while ((pom!=NULL) && (key!=pom->key)){	    //!< kym neprideme na vrchol stromu alebo nenajdeme kluc
- 		if (key > pom->key)						//!< porovnavam kluce
- 			pom=pom->rptr;						//!< ak je hladany kluc ostro vacsi - doprava
- 		else
- 			pom=pom->lptr;						//!< ak je hladany kluc mensi alebo rovny - dolava
- 	}
-
-    while ((pom!=NULL) && (c=strcmp(dat->lex, pom->data->lex))) {
-        if (c > 0)
-            pom=pom->rptr;
-        else
-            pom=pom->lptr;
-    }
-
-    while (pom!=NULL){
-        if (key==pom->key){
-                
-            
-            
-        }    
-        
-        
-        
-    }
-
+    TSbinstrom pom=root;
+    int c;
     
- 	return pom;									//!< pratime uzol na ktorom sme skoncili, ci uz 
-}												//!< hladany uzol alebo NULL
+    while (pom!=NULL){							//!< kym neprejdeme na koniec stromu
+        if (key==pom->key && !(c=strcmp(dat->lex, pom->data->lex)))	//!< ak sa rovnaju kluce a aj stringy nasli sme hladany uzol
+		return pom;  							
+      	if (key > pom->key)                                             //!< porovnavam kluce
+        	pom=pom->rptr;                                          //!< ak je hladany kluc ostro vacsi - doprava
+        else
+                pom=pom->lptr;                                          //!< ak je hladany kluc mensi alebo rovny - dolava       
+    }
+ 	return NULL;							//!< na konci ak sa nic nenaslo vrati NULL 
+}												
+
 
 void BS_Free(TSbinstrom root){
 	if (root == NULL)
 		return;
 	BS_Free(root->lptr);
 	BS_Free(root->rptr);
+	BS_Free(root->loc_table);
 	free(root);
 }
 

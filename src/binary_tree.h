@@ -4,7 +4,7 @@
 typedef struct Sbinstrom {
     PTStructLex data;               //<! lexema
     uint32_t key;                   //<! Kluc
-    struct SbinStrom *loc_table     //<! podstrom s lokalnou tabulkou symbolov 
+    struct SbinStrom *loc_table;     //<! podstrom s lokalnou tabulkou symbolov 
     struct Sbinstrom *rptr;         //<! Lavy branch
     struct Sbinstrom *lptr;         //<! Pravy branch
 } *TSbinstrom;                      //<! Strom
@@ -23,7 +23,7 @@ TSbinstrom BS_New(PTStructLex data);
  * vytvori a prida novy uzol do binarneho stromu
  * a naplni ho datami a zaradi podla kluca
  */
-void BS_Add(TSbinstrom root, PTStructLex data);
+TSbinstrom BS_Add(TSbinstrom root, PTStructLex data);
 
 /**
  * Hlada uzol podla kluca a vrati ukazovatel
