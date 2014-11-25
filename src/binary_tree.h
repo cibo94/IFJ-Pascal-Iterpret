@@ -4,7 +4,7 @@
 typedef struct Sbinstrom {
     PTStructLex data;               //<! lexema
     uint32_t key;                   //<! Kluc
-    struct SbinStrom *loc_table;     //<! podstrom s lokalnou tabulkou symbolov 
+    struct Sbinstrom *loc_table;    //<! podstrom s lokalnou tabulkou symbolov 
     struct Sbinstrom *rptr;         //<! Lavy branch
     struct Sbinstrom *lptr;         //<! Pravy branch
 } *TSbinstrom;                      //<! Strom
