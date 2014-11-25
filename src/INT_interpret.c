@@ -22,6 +22,18 @@ static TTerm *SPosSet (PTStack *S, TTerm *address) {
         S++;
     }
     error(ERR_INTERNAL, "Chyba pri nastavovani instrukcneho skoku!\n");
+    return NULL;
+}
+
+static TTerm *SPosGet (PTStack *S) {
+    while (*S != NULL) {
+        if ((*S)->next == NULL) {
+            return (*S)->term;
+        }
+        S++;
+    }
+    error(ERR_INTERNAL, "Chyba pri nastavovani instrukcneho skoku!\n");
+    return NULL;
 }
 
 static bool SEmpty (PTStack s) {
@@ -49,8 +61,8 @@ static TTerm *SPop (PTStack *s) {
 
 static TTerm *SPick (PTStack *s, uint32_t pos) {
     if (s == NULL) error(ERR_INTERNAL, "Stack overflow!\n");
-    if (!pos) return s;
-    return SPick (s->next, pos--);
+    if (!pos) return (*s)->term;
+    return SPick (&((*s)->next), pos--);
 }
 
 static void SFree (PTStack *s) {
@@ -173,7 +185,7 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
     }
 }
 
-static void smalleq (TTerm *op1, TTerm *op2, TTerm *ret) {
+static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer <= op2->value.integer;
@@ -232,6 +244,7 @@ __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     TTerm *Address = SPosGet(&STACK);
     SPush(&STACK, Address);
+    SPosSet(&STACK, op1);
 }
 
 static void ret (        TTerm *op1,
@@ -254,7 +267,8 @@ static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret == NULL) {
-        ret = SPop(&STACK);
+        if (SEmpty(&STACK))
+            ret = SPop(&STACK);
     } else {
         SPop(&STACK);
     }
@@ -263,7 +277,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
-    SPosSet(&STACK, op1->value.address);
+    SPosSet(&STACK, op1);
 }
 
 static void jtrue (      TTerm *op1, TTerm *op2,
@@ -282,19 +296,19 @@ __attribute__ ((unused)) TTerm *ret) {
 
 static void not (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    ret->value.boolean = !(op->value.boolean);
+    ret->value.boolean = !(op1->value.boolean);
 }
 
 static void load (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     uint32_t size = STop (STACK)->value.address;
-    ret->value.pointer = SPick(STACK, size-op1->value.address);
+    ret->value.pointer = SPick(&STACK, size-op1->value.address);
 }
 
 __attribute__ ((unused))
 static void (*INSTRUCTIONS[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
-    &plus, &minus, &mul, &division, &assign, &less, &greater, &smalleq, &greateq, &equal,
-    &call, &ret, &push, &pop, &jtrue, &jmp, &nop, &load 
+    &plus, &minus, &mul, &division, &assign, &less, &greater, &lesseq, &greateq, &equal,
+    &call, &ret, &push, &pop, &jtrue, &jmp, &nop, &load, &not 
     // TODO: Pridat dalsie funkcie!
 };
 
