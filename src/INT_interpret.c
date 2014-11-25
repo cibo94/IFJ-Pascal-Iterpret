@@ -1,10 +1,27 @@
-#include "inc.h"
+/**
+ * \file INT_parser.c
+ * \authon Miroslav Cibulka
+ * \brief Interpret trojadresneho kodu
+ */
 
+#include "inc.h"
 
 static PTStack STACK;
 
 static PTStack SInit () {
     return NULL;
+}
+
+static TTerm *SPosSet (PTStack *S, TTerm *address) {
+    while (*S != NULL) {
+        if ((*S)->next == NULL) {
+            TTerm *ret = (*S)->term;
+            memcpy((*S)->term, address, sizeof(TStack));
+            return ret;
+        }
+        S++;
+    }
+    error(ERR_INTERNAL, "Chyba pri nastavovani instrukcneho skoku!\n");
 }
 
 static bool SEmpty (PTStack s) {
@@ -14,20 +31,26 @@ static bool SEmpty (PTStack s) {
 static void SPush (PTStack *s, TTerm *add) {
     PTStack el = malloc (sizeof(TStack));
     el->next = (*s);
-    el->address = add;
-    *s = el;
+    el->term = add;
+   *s = el;
 }
 
 static TTerm *STop (PTStack s) {
-    return s->address; 
+    return s->term; 
 }
 
 static TTerm *SPop (PTStack *s) {
-    TTerm *add = (*s)->address;
+    TTerm *add = (*s)->term;
     PTStack toDel = (*s);
     (*s) = (*s)->next;
     free(toDel);
     return add;
+}
+
+static TTerm *SPick (PTStack *s, uint32_t pos) {
+    if (s == NULL) error(ERR_INTERNAL, "Stack overflow!\n");
+    if (!pos) return s;
+    return SPick (s->next, pos--);
 }
 
 static void SFree (PTStack *s) {
@@ -71,7 +94,7 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
     }
 }
 
-static void times (TTerm *op1, TTerm *op2, TTerm *ret) {
+static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
     switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer * op2->value.integer;
@@ -79,7 +102,7 @@ static void times (TTerm *op1, TTerm *op2, TTerm *ret) {
         case TERM_REAL   :
             ret->value.real = op1->value.real * op2->value.real;
         break;
-        default: break;
+        default          : break;
     }
 }
 
@@ -91,7 +114,7 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
         case TERM_REAL   :
             ret->value.real = op1->value.real / op2->value.real;
         break;
-        default: break;
+        default          : break;
     }
 }
 
@@ -114,7 +137,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     }
 }
 
-static void smaller (TTerm *op1, TTerm *op2, TTerm *ret) {
+static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer < op2->value.integer;
@@ -207,7 +230,8 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
 static void call (       TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, 
 __attribute__ ((unused)) TTerm *ret) {
-    SPush(&STACK, op1);
+    TTerm *Address = SPosGet(&STACK);
+    SPush(&STACK, Address);
 }
 
 static void ret (        TTerm *op1,
@@ -220,48 +244,81 @@ __attribute__ ((unused)) TTerm *ret) {
 static void push (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
-    SPush(&STACK, op1);
+    TTerm *s = malloc (sizeof(TTerm));
+    if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
+    memcpy(s, op1, sizeof(TTerm));
+    SPush(&STACK, s);
 }
 
 static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret == NULL) {
-        ret = SPop(STACK);
+        ret = SPop(&STACK);
     } else {
         SPop(&STACK);
-    }
-}
-
-static void jtrue (      TTerm *op1, TTerm *op2,
-__attribute__ ((unused)) TTerm *ret) {
-    if (op1->value.boolean == true) {
-        // TODO: Jump function
     }
 }
 
 static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
-    // TODO: Jump function 
+    SPosSet(&STACK, op1->value.address);
+}
+
+static void jtrue (      TTerm *op1, TTerm *op2,
+__attribute__ ((unused)) TTerm *ret) {
+    if (op1->value.boolean == true) {
+        jmp(op2, NULL, NULL);
+    }
+}
+
+static void nop (
+__attribute__ ((unused)) TTerm *op1,
+__attribute__ ((unused)) TTerm *op2,
+__attribute__ ((unused)) TTerm *ret) {
+    return;
+}
+
+static void not (        TTerm *op1,
+__attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    ret->value.boolean = !(op->value.boolean);
+}
+
+static void load (       TTerm *op1,
+__attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    uint32_t size = STop (STACK)->value.address;
+    ret->value.pointer = SPick(STACK, size-op1->value.address);
 }
 
 __attribute__ ((unused))
 static void (*INSTRUCTIONS[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
-    &plus, &minus, &times, &division, &assign, &smaller, &greater, &smalleq, &greateq, &equal,
-    &call, &ret, &push, &pop, &jtrue, &jmp
+    &plus, &minus, &mul, &division, &assign, &less, &greater, &smalleq, &greateq, &equal,
+    &call, &ret, &push, &pop, &jtrue, &jmp, &nop, &load 
+    // TODO: Pridat dalsie funkcie!
 };
 
+// TODO: vytvorit pole instrukcii:
 __attribute__ ((unused))
 static P3ADD *SEM_CMD;
 
 __attribute__ ((unused))
 void INT_parse () {
+    /// Instruction pointer
+    TTerm EIP;
+    EIP.value.address = 0;
+    EIP.type = TERM_EIP;
+    EIP.name = NULL;
+
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat prechod prikazmi
     //      * pridat dealokacie
     STACK = SInit();
+    SPush(&STACK, &EIP);
+
+    // TODO: Hlavny WHILE:
+
     SFree (&STACK);
     return;
 }
