@@ -97,7 +97,8 @@ typedef enum {
 
 typedef struct {
     uint32_t flags;                 //!< flagy pre blizsiu specifikaciu
-    void *value;                    //!< hodnota pri premennej, typ hodnoty urceny flagmi
+    struct TTerm *value;                    //!< hodnota pri premennej, typ hodnoty urceny flagmi
+    int param;                      //!< index do zasobnika termov (interpret)/ pocet param. o funkcii
     char *lex;                      //!< Stringova representacia lexemy
     TEnumLexem type;                //!< druh lexemy
 } TStructLex, *PTStructLex;         //!< struktura ktora obsahuje info o lexeme
