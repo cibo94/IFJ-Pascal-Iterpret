@@ -6,6 +6,21 @@
 
 #include "inc.h"
 
+<<<<<<< HEAD
+=======
+// DUMMY typedefs:
+
+// DUMMY functions:
+
+///////////////////////
+
+
+typedef struct SStack {
+    TTerm             *term;
+    struct SStack     *next;
+} TStack, *PTStack;
+
+>>>>>>> Pridane veci ...
 static PTStack STACK;
 
 static PTStack SInit () {
@@ -267,7 +282,7 @@ static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret == NULL) {
-        if (SEmpty(&STACK))
+        if (SEmpty(STACK))
             ret = SPop(&STACK);
     } else {
         SPop(&STACK);
@@ -314,11 +329,12 @@ static void (*INSTRUCTIONS[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
 
 // TODO: vytvorit pole instrukcii:
 __attribute__ ((unused))
-static P3ADD *SEM_CMD;
+P3AC *INST;
 
-__attribute__ ((unused))
-void INT_parse () {
+
+void INT_interpret () {
     /// Instruction pointer
+    P3AC *PINST = INST;
     TTerm EIP;
     EIP.value.address = 0;
     EIP.type = TERM_EIP;
@@ -333,6 +349,10 @@ void INT_parse () {
 
     // TODO: Hlavny WHILE:
 
+    while (*PINST != NULL) {
+        INSTRUCTIONS[(*PINST)->op]((*PINST)->op1, (*PINST)->op2, (*PINST)->ret);
+        PINST++;
+    }
     SFree (&STACK);
     return;
 }
