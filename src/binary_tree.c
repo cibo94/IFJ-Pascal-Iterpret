@@ -40,6 +40,9 @@ TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
     uint32_t key = hash(data->lex);
     int c = 0;
 
+    if (root==NULL)
+    	return BS_New(data);    
+
  	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
  		if (key==pom->key &&
            !(c=strcmp(data->lex, pom->data->lex))){

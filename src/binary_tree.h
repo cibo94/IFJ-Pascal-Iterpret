@@ -19,7 +19,7 @@ typedef struct Sbinstrom {
 TSbinstrom BS_New(PTStructLex data);
 
 /**
- * ak najde kluc, tak aktualizuje data, inak
+ * ak najde kluc,ERR, inak
  * vytvori a prida novy uzol do binarneho stromu
  * a naplni ho datami a zaradi podla kluca
  */
@@ -37,6 +37,30 @@ TSbinstrom BS_Find(TSbinstrom root, PTStructLex dat);
 void BS_Free(TSbinstrom root);
  
 /**
- * s PostOrder prejde stromom a vypise kluce vsetkych uzlov 
+ * prejde stromom a vypise kluce vsetkych uzlov 
  */
 void BS_Print(TSbinstrom root);
+
+
+/** MODELOVE VOLANIA
+ * ========================================================
+ * pre pridanie uzlu (aj uplne prveho) do tabulky symbolov 
+ * alebo tabulky lokalnych premennych volame:
+ *  
+ * 		pom=BS_Add(NULL,lex);  	pre prvy uzol
+ * 		BS_Add(pom,lex2);		pre dalsie uzly
+ * 
+ * pre pridavanie do lokalnych tabuliek treba napnit 
+ * vysledok prveho pridavania do pom->loc_table;
+ * ======================================================== 
+ * Pre hladanie v tabulke symbolov alebo jednotlivych 
+ * scope-och pouzivame funkciu:
+ *
+ * 		BS_Find(pom,lex2)		ak existuje vrati ukazatel
+ * 
+ * ========================================================
+ * Cela Tabulka symbolov a aj lokalne tabulky sa uvolnia:
+ * 
+ * 		BS_Free(pom);
+ * ========================================================
+ */
