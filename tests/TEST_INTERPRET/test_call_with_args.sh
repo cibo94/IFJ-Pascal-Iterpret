@@ -119,6 +119,6 @@ int main () {
     return 0;
 }'
 export input=""
-export output="Prebehol call? 8 == 8?
+export output="Prebehol call? 35 == 35?
 "
 export retCode=0

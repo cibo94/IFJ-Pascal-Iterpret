@@ -114,6 +114,7 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
     }
     switch (ret->type) {
         case TERM_INT    :
+            log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
             ret->value.integer = op1->value.integer * op2->value.integer;
         break;
         case TERM_REAL   :
@@ -316,7 +317,7 @@ static void jtrue (      TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     if (op1->value.boolean == true) {
         jmp(op2, NULL, NULL);
-    } else
+    }
         log("Not jumping on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
@@ -387,7 +388,7 @@ void INT_interpret () {
     // TODO: Hlavny WHILE:
 
     for (int i = 0; *PEIP != NULL; i++) {
-        log("INST %u\n", (uint32_t)(PEIP-EIP));
+        log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
         PEIP++;
     }

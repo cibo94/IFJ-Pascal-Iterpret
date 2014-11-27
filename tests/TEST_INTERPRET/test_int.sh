@@ -76,5 +76,15 @@ int main () {
     return 0;
 }'
 export input=""
-export output=""
+export output="5+2=7
+5-2=3
+5*2=10
+5/2=2
+ret=5=5
+5>2=true
+5<2=false
+5>=2=true
+5<=2=false
+5==2=false
+"
 export retCode=0

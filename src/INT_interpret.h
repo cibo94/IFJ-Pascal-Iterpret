@@ -35,7 +35,8 @@ typedef enum {
     OP_JMP, 
     OP_NOP, 
     OP_LOAD,
-    OP_NOT 
+    OP_NOT,
+    OP_STORE 
 } E_OP;
 
 typedef enum {

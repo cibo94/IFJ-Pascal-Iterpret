@@ -54,5 +54,6 @@ int main () {
     return 0;
 }'
 export input=""
-export output=""
+export output="Prebehol skok? 4 == 4?
+"
 export retCode=0
