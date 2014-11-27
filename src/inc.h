@@ -21,4 +21,3 @@
 #include "emb_func.h"
 #include "INT_interpret.h"
 #include "init.h"               //!< Inicializacne funkcie
-#include "INT_parser.h"
