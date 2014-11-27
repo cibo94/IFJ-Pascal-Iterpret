@@ -49,6 +49,10 @@ int main () {
     INT_interpret ();
     printf("%d/%d=%d\n", op1.value.integer, op2.value.integer, ret.value.integer);
 
+    s.op = OP_ASSIGN;
+    INT_interpret ();
+    printf("ret=%d=%d\n", op1.value.integer, ret.value.integer);
+
     s.op = OP_GREAT;
     INT_interpret ();
     printf("%d>%d=%s\n", op1.value.integer, op2.value.integer, ret.value.boolean ? "true" : "false");
@@ -57,9 +61,17 @@ int main () {
     INT_interpret ();
     printf("%d<%d=%s\n", op1.value.integer, op2.value.integer, ret.value.boolean ? "true" : "false");
 
+    s.op = OP_GREATEQ;
+    INT_interpret ();
+    printf("%d>=%d=%s\n", op1.value.integer, op2.value.integer, ret.value.boolean ? "true" : "false");
 
+    s.op = OP_LESSEQ;
+    INT_interpret ();
+    printf("%d<=%d=%s\n", op1.value.integer, op2.value.integer, ret.value.boolean ? "true" : "false");
 
-
+    s.op = OP_EQUAL;
+    INT_interpret ();
+    printf("%d==%d=%s\n", op1.value.integer, op2.value.integer, ret.value.boolean ? "true" : "false");
 
     return 0;
 }'
