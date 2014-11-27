@@ -6,7 +6,6 @@
 #ifndef h_INT_PAR
 #define h_INT_PAR
 
-<<<<<<< HEAD
 // DUMMY typedefs:
 
 typedef struct S3ADD *P3ADD;
@@ -40,7 +39,6 @@ typedef struct SStack {
     struct SStack     *next;
 } TStack, *PTStack;
 
-=======
 typedef enum {
     OP_PLUS, 
     OP_MINUS, 
@@ -62,7 +60,6 @@ typedef enum {
     OP_LOAD,
     OP_NOT 
 } E_OP;
->>>>>>> Pridane veci ...
 
 typedef enum {
     TERM_INT,

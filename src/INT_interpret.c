@@ -6,8 +6,6 @@
 
 #include "inc.h"
 
-<<<<<<< HEAD
-=======
 // DUMMY typedefs:
 
 // DUMMY functions:
@@ -20,7 +18,6 @@ typedef struct SStack {
     struct SStack     *next;
 } TStack, *PTStack;
 
->>>>>>> Pridane veci ...
 static PTStack STACK;
 
 static PTStack SInit () {

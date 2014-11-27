@@ -20,7 +20,8 @@ init:
 
 clean:
 	@echo "Cleaning working directory ..."
-	@rm -rf $(BUILDDIR) $(TARGET) html latex
+	@rm -rf $(OBJECT) $(patsubst %.o,%.o.d,$(OBJECT)) $(TARGET) html latex
+	@bash -c "echo -e \"\e[31m $(OBJECT) $(patsubst %.o,%.o.d,$(OBJECT)) $(TARGET)\e[39m\" | sed \"s/\ /\n\tremoving\: /g\""
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(eval NthSRC=$(shell echo $(NthSRC)+1 | bc))
