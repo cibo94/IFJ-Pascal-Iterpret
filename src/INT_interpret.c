@@ -18,75 +18,58 @@ typedef struct SStack {
     struct SStack     *next;
 } TStack, *PTStack;
 
-static PTStack STACK;
+static PTStack *STACK;
 
 static PTStack SInit () {
     return NULL;
 }
 
-static TTerm *SPosSet (PTStack *S, TTerm *address) {
-    while (*S != NULL) {
-        if ((*S)->next == NULL) {
-            TTerm *ret = (*S)->term;
-            memcpy((*S)->term, address, sizeof(TStack));
-            return ret;
-        }
-        S++;
-    }
-    error(ERR_INTERNAL, "Chyba pri nastavovani instrukcneho skoku!\n");
-    return NULL;
+static bool SEmpty () {
+    return *STACK == NULL;
 }
 
-static TTerm *SPosGet (PTStack *S) {
-    while (*S != NULL) {
-        if ((*S)->next == NULL) {
-            return (*S)->term;
-        }
-        S++;
-    }
-    error(ERR_INTERNAL, "Chyba pri nastavovani instrukcneho skoku!\n");
-    return NULL;
-}
-
-static bool SEmpty (PTStack s) {
-    return s == NULL;
-}
-
-static void SPush (PTStack *s, TTerm *add) {
+static void SPush (TTerm *add) {
     PTStack el = malloc (sizeof(TStack));
-    el->next = (*s);
+    el->next = *STACK;
     el->term = add;
-   *s = el;
+    *STACK = el;
 }
 
-static TTerm *STop (PTStack s) {
-    return s->term; 
+__attribute__((unused))
+static TTerm *STop () {
+    return (*STACK)->term;
 }
 
-static TTerm *SPop (PTStack *s) {
-    TTerm *add = (*s)->term;
-    PTStack toDel = (*s);
-    (*s) = (*s)->next;
-    free(toDel);
-    return add;
+static TTerm *SPop () {
+    TTerm *ret = (*STACK)->term;
+    PTStack pom = (*STACK)->next;
+    free(*STACK);
+    *STACK = pom;
+    return ret;
 }
 
-static TTerm *SPick (PTStack *s, uint32_t pos) {
-    if (s == NULL) error(ERR_INTERNAL, "Stack overflow!\n");
-    if (!pos) return (*s)->term;
-    return SPick (&((*s)->next), pos--);
+static TTerm *SPick (uint32_t pos) {
+    PTStack s = *STACK;
+    for (; pos != 0; pos--)
+        s = s->next;
+    return s->term;
 }
 
-static void SFree (PTStack *s) {
-    if (*s == NULL) {
-        return;
+static void SFree () {
+    while (*STACK != NULL) {
+        PTStack toDel = *STACK;
+        *STACK = (*STACK)->next;
+        free(toDel);
     }
-    SFree (&((*s)->next));
-    free(*s);
-    *s = NULL;
+    free(STACK);
 }
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer + op2->value.integer;
@@ -105,6 +88,11 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
      switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer - op2->value.integer;
@@ -119,6 +107,11 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer * op2->value.integer;
@@ -131,6 +124,11 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer / op2->value.integer;
@@ -144,24 +142,20 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
 
 static void assign (TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    switch (ret->type) {
-        case TERM_INT    :
-            ret->value.integer = op1->value.integer;
-        break;
-            
-        case TERM_REAL   :
-            ret->value.real = op1->value.real;
-        break;
-
-        case TERM_STRING :
-            ret->value.string = op1->value.string;
-        break;
-
-        default          : break;
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
     }
+    ret->value = op1->value;
 }
 
 static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer < op2->value.integer;
@@ -180,6 +174,11 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer > op2->value.integer;
@@ -198,6 +197,11 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer <= op2->value.integer;
@@ -216,6 +220,11 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer >= op2->value.integer;
@@ -234,6 +243,11 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (ret->type == TERM_OFFSET) {
+        op1 = SPick(op1->value.offset);
+        op2 = SPick(op2->value.offset);
+        ret = SPick(ret->value.offset);
+    }
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer == op2->value.integer;
@@ -251,19 +265,22 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
     }
 }
 
-static void call (       TTerm *op1, 
-__attribute__ ((unused)) TTerm *op2, 
-__attribute__ ((unused)) TTerm *ret) {
-    TTerm *Address = SPosGet(&STACK);
-    SPush(&STACK, Address);
-    SPosSet(&STACK, op1);
-}
 
-static void ret (        TTerm *op1,
-__attribute__ ((unused)) TTerm *op2,
+static void ret (        TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
+    // Local variable cleaning
     for (int i = 0; i < op1->value.integer; i++)
-        SPop(&STACK);
+        free(SPop(&STACK));
+    
+    TTerm *add = SPop(&STACK);
+    P3AC *pom = &EIP[add->value.address];
+    free(add);
+    log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
+    PEIP = pom;
+
+    // Arguments cleaning
+    for (int i = 0; i < op2->value.integer; i++)
+        free(SPop(&STACK));
 }
 
 static void push (       TTerm *op1,
@@ -272,84 +289,108 @@ __attribute__ ((unused)) TTerm *ret) {
     TTerm *s = malloc (sizeof(TTerm));
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
-    SPush(&STACK, s);
+    log("PUSH: op1:%u on stack:%u\n", op1->value.address, s->value.address);
+    SPush(s);
 }
 
 static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret == NULL) {
-        if (SEmpty(STACK))
-            ret = SPop(&STACK);
+        if (!SEmpty(STACK))
+            ret->value = SPop(&STACK)->value;
     } else {
         SPop(&STACK);
     }
+    log ("POP\n");
 }
 
 static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
-    SPosSet(&STACK, op1);
+    PEIP = &EIP[op1->value.address-1];
+    log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
 static void jtrue (      TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     if (op1->value.boolean == true) {
         jmp(op2, NULL, NULL);
-    }
+    } else
+        log("Not jumping on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+}
+
+static void call (       TTerm *op1, 
+__attribute__ ((unused)) TTerm *op2, 
+__attribute__ ((unused)) TTerm *ret) {
+    // Jump address
+    TTerm Address = {
+        .value.address = PEIP-EIP,
+        .type = TERM_OFFSET
+    };
+    push(&Address, NULL, NULL);
+    jmp(op1, NULL, NULL);
+    log ("CALL: to address: %u\n", op1->value.address);
 }
 
 static void nop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
+    /// NOPE NOPE NOPE
+    log("NOP");
     return;
 }
 
 static void not (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    /// Neguje vstup op1 ulozi negaciu do ret
     ret->value.boolean = !(op1->value.boolean);
 }
 
 static void load (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    uint32_t size = STop (STACK)->value.address;
-    ret->value.pointer = SPick(&STACK, size-op1->value.address);
+    /// nacita zo zasobnika nti prvok
+    ret->value = SPick(op1->value.address)->value;
+    log ("LOAD: value: %d\n", ret->value.integer);
+}
+
+static void store (      TTerm *op1,
+__attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    /// ulozi na zasobnik na presne miesto data do termu
+    SPick(ret->value.address)->value = op1->value;
 }
 
 __attribute__ ((unused))
-static void (*INSTRUCTIONS[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
-    &plus, &minus, &mul, &division, &assign, &less, &greater, &lesseq, &greateq, &equal,
-    &call, &ret, &push, &pop, &jtrue, &jmp, &nop, &load, &not 
+static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
+    &plus, &minus, &mul, &division, 
+    &assign, &less, &greater, &lesseq, 
+    &greateq, &equal,  &call, &ret, 
+    &push, &pop, &jtrue, &jmp, 
+    &nop, &load, &not, &store
     // TODO: Pridat dalsie funkcie!
 };
 
-// TODO: vytvorit pole instrukcii:
 __attribute__ ((unused))
-P3AC *INST;
-
+P3AC *EIP, *PEIP;
 
 void INT_interpret () {
     /// Instruction pointer
-    P3AC *PINST = INST;
-    TTerm EIP;
-    EIP.value.address = 0;
-    EIP.type = TERM_EIP;
-    EIP.name = NULL;
+    PEIP = EIP;
 
     // TODO: 
     //      * pridat volanie semantiky
-    //      * pridat prechod prikazmi
-    //      * pridat dealokacie
-    STACK = SInit();
-    SPush(&STACK, &EIP);
+    //      * pridat dealokacie: snad DONE
+    STACK = malloc (sizeof (TStack));
+    *STACK = SInit();
 
     // TODO: Hlavny WHILE:
 
-    while (*PINST != NULL) {
-        INSTRUCTIONS[(*PINST)->op]((*PINST)->op1, (*PINST)->op2, (*PINST)->ret);
-        PINST++;
+    for (int i = 0; *PEIP != NULL; i++) {
+        log("INST %u\n", (uint32_t)(PEIP-EIP));
+        INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
+        PEIP++;
     }
-    SFree (&STACK);
+    SFree();
     return;
 }

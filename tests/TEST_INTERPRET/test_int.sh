@@ -4,7 +4,7 @@ export name="INTERPRET"
 export file="../src/INT_interpret.c ../src/LEX_lexem.c"
 export src='#include "../src/inc.h"
 
-extern P3AC *INST;
+extern P3AC *EIP;
 
 int main () {
     TTerm op1 = { 
@@ -22,10 +22,8 @@ int main () {
     };
 
 
-    INST = malloc (sizeof (P3AC)*2);
-    INST[1] = NULL;
-    for (P3AC *i = INST; *i != NULL; i++)
-        *i = malloc (sizeof (struct S3AC));
+    EIP = malloc (sizeof (P3AC)*2);
+    EIP[1] = NULL;
     
     struct S3AC s = (struct S3AC) {
         .op  = OP_PLUS,
@@ -33,7 +31,7 @@ int main () {
         .op2 = &op2,
         .ret = &ret
     };
-    INST[0] = &s;
+    EIP[0] = &s;
     INT_interpret ();
     printf("%d+%d=%d\n", op1.value.integer, op2.value.integer, ret.value.integer);
     
@@ -72,6 +70,8 @@ int main () {
     s.op = OP_EQUAL;
     INT_interpret ();
     printf("%d==%d=%s\n", op1.value.integer, op2.value.integer, ret.value.boolean ? "true" : "false");
+
+    free(EIP);
 
     return 0;
 }'

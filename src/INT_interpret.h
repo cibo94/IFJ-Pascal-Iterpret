@@ -10,41 +10,18 @@
 
 typedef struct S3ADD *P3ADD;
 
+
 // DUMMY functions:
 
 ///////////////////////
 
 
 typedef enum {
-    TERM_INT,
-    TERM_REAL,
-    TERM_STRING,
-    TERM_LABEL,
-    TERM_BOOL
-} ETermType;
-
-typedef struct {
-    union {
-        int       integer;
-        float     real;
-        char     *string;
-        bool      boolean;
-        uint32_t  address;
-    } value;
-    ETermType type;
-} TTerm;
-
-typedef struct SStack {
-    TTerm             *address;
-    struct SStack     *next;
-} TStack, *PTStack;
-
-typedef enum {
     OP_PLUS, 
     OP_MINUS, 
     OP_MUL, 
     OP_DIV, 
-    OP_ASSING, 
+    OP_ASSIGN, 
     OP_LESS,
     OP_GREAT,
     OP_LESSEQ,
@@ -68,8 +45,11 @@ typedef enum {
     TERM_LABEL,
     TERM_BOOL,
     TERM_EIP,
-    TERM_POINTER
+    TERM_POINTER,
+    TERM_OFFSET
 } ETermType;
+
+typedef struct S3AC *P3AC;
 
 typedef struct STerm {
     union {
@@ -79,20 +59,23 @@ typedef struct STerm {
         bool            boolean;
         uint32_t        address;
         struct STerm   *pointer;
+        uint32_t        offset;
     } value;
     ETermType type;
     char *name;
 } TTerm;
 
-typedef struct S3AC {
+
+
+struct S3AC {
     E_OP   op;
     TTerm *op1;
     TTerm *op2;
     TTerm *ret;
-}*P3AC;
+};
 
 
 __attribute__ ((unused))
 void INT_interpret ();
-
+extern P3AC *EIP, *PEIP;
 #endif
