@@ -71,10 +71,10 @@ function __FREE__ {
 # Testy
 function __TEST__ {
     echo ""
-    ./${dir}/${name}.exe ${dir}/${name}.tstin >${dir}/${name}.out 2>${dir}/${name}.err
+    cat ${dir}/${name}.tstin | ./${dir}/${name}.exe ${dir}/${name}.tstin >${dir}/${name}.out 2>${dir}/${name}.err
     ret=$?
     diff ${dir}/${name}.out ${dir}/${name}.tstout --suppress-common-lines > ${dir}/${name}.diff
-    valgrind -q ${dir}/${name}.exe ${dir}/${name}.tstin 2>${dir}/${name}.val >/dev/null
+    valgrind -q ${dir}/${name}.exe ${dir}/${name}.tstin 2>${dir}/${name}.val >/dev/null <${dir}/${name}.tstin 
     dff=$(cat ${dir}/${name}.diff)
     if [[ "$dff" == "" ]]; then
         log "Test: $name stdout" "OK" "\e[32m"

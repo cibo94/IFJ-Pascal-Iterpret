@@ -4,8 +4,6 @@ export name="CALL_FACT"
 export file="../src/INT_interpret.c ../src/LEX_lexem.c"
 export src='#include "../src/inc.h"
 
-extern P3AC *EIP;
-
 int main () {
     // VARIABLES GLOBAL, LABLES, TEMPORARY, CONSTANTS
     TTerm START = {
@@ -17,6 +15,9 @@ int main () {
     }, ZERO = {
         .value.integer = 0,
         .type  = TERM_INT
+    }, TWO = {
+        .value.integer = 2,
+        .type = TERM_INT
     }, ARG = ZERO,
     EAX = ZERO,
     RET = ONE,
@@ -27,13 +28,16 @@ int main () {
         .value.address = 1,
         .type = TERM_LABEL
     }, NUM  = {
-        .value.integer = 10,
+        .value.pointer = &RET,
         .type = TERM_INT
+    }, NL = {
+        .value.string = "\n",
+        .type = TERM_STRING
     };
    /*************************************
     *           INSTRUCTIONS            *
     *************************************/ 
-    EIP = malloc (sizeof(struct S3AC **)*16);
+    EIP = malloc (sizeof(struct S3AC **)*23);
     struct S3AC inst[] = {
         { OP_JMP   , &START   , NULL , NULL }, //   GOTO __START                    0
         { OP_LOAD  , &ONE     , NULL , &ARG }, // FACT: ARG:=load(1);               1
@@ -49,18 +53,26 @@ int main () {
         { OP_MUL   , &RET     , &ARG , &RET }, //       RET:=RET*ARG;              11
         { OP_RET   , &ZERO    , &ONE , NULL }, //       RETURN;                    12
         { OP_PUSH  , &NUM     , NULL , NULL }, // __START:                         13
-        { OP_CALL  , &FACT    , NULL , NULL }  //   FACT(NUM);                     14
+        { OP_CALL  , &(embededFunc[5]), NULL , NULL }, 
+                                               //   RET:=READLN(NUM);              14
+        { OP_ASSIGN, &RET     , NULL , &NUM }, //   NUM:=RET                       15
+        { OP_PUSH  , &NUM     , NULL , NULL }, //                                  16
+        { OP_CALL  , &FACT    , NULL , NULL }, //   FACT(NUM);                     17
+        { OP_PUSH  , &NL      , NULL , NULL }, //                                  18
+        { OP_PUSH  , &RET     , NULL , NULL }, //                                  19
+        { OP_PUSH  , &TWO     , NULL , NULL }, //                                  20
+        { OP_CALL  , &(embededFunc[4]), NULL, NULL } 
+                                               //   WRITE(2, RET, "\n");           21
     };
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 22; i++) {
         EIP[i] = &inst[i];
     }
-    EIP[15] = NULL;
+    EIP[22] = NULL;
     INT_interpret ();
-    printf("Faktorial z %d = %d?\n", NUM.value.integer, RET.value.integer);
     free(EIP);
     return 0;
 }'
-export input=""
-export output="Prebehol call? 4 == 4?
+export input="5"
+export output="120
 "
 export retCode=0
