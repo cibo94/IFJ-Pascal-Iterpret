@@ -256,7 +256,14 @@ bool SYN_expression(FILE *f) {
     /*pomvypis(&stack1);*/
     /*SDispose(&stack1);*/
     //printf("krasne\n"); krasne!!!
-    free(pom); free(rule);
+
+/* KONFLIKT s Palovou castou
+ * palo este pouzival danu adresu
+
+    free(pom);
+    
+*/
+    free(rule);
     return true;
 }
 
