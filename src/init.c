@@ -18,6 +18,7 @@ constructor static void __init__ (void) {
     pointers = malloc (sizeof(GLOB_DEST));
     if (pointers == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     pointers->SYM_TABLE = NULL;
+    pointers->SCOPE=NULL;
  
    // log("Initialization");
 }

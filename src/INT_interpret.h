@@ -56,6 +56,7 @@ typedef struct STerm {
     } value;
     ETermType type;
     char *name;
+    bool index;
 } TTerm;
 
 

@@ -12,6 +12,7 @@
 
 typedef struct {
     TSbinstrom SYM_TABLE;
+    TSbinstrom SCOPE;
 } GLOB_DEST, *PGLOB_DEST;
 
 extern char *FILE_NAME;

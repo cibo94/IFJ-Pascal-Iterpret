@@ -46,7 +46,7 @@ TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
  	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
  		if (key==pom->key &&
            !(c=strcmp(data->lex, pom->data->lex))){
-            //error(ERR_SEM_UNREDEF, "Redefinovanie funkcie: '%s'\n", data->lex);
+            error(ERR_SEM_UNDEF, "Pokus o redefiniciu: '%s'\n", data->lex);
  		}
  		koren=pom;
  		if (key > pom->key){        	//!< porovnavam kluce
@@ -92,6 +92,13 @@ void BS_Free(TSbinstrom root){
 	BS_Free(root->lptr);
 	BS_Free(root->rptr);
 	BS_Free(root->loc_table);
+    if (root->data!= NULL){
+        if (root->data->lex != NULL)
+            free(root->data->lex);
+        if (root->data->value != NULL)
+            free(root->data->value);
+        free(root->data);
+    }
 	free(root);
 }
 

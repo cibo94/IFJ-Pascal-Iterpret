@@ -323,7 +323,7 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
     if (!(Ret->lex = malloc(STD_LNGTH)))
         error(ERR_INTERNAL, "malloc vratil NULL");
     Ret->flags = 0;
-    Ret->param = 0;
+    Ret->param = NULL;
     Ret->value = NULL;
     while((z = fgetc(f)) || true) {
         switch (state) {
