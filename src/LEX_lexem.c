@@ -191,9 +191,11 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
             if(z=='=') {
                 Ret->type = OPERATOR_SMALLEQ;
                 LEX_string(&Ret->lex, z, i);
+                return false;
             } else if (z=='>') {
                 Ret->type = OPERATOR_NEQUAL;
                 LEX_string(&Ret->lex, z, i);
+                return false;
             } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
             else if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
             Ret->type = OPERATOR_SMALLER;
@@ -203,6 +205,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
             if(z=='=') {
                 LEX_string(&Ret->lex, z, i);
                 Ret->type = OPERATOR_GREATEQ;
+                return false;
             } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
             else if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
             Ret->type = OPERATOR_GREATER;
@@ -212,6 +215,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
             if(z=='=') {
                 LEX_string(&Ret->lex, z, i);
                 Ret->type = OPERATOR_ASSIGN;
+                return false;
             } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
             else if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom");
             Ret->type = DDOT;

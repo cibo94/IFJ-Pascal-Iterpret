@@ -30,7 +30,7 @@ typedef struct SItem {
 
 typedef struct {
     TItem* top;
-} TStack;
+} TSynStack;
 
 typedef struct {
     TStackEnum *RSide;

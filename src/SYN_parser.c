@@ -23,7 +23,7 @@ Rule7[] = {NONTERMINAL,COMMA,NONTERMINAL};
 
 void prevodnik(TEnumLexem in, TStackEnum *out);
 
-void StackInit(TStack *S) {
+void StackInit(TSynStack *S) {
     TItem *item = malloc(sizeof(TItem));
     item->data = NULL;
     item->next = NULL;
@@ -31,15 +31,15 @@ void StackInit(TStack *S) {
     S->top = item;
 }
 
-int SEmpty(TStack *S) { /* toto puzivam len v SDispose*/
+int SEmpty(TSynStack *S) { /* toto puzivam len v SDispose*/
     return S->top->type == TERMINATOR;
 }
 
-TItem *STop(TStack *S) {
+TItem *STop(TSynStack *S) {
     return S->top;
 }
 
-void SPop(TStack *S) {
+void SPop(TSynStack *S) {
     if (!SEmpty(S)) {    
 	TItem *pom = S->top;
 	S->top = S->top->next;
@@ -97,7 +97,7 @@ void ChooseRule(TStackEnum top_terminal, int isfunc, int *relused,TRule *rule) {
     return;
 }
 
-void SPush(TStack *S, TStructLex* D) {
+void SPush(TSynStack *S, TStructLex* D) {
     TItem* item = malloc(sizeof(TItem));
     item->data = D;
 	/*malloc(sizeof(TStructLex));
@@ -107,7 +107,7 @@ void SPush(TStack *S, TStructLex* D) {
     item->next = S->top;
     S->top = item;
 }
-void SPush_nonterminal(TStack *S) {
+void SPush_nonterminal(TSynStack *S) {
     TItem *item = malloc(sizeof(TItem));
     item->data = NULL;
     item->type = NONTERMINAL;
@@ -115,7 +115,7 @@ void SPush_nonterminal(TStack *S) {
     S->top = item;
 }
 
-void SPush_zarazka(TStack *S) {
+void SPush_zarazka(TSynStack *S) {
     TItem *item = malloc(sizeof(TItem));
     item->data = NULL;
     item->type = ZARAZKA;
@@ -123,7 +123,7 @@ void SPush_zarazka(TStack *S) {
     S->top = item;
 }
 
-void SDispose(TStack *S) {
+void SDispose(TSynStack *S) {
     while (!SEmpty(S)) SPop(S);
     //SPop(S);
 }
@@ -174,7 +174,7 @@ void prevodnik(TEnumLexem in, TStackEnum *out) {
 
 bool SYN_expression(FILE *f) {
     TRule *rule;
-    TStack stack1, stack2;
+    TSynStack stack1, stack2;
     int ind, /*index na prechadzanie pravidiel*/
 	relused = 0, /*bool - indikuje pouzitie relacneho operatora - akceptujeme 1 vo vyraze*/
 	isfunc = 0, /*bool na zistenie ci ide o volanie funkcie*/
