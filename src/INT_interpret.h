@@ -6,16 +6,6 @@
 #ifndef h_INT_PAR
 #define h_INT_PAR
 
-// DUMMY typedefs:
-
-typedef struct S3ADD *P3ADD;
-
-
-// DUMMY functions:
-
-///////////////////////
-
-
 typedef enum {
     OP_PLUS, 
     OP_MINUS, 
@@ -47,7 +37,8 @@ typedef enum {
     TERM_BOOL,
     TERM_EIP,
     TERM_POINTER,
-    TERM_OFFSET
+    TERM_OFFSET,
+    TERM_EMB
 } ETermType;
 
 typedef struct S3AC *P3AC;
@@ -61,6 +52,7 @@ typedef struct STerm {
         uint32_t        address;
         struct STerm   *pointer;
         uint32_t        offset;
+        void          (*emb_function)();
     } value;
     ETermType type;
     char *name;
@@ -79,4 +71,5 @@ struct S3AC {
 __attribute__ ((unused))
 void INT_interpret ();
 extern P3AC *EIP, *PEIP;
+extern TTerm embededFunc[];
 #endif

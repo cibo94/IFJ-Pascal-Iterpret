@@ -20,6 +20,9 @@ typedef struct SStack {
 
 static PTStack *STACK;
 
+__attribute__ ((unused))
+P3AC *EIP, *PEIP;
+
 static PTStack SInit () {
     return NULL;
 }
@@ -114,7 +117,7 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
     }
     switch (ret->type) {
         case TERM_INT    :
-            log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
+            //log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
             ret->value.integer = op1->value.integer * op2->value.integer;
         break;
         case TERM_REAL   :
@@ -276,7 +279,7 @@ __attribute__ ((unused)) TTerm *ret) {
     TTerm *add = SPop(&STACK);
     P3AC *pom = &EIP[add->value.address];
     free(add);
-    log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
+    //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
     PEIP = pom;
 
     // Arguments cleaning
@@ -290,7 +293,7 @@ __attribute__ ((unused)) TTerm *ret) {
     TTerm *s = malloc (sizeof(TTerm));
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
-    log("PUSH: op1:%u on stack:%u\n", op1->value.address, s->value.address);
+    //log("PUSH: op1:%u on stack:%u\n", op1->value.address, s->value.address);
     SPush(s);
 }
 
@@ -303,14 +306,14 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     } else {
         SPop(&STACK);
     }
-    log ("POP\n");
+    //log ("POP\n");
 }
 
 static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     PEIP = &EIP[op1->value.address-1];
-    log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+    //log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
 static void jtrue (      TTerm *op1, TTerm *op2,
@@ -318,7 +321,7 @@ __attribute__ ((unused)) TTerm *ret) {
     if (op1->value.boolean == true) {
         jmp(op2, NULL, NULL);
     }
-        log("Not jumping on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+        //log("Not jumping on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
 static void call (       TTerm *op1, 
@@ -330,8 +333,14 @@ __attribute__ ((unused)) TTerm *ret) {
         .type = TERM_OFFSET
     };
     push(&Address, NULL, NULL);
+    for (int i = 0; i < 6; i++) {
+        if (&embededFunc[i] == op1) {
+            op1->value.emb_function();
+            return;
+        }        
+    }
     jmp(op1, NULL, NULL);
-    log ("CALL: to address: %u\n", op1->value.address);
+    //log ("CALL: to address: %u\n", op1->value.address);
 }
 
 static void nop (
@@ -339,7 +348,7 @@ __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     /// NOPE NOPE NOPE
-    log("NOP");
+    //log("NOP");
     return;
 }
 
@@ -353,7 +362,7 @@ static void load (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     /// nacita zo zasobnika nti prvok
     ret->value = SPick(op1->value.address)->value;
-    log ("LOAD: value: %d\n", ret->value.integer);
+    //log ("LOAD: value: %d\n", ret->value.integer);
 }
 
 static void store (      TTerm *op1,
@@ -372,8 +381,98 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     // TODO: Pridat dalsie funkcie!
 };
 
-__attribute__ ((unused))
-P3AC *EIP, *PEIP;
+static void sort () {
+    
+}
+static void copy () {
+    
+}
+static void length () {
+
+}
+static void find () {
+
+}
+static void write () {
+    TTerm *n, k;
+    int pocet = SPick (1)->value.integer; 
+    for (int i = 0; i < pocet; i++) {
+        n = SPick(2+i);
+        switch (n->type) {
+            case TERM_INT : 
+                printf ("%d", n->value.integer);
+            break;
+            case TERM_REAL :
+                printf ("%f", n->value.real);
+            break;
+            case TERM_STRING :
+                printf ("%s", n->value.string);
+            break;
+            case TERM_BOOL :
+                printf ("%s", n->value.boolean ? "true" : "false");
+            break;
+
+            default :
+            break;
+        }
+    }
+    k.value.offset = pocet+1;
+    TTerm zero = (TTerm) { 
+        .value.offset = 0,
+        .type = TERM_OFFSET
+    };
+    ret(&zero, &k, NULL);
+}
+static void __readln () {
+    TTerm *id = SPick(1),
+           one = {
+               .value.integer = 1
+           },
+           zero = {
+               .value.integer = 0
+           };
+    switch (id->type) {
+        case TERM_INT :
+            scanf("%d", &id->value.pointer->value.integer);
+        break;
+        case TERM_REAL :
+            scanf("%f", &id->value.pointer->value.real);
+        break;
+        case TERM_STRING :
+            id->value.pointer->value.string = malloc(500);
+            scanf("%s", id->value.pointer->value.string);
+        break;
+        default :
+            error(ERR_SEM_TYPE, "Nekompatabilny typ\n");
+        break;
+    }
+    ret(&zero, &one, NULL);
+}
+
+
+
+
+TTerm embededFunc[] = {
+    {.value.emb_function = &sort,
+     .type = TERM_EMB,
+     .name = "sort"}, {
+     .value.emb_function = &copy,
+     .type = TERM_EMB,
+     .name = "copy" }, {
+     .value.emb_function = &length,
+     .type = TERM_EMB,
+     .name = "length" }, {
+     .value.emb_function = &find,
+     .type = TERM_EMB,
+     .name = "find" }, {
+     .value.emb_function = &write,
+     .type = TERM_EMB,
+     .name = "write" }, {
+     .value.emb_function = &__readln,
+     .type = TERM_EMB,
+     .name = "readln" }
+};
+
 
 void INT_interpret () {
     /// Instruction pointer
@@ -382,13 +481,13 @@ void INT_interpret () {
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
-    STACK = malloc (sizeof (TStack));
+    STACK = malloc (sizeof (TStack*));
     *STACK = SInit();
 
     // TODO: Hlavny WHILE:
 
     for (int i = 0; *PEIP != NULL; i++) {
-        log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+        //log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
         PEIP++;
     }
