@@ -7,6 +7,37 @@
 #define h_SYN_parser
 #include<stdbool.h>
 #include<stdio.h>
+#include "LEX_lexem.h"
+
+typedef enum {
+    TERM,
+    PLUS,
+    MULT,
+    LBRACK,
+    RBRACK,
+    REL_OP,
+    TERMINATOR,
+    COMMA,
+    NONTERMINAL,
+    ZARAZKA
+} TStackEnum;
+
+typedef struct SItem {
+    TStructLex* data;
+    TStackEnum type;
+    struct SItem *next;
+} TItem;
+
+typedef struct {
+    TItem* top;
+} TStack;
+
+typedef struct {
+    TStackEnum *RSide;
+    int length;
+} TRule;
+
+extern PTStructLex lexema;
 
 /** SYN_decPrem
  * \brief Pravidlo na deklaraciu premenu (2,3 pravidlo) 
@@ -27,7 +58,7 @@ bool SYN_prem(FILE *f);
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_type(FILE *f);
+bool SYN_type(FILE *f,int *type);
 
 /** SYN_nextPrem
  * \brief Pravidlo na deklaraciu dalsej premennej (5,6 pravidlo)

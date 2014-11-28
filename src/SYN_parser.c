@@ -1,11 +1,279 @@
-#include"SYN_parser.h"
 #include"inc.h"
  
 PTStructLex lexema;
-static bool expression=true;
+
+const char* prec_table[] = {
+"0>>=>>>>", /*term*/
+"<><<>>>0", /*plus*/
+"<>><>>>0", /*krat*/
+"<<<<=<0<", /*l zatvorka*/
+"0>>0>>>0", /*p zatvorka*/
+"<<<<>>>0", /*rel. operatory*/
+"<<<<0<00", /*ukoncujuci znak = dno zasobniku*/
+"<000>00>"  /*ciarka*/
+};
+static TStackEnum
+Rule1[] = {TERM},
+Rule2[] = {NONTERMINAL,PLUS,NONTERMINAL},
+Rule3[] = {NONTERMINAL,MULT,NONTERMINAL},
+Rule4[] = {RBRACK,NONTERMINAL,LBRACK},
+Rule5[] = {NONTERMINAL,REL_OP,NONTERMINAL},
+Rule6[] = {RBRACK,NONTERMINAL,LBRACK,TERM},
+Rule7[] = {NONTERMINAL,COMMA,NONTERMINAL};
+
+void prevodnik(TEnumLexem in, TStackEnum *out);
+
+void StackInit(TStack *S) {
+    TItem *item = malloc(sizeof(TItem));
+    item->data = NULL;
+    item->next = NULL;
+    item->type = TERMINATOR;
+    S->top = item;
+}
+
+int SEmpty(TStack *S) { /* toto puzivam len v SDispose*/
+    return S->top->type == TERMINATOR;
+}
+
+TItem *STop(TStack *S) {
+    return S->top;
+}
+
+void SPop(TStack *S) {
+    if (!SEmpty(S)) {    
+	TItem *pom = S->top;
+	S->top = S->top->next;
+	//free(pom->data);
+	free(pom);
+    }
+}
+void ChooseRule(TStackEnum top_terminal, int isfunc, int *relused,TRule *rule) {
+    switch (top_terminal) {
+	case TERM:
+	    //printf("1\n");
+	    rule->RSide = Rule1;
+	    rule->length = 1;
+	    break;
+	case PLUS:
+	    //printf("2\n");
+	    rule->RSide = Rule2;
+	    rule->length = 3;
+	    break;
+	case MULT:
+	    //printf("3\n");
+	    rule->RSide = Rule3;
+	    rule->length = 3;
+	    break;
+	case RBRACK:
+	    if (isfunc) {
+		//printf("6\n");
+		rule->RSide = Rule6;
+		rule->length = 4;
+	    }
+	    else {
+		//printf("4\n");
+		rule->RSide = Rule4;
+		rule->length = 3;
+	    }
+	    break;
+	case REL_OP:
+	    if (*relused) { rule->RSide = NULL; break; }
+	    //printf("5\n");
+	    rule->RSide = Rule5;
+	    rule->length = 3;
+	    *relused = 1;
+	    break;
+	case COMMA:
+	    if (isfunc) {
+		//printf("7\n");
+		rule->RSide = Rule7;
+		rule->length = 3;
+	    }
+	    else { rule->RSide = NULL;}
+	    break;
+	default: 
+	    rule->RSide = NULL;
+    }
+    return;
+}
+
+void SPush(TStack *S, TStructLex* D) {
+    TItem* item = malloc(sizeof(TItem));
+    item->data = D;
+	/*malloc(sizeof(TStructLex));
+    item->data->lex = "a"; //sample text
+    item->data->type = D->type;*/
+    prevodnik(D->type, &item->type);
+    item->next = S->top;
+    S->top = item;
+}
+void SPush_nonterminal(TStack *S) {
+    TItem *item = malloc(sizeof(TItem));
+    item->data = NULL;
+    item->type = NONTERMINAL;
+    item->next = S->top;
+    S->top = item;
+}
+
+void SPush_zarazka(TStack *S) {
+    TItem *item = malloc(sizeof(TItem));
+    item->data = NULL;
+    item->type = ZARAZKA;
+    item->next = S->top;
+    S->top = item;
+}
+
+void SDispose(TStack *S) {
+    while (!SEmpty(S)) SPop(S);
+    //SPop(S);
+}
+
+void prevodnik(TEnumLexem in, TStackEnum *out) {
+    if (in >= OPERATOR_GREATER && in <= OPERATOR_NEQUAL) {
+	*out = REL_OP;
+	return;
+    }
+    switch(in) {
+    case INT_CONST:
+	*out = TERM;
+	break;
+    case REAL_CONST:
+	*out = TERM;
+	break;
+    case STRING_CONST:
+	*out = TERM;
+	break;
+    case IDENTIFICATOR:
+	*out = TERM;
+	break;
+    case LBRACKET:
+	*out = LBRACK;
+	break;
+    case RBRACKET: 
+	*out = RBRACK;
+	break;
+    case OPERATOR_PLUS: 
+	*out = PLUS;
+	break;
+    case OPERATOR_MINUS:
+	*out = PLUS;
+	break;
+    case OPERATOR_TIMES:
+	*out = MULT;
+	break;
+    case OPERATOR_DIV:
+	*out = MULT;
+	break;
+    case CIARKA:
+	*out = COMMA;
+	break;
+    default:
+	*out = TERMINATOR;
+    } /* switch */
+} /*void prevodnik*/
+
+bool SYN_expression(FILE *f) {
+    TRule *rule;
+    TStack stack1, stack2;
+    int ind, /*index na prechadzanie pravidiel*/
+	relused = 0, /*bool - indikuje pouzitie relacneho operatora - akceptujeme 1 vo vyraze*/
+	isfunc = 0, /*bool na zistenie ci ide o volanie funkcie*/
+	popped, /*bool - popoval sa neterminal a treba ho vratit?*/
+	assigned = 1; /*ci ide o priradenie alebo nie - natvrdo true ako si vravel*/
+    TItem *pom;
+    StackInit(&stack1); StackInit(&stack2);
+    rule = malloc(sizeof(TRule)); /*premenna na vyber pravidla*/
+    pom = malloc(sizeof(TItem)); /* premenna pre hodnotu na vrchole zasobniku */
+
+    
+    TStackEnum input_lex, top_terminal = TERMINATOR; /*prazdny zasobnik - dno*/
+    prevodnik(lexema->type, &input_lex);
+    if (lexema->type == IDENTIFICATOR && assigned) { /*kontrola, ci sa jedna o volanie funkcie*/
+	SPush_zarazka(&stack1);	/*jedine miesto, kde sa pracuje s premennou "assigned"  je tu*/
+	SPush(&stack1, lexema);
+	top_terminal = TERM;
+	LEX_getLexem(lexema,f);
+	prevodnik(lexema->type, &input_lex);
+	if (input_lex == LBRACK) {isfunc = 1;}
+
+    }
+    if (top_terminal == input_lex && input_lex == TERMINATOR) return false;
+	/* osetrenie prazdneho vyrazu */
+    while (top_terminal != input_lex || input_lex != TERMINATOR) { /*top_terminal sa nerovna input_lex a to sa nerovna ukoncovaciemu symbolu*/
+	//??
+	pom = STop(&stack1);
+	switch (prec_table[top_terminal][input_lex]) {
+	    case '>':
+		ChooseRule(top_terminal, isfunc, &relused,rule); /*vyberie a posle pravidlo; isfunc - globalne?*/
+		if (rule->RSide == NULL) return false;
+		ind = 0; 
+		while (pom->type != ZARAZKA && ind < rule->length) { /*porovnava obsah zasobnika s*/
+		    if (pom->type != rule->RSide[ind]) {		/* pravou stranou vybraneho pravidla*/
+			
+			return false; /*pri kazdom volani printf("syntax error") treba dealokaciu vsetkeho */
+		    }
+		    SPop(&stack1);
+		    pom = STop(&stack1); /*az kym nenarazi na zarazku alebo */
+		    ind++; /*az kym neporovna s celou pravou stranou pravidla */
+		}
+		if (ind == rule->length && pom->type == ZARAZKA) {
+		    SPop(&stack1);
+		    if (rule->length == 4) return true; /*indikacia pouzitia 6.pravidla - funkcia, uspesny koniec*/
+		    top_terminal = stack1.top->type;
+		    SPush_nonterminal(&stack1);
+		}
+		else {
+		    return false;
+		}
+		break;
+	    case '<':
+		popped = 0;
+		if (pom->type == NONTERMINAL) { /* ak je na vrchole neterminal, vyberie ho - max jeden*/
+		    SPop(&stack1);
+		    popped = 1; /*true*/
+		    pom = STop(&stack1);
+		}
+		if (pom->type != NONTERMINAL) SPush_zarazka(&stack1); /* vlozi zarazku */
+		else {return false; }/*viac ako jeden NEterminal na vrchole-chyba*/
+		if (popped) { SPush_nonterminal(&stack1);} /* vrati neterminal spat na zasobnik */
+		SPush(&stack1, lexema); /* vlozi novy neterminal, vezme dalsiu lexemu */
+		pom = STop(&stack1); 
+		top_terminal = pom->type;
+		LEX_getLexem(lexema, f);
+		prevodnik(lexema->type, &input_lex);
+		break;
+	    case '=':
+		SPush(&stack1, lexema);
+		pom = STop(&stack1); 
+		top_terminal = pom->type;
+		LEX_getLexem(lexema, f);
+		prevodnik(lexema->type, &input_lex);
+		break;
+	    case '0':
+		return false;  /*doplnit free*/
+	}
+    } /*while ValidLex */
+    /*pomvypis(&stack1);*/
+    /*SDispose(&stack1);*/
+    //printf("krasne\n"); krasne!!!
+    free(pom); free(rule);
+    return true;
+}
 
 void SYN_readLexem(FILE *f){
-
+  
+  switch (lexema->type) {
+    case IDENTIFICATOR:
+    case INT_CONST:
+    case REAL_CONST:
+    case STRING_CONST:
+    case KEY_TRUE:
+    case KEY_FALSE:
+      break;
+    default:
+      free(lexema->lex);
+      free(lexema);
+  }
   lexema=(PTStructLex)malloc(sizeof(TStructLex));
   if (lexema==NULL) error(ERR_INTERNAL, "Chyba alokacie pamete");
   LEX_getLexem(lexema,f); 
@@ -52,12 +320,16 @@ bool SYN_endParam(FILE *f){
 }
 
 bool SYN_param(FILE *f){
+  PTStructLex temp_lex=lexema;
+  int typ;  
 
   if (lexema->type!=IDENTIFICATOR) return false;
   SYN_readLexem(f);
   if (lexema->type!=DDOT) return false;
   SYN_readLexem(f);
-  if (SYN_type(f) && SYN_endParam(f)) return true;
+  if (SYN_type(f,&typ)) temp_lex->flags=typ;
+  else return false;
+  if (SYN_endParam(f)) return true; 
   else return false;
 }
 
@@ -75,12 +347,15 @@ bool SYN_paramList(FILE *f){
 }
 
 bool SYN_decFunc(FILE *f){
-  
+  PTStructLex temp_lex;
+  int typ;
+
   switch (lexema->type){
   	case KEY_FUNCTION:
   	  SYN_readLexem(f);
   	  if (lexema->type!=IDENTIFICATOR) return false;
-  	  SYN_readLexem(f);
+  	  temp_lex=lexema;
+          SYN_readLexem(f);
   	  if (lexema->type!=LBRACKET) return false;
   	  SYN_readLexem(f);
   	  if (!SYN_paramList(f)) return false;
@@ -88,8 +363,9 @@ bool SYN_decFunc(FILE *f){
   	  SYN_readLexem(f);
   	  if (lexema->type!=DDOT) return false;
   	  SYN_readLexem(f);
-  	  if (!SYN_type(f)) return false;	
-  	  if (lexema->type!=STREDNIK) return false;
+  	  if (!SYN_type(f,&typ)) return false;	
+  	  temp_lex->flags=typ;
+          if (lexema->type!=STREDNIK) return false;
   	  SYN_readLexem(f);
   	  if (SYN_onlyDecFunc(f)) return true;
   	  else return false;
@@ -114,27 +390,39 @@ bool SYN_nextPrem(FILE *f){
   }
 }
 
-bool SYN_type(FILE *f){
+bool SYN_type(FILE *f,int *type){
   
   switch (lexema->type){
     case KEY_INTEGER:
+      *type=LEX_FLAGS_TYPE_INT;
+      break;
     case KEY_REAL:
+      *type=LEX_FLAGS_TYPE_REAL;
+      break;
     case KEY_STRING:
+      *type=LEX_FLAGS_TYPE_STRING;
+      break;
     case KEY_BOOLEAN:
-      SYN_readLexem(f);
-      return true;
+      *type=LEX_FLAGS_TYPE_BOOL;
+      break;
     default:
       return false;
   }
+  SYN_readLexem(f);
+  return true;
 }
 
 bool SYN_prem(FILE *f){
-  
+  PTStructLex temp_lex;
+  int typ;
+
   if (lexema->type!=IDENTIFICATOR) return false;
+  temp_lex=lexema;
   SYN_readLexem(f);
   if (lexema->type!=DDOT) return false;
   SYN_readLexem(f);
-  if (!SYN_type(f)) return false;
+  if (!SYN_type(f,&typ)) return false;
+  temp_lex->flags=typ;
   if (lexema->type!=STREDNIK) return false;
   SYN_readLexem(f);
   return true;
@@ -207,13 +495,13 @@ bool SYN_assignStatemnet(FILE *f){
   
   if (lexema->type!=OPERATOR_ASSIGN) return false;
   SYN_readLexem(f);
-  if (expression) return true;
+  if (SYN_expression(f)) return true;
   else return false;
 }
 
 bool SYN_whileStatemnet(FILE *f){
   
-  if (!expression) return false;
+  if (!SYN_expression(f)) return false;
   if (lexema->type!=KEY_DO) return false;
   SYN_readLexem(f);
   if (SYN_comStatement(f)) return true;
@@ -230,7 +518,7 @@ bool SYN_elseStatemnet(FILE *f){
 
 bool SYN_ifStatemnet(FILE *f){
   
-  if (!expression) return false;
+  if (!SYN_expression(f)) return false;
   if (lexema->type!=KEY_THEN) return false;
   SYN_readLexem(f);
   if (SYN_comStatement(f) && SYN_elseStatemnet(f)) return true;
@@ -285,7 +573,7 @@ bool SYN_statementList(FILE *f){
   
   switch (lexema->type) {
   	case KEY_END:
-	case DDOT:
+	case STREDNIK:                              
 	  if (SYN_semicolons(f)) return true;
 	  else return false;	  
 	case KEY_IF:
@@ -325,7 +613,16 @@ bool SYN_program(FILE *f){
 
 void SYN_parser(FILE *f){
   
-  SYN_readLexem(f);
-  if (!SYN_program(f)) error(ERR_SYN, "Syntakticka chyba");
-  else printf("SYNTAX OK.\n");  
+  lexema=(PTStructLex)malloc(sizeof(TStructLex));
+  if (lexema==NULL) error(ERR_INTERNAL, "Chyba alokacie pamete");
+  LEX_getLexem(lexema,f);
+  if (!SYN_program(f)) {
+    free(lexema->lex);
+    free(lexema);
+    error(ERR_SYN, "Syntakticka chyba");
+  } else {
+    free(lexema->lex);
+    free(lexema);
+    printf("SYNTAX OK.\n"); 
+  } 
 }
