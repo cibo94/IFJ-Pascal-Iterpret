@@ -3,46 +3,15 @@
  * \brief Kniznica definujuca struktury a funkcie potrebne pre semanticku analyzu
  * \author 69DreamTeam
  */
-
+/*
 #ifndef h_SEM
 #define h_SEM
 
 // DATOVE TYPY
-typedef enum {
-    TERM_INT,
-    TERM_REAL,
-    TERM_STRING,
-    TERM_LABEL,
-    TERM_BOOL,
-    TERM_EIP,
-    TERM_POINTER
-} ETermType;
-
-typedef enum {
-    OP_PLUS, 
-    OP_MINUS, 
-    OP_MUL, 
-    OP_DIV, 
-    OP_ASSING, 
-    OP_LESS,
-    OP_GREAT,
-    OP_LESSEQ,
-    OP_GREATEQ, 
-    OP_EQUAL,
-    OP_CALL, 
-    OP_RET, 
-    OP_PUSH, 
-    OP_POP, 
-    OP_JTRUE, 
-    OP_JMP, 
-    OP_NOP, 
-    OP_LOAD,
-    OP_NOT 
-} E_OP;
 
 typedef struct StackElem{
 //!< PRVOK SEMANTICKEHO ZASOBNIKA
-    struct ASS *data;
+    ETermType data;
     struct StackElem *previous;
 }*TStackElem;
 
@@ -53,20 +22,15 @@ typedef struct SemStack{
 }*TSemStack;
 
 
-typedef struct ASS{
-//!< ABSTRAKTNY SYNTAKTICKY STROM
-    TTerm *data;
-    uint32_t flags;
-    struct ASS *rptr;
-    struct ASS *lptr;
-}*TASS;
+typedef struct SconstList {
+    TSlistElem first;
+}*TSconstList;
 
-typedef struct S3AC {
-    E_OP   op;
-    TTerm *op1;
-    TTerm *op2;
-    TTerm *ret;
-}*P3AC;
+typedef struct SlistElem {
+    TTerm * constTerm;
+    TSlistElem next;
+}*TSlistElem;
+
 
 // GLOBALNE PREMENNE
 
@@ -82,8 +46,15 @@ typedef struct S3AC {
 
 void SEM_initSS(TSemStack stack);
 void SEM_pushSS(TSemStack stack, TStackElem uzol);
-TASS SEM_popSS(TSemStack stack);
+ETermType SEM_popSS(TSemStack stack);
 void SEM_disposeSS(TSemStack stack);
+
+// FUNKCIE PRE ZOZNAM KONSTANT
+
+void SEM_initCL(TSconstList list);
+void SEM_addCL(TSconstList list, TTerm * elem);
+void SEM_disposeCL(TSconstList list);
+
 
 // FUNKCIE PRE ABSTRAKTNY SYNTAKTICKY STROM
 
@@ -95,4 +66,4 @@ void SEM_ASSdispose(TASS tree);
 //  DALSIE FUNKCIE SEMANTICKEJ ANALYZY
 
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
-#endif
+#endif*/
