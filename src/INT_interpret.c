@@ -16,14 +16,14 @@
 typedef struct SStack {
     TTerm             *term;
     struct SStack     *next;
-} TStack, *PTStack;
+} TSStack, *PTSStack;
 
-static PTStack *STACK;
+static PTSStack *STACK;
 
 __attribute__ ((unused))
 P3AC *EIP, *PEIP;
 
-static PTStack SInit () {
+static PTSStack SInit () {
     return NULL;
 }
 
@@ -32,7 +32,7 @@ static bool SEmpty () {
 }
 
 static void SPush (TTerm *add) {
-    PTStack el = malloc (sizeof(TStack));
+    PTSStack el = malloc (sizeof(TSStack));
     el->next = *STACK;
     el->term = add;
     *STACK = el;
@@ -45,14 +45,14 @@ static TTerm *STop () {
 
 static TTerm *SPop () {
     TTerm *ret = (*STACK)->term;
-    PTStack pom = (*STACK)->next;
+    PTSStack pom = (*STACK)->next;
     free(*STACK);
     *STACK = pom;
     return ret;
 }
 
 static TTerm *SPick (uint32_t pos) {
-    PTStack s = *STACK;
+    PTSStack s = *STACK;
     for (; pos != 0; pos--)
         s = s->next;
     return s->term;
@@ -60,7 +60,7 @@ static TTerm *SPick (uint32_t pos) {
 
 static void SFree () {
     while (*STACK != NULL) {
-        PTStack toDel = *STACK;
+        PTSStack toDel = *STACK;
         *STACK = (*STACK)->next;
         free(toDel);
     }
@@ -300,9 +300,11 @@ __attribute__ ((unused)) TTerm *ret) {
 static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    if (ret == NULL) {
-        if (!SEmpty(STACK))
+    if (ret != NULL) {
+        if (!SEmpty(STACK)) {
             ret->value = SPop(&STACK)->value;
+        } else 
+            error (ERR_INTERNAL, "Stack is empty");
     } else {
         SPop(&STACK);
     }
@@ -382,16 +384,47 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
 };
 
 static void sort () {
-    
+    TTerm *str = SPick(1),
+           zero = {
+               .value.integer = 0,
+               .type = TERM_INT
+           };
+    str->value.string = EMB_sort (str->value.string, EMB_length(str->value.string));
+    ret(&zero, &zero, NULL);
 }
 static void copy () {
-    
+    TTerm *str = SPick(1),
+          *from = SPick(2),
+          *size = SPick(3),
+           zero = {
+               .value.integer = 0,
+               .type = TERM_INT
+           }, two = {
+               .value.integer = 2,
+               .type = TERM_INT
+           };
+    size->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
+    ret(&zero, &two, NULL);
 }
 static void length () {
-
+    TTerm *str = SPick(1),
+           zero = {
+               .value.integer = 0
+           };
+    str->value.integer = EMB_length(str->value.string);
+    ret(&zero, &zero, NULL);
 }
 static void find () {
-
+    TTerm *str = SPick(1),
+          *fstr= SPick(2),
+           zero = {
+               .value.integer = 0
+           },
+           one = {
+               .value.integer = 1
+           };
+    fstr->value.integer = EMB_find(str->value.string, fstr->value.string);
+    ret(&zero, &one, NULL);
 }
 static void write () {
     TTerm *n, k;
@@ -431,6 +464,8 @@ static void __readln () {
            zero = {
                .value.integer = 0
            };
+    char *pom, *beg;
+    int c, size;
     switch (id->type) {
         case TERM_INT :
             scanf("%d", &id->value.pointer->value.integer);
@@ -439,8 +474,16 @@ static void __readln () {
             scanf("%f", &id->value.pointer->value.real);
         break;
         case TERM_STRING :
-            id->value.pointer->value.string = malloc(500);
-            scanf("%s", id->value.pointer->value.string);
+            beg=pom=malloc (sizeof(char)*32);
+            while ((c=getchar())!=EOF&&(c!='\n')) {
+                *(pom++)=c;
+                *pom='\0';
+                size=pom-beg;
+                if (size%32 == 0) {
+                    pom=size+(beg=realloc(beg,size*2));
+                }
+            }
+            id->value.pointer->value.string = beg;
         break;
         default :
             error(ERR_SEM_TYPE, "Nekompatabilny typ\n");
@@ -449,30 +492,38 @@ static void __readln () {
     ret(&zero, &one, NULL);
 }
 
-
-
-
 TTerm embededFunc[] = {
-    {.value.emb_function = &sort,
-     .type = TERM_EMB,
-     .name = "sort"}, {
-     .value.emb_function = &copy,
-     .type = TERM_EMB,
-     .name = "copy" }, {
-     .value.emb_function = &length,
-     .type = TERM_EMB,
-     .name = "length" }, {
-     .value.emb_function = &find,
-     .type = TERM_EMB,
-     .name = "find" }, {
-     .value.emb_function = &write,
-     .type = TERM_EMB,
-     .name = "write" }, {
-     .value.emb_function = &__readln,
-     .type = TERM_EMB,
-     .name = "readln" }
+    {
+        .value.emb_function = &sort,
+        .type = TERM_EMB,
+        .name = "sort"
+    },
+    {
+        .value.emb_function = &copy,
+        .type = TERM_EMB,
+        .name = "copy" 
+    },
+    {
+        .value.emb_function = &length,
+        .type = TERM_EMB,
+        .name = "length" 
+    },
+    {
+        .value.emb_function = &find,
+        .type = TERM_EMB,
+        .name = "find" 
+    }, 
+    {
+        .value.emb_function = &write,
+        .type = TERM_EMB,
+        .name = "write" 
+    }, 
+    {
+        .value.emb_function = &__readln,
+        .type = TERM_EMB,
+        .name = "readln" 
+    }
 };
-
 
 void INT_interpret () {
     /// Instruction pointer
@@ -481,10 +532,8 @@ void INT_interpret () {
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
-    STACK = malloc (sizeof (TStack*));
+    STACK = malloc (sizeof (TSStack*));
     *STACK = SInit();
-
-    // TODO: Hlavny WHILE:
 
     for (int i = 0; *PEIP != NULL; i++) {
         //log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
