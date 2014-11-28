@@ -1,13 +1,11 @@
 #include "inc.h"
 
 //  GLOBALNE PREMENNE
-
-     TSemStack    GLOBAL_SEM_ExpStack;
-     int          GLOBAL_SEM_localVarCount;
-     PTStructLex  lexema;
-     TSbinstrom   GLOBAL_scope;
-     TSbinstrom   GLOBAL_sym_table;
-     TTerm *      GLOBAL_SEM_funcEAX;
+   
+     TTerm *      GLOBAL_SEM_ReturnRegister;
+     TTerm *      GLOBAL_SEM_SourceOne;
+     TTerm *      GLOBAL_SEM_SourceTwo;
+/*     
      TProgram     GLOBAL_SEM_Program;
      
 //  FUNKCIE NAD ZASOBNIKOM
@@ -17,22 +15,22 @@ void SEM_initSS(TSemStack stack){
     stack->top = NULL;
 }
 
-void SEM_pushSS(TSemStack stack, TASS uzol){
+void SEM_pushSS(TSemStack stack, ETermType elem){
     TStackElem new = malloc(sizeof(struct StackElem));
     new->previous = stack->top;                     // VRCHOL SA STANE PREDCHODCOM NOVEHO VRCHOLU
-    new->data = uzol;                               // NASTAVENIE OBSAHU PRVKU ZASOBNIKA
+    new->data = elem;                               // NASTAVENIE OBSAHU PRVKU ZASOBNIKA
     stack->top = new;                               // NASTAVI SA NOVY VRCHOL
 }
 
-TASS SEM_popSS(TSemStack stack){
+ETermType SEM_popSS(TSemStack stack){
     if(stack->top == NULL)
-        return NULL; // pravdepodobne syntakticka chyba ktora sa nenasla
+        return NULL; 
         
-    TASS returnTree = stack->top->data;            // ULOZENIE NAVRATOVEHO STROMU
+    ETermType returnType = stack->top->data;       // ULOZENIE NAVRATOVEHO TYPU
     TStackElem toDelete  = stack->top;             // ULOZENIE PRVKU KTORY SA ZMAZE 
     stack->top = toDelete->previous;               // ZNIZENIE VRCHOLU ZASOBNIKA
     free(toDelete);                                // UVOLNENIE POPNUTEHO PRVKU 
-    return returnTree;
+    return returnType;
 }
 
 void SEM_disposeSS(TSemStack stack){
@@ -44,185 +42,224 @@ void SEM_disposeSS(TSemStack stack){
     }
 }
 
-//  FUNKCIE, KTORE NAPLNAJU TABULKU SYMBOLOV
+// FUNKCIE PRE ZOZNAM KONSTANT
 
+void SEM_initCL(TSconstList list){
+    list = malloc(sizeof(struct SconstList));
+    list->first = NULL;
+}
 
+void SEM_addCL(TSconstList list, TTerm * elem){
+    TSlistElem newElem = malloc(sizeof(struct SlistElem));
+    newElem->data = elem;
+    newElem = list->first;
+    list->first = newElem;
+}
 
-//  FUNKCIE NAD STROMOM
-
-void SEM_ASSdispose(TASS tree){
-    if(tree != NULL){
-        disposeTree(tree->lptr);
-        disposeTree(tree->rptr)
-        if(tree->data != NULL)
-            free(tree->data);
-        free(tree);
+void SEM_disposeCL(TSconstList list){
+    TSlistElem toDelete;
+    
+    while (list->first != NULL){
+        toDelete = list->first;
+        list->first = toDelete->next;
+        free(toDelete);
     }
 }
+*/
+//  OSTATNE FUNKCIE
 
-
-uint32_t SEM_TestIfDefined(PTStructLex item, TSbinstrom tree){
-/**
- * FUNKCIA, KTORA SKONTROLUJE, CI BOL ITEM DEFINOVANY V SCOPE TREE ALEBO NA GLOBALNEJ UROVNI, AK ANO VRATI FLAGY NAJDENEHO UZLU V TS
- */
-    TSbinstrom node = BS_Find(tree, item);
-    if((tree != GLOBAL_sym_table)&&(node == NULL))                 
-        node = BS_Find(GLOBAL_sym_table, item);       
+void SEM_typeDefinition(PTStructLex id, PTStructLex lexema){
+    node = BS_Find(pointers->SCOPE, id);
     
-    if (node == NULL)
-        error(ERR_SEM,"Nedefinovany identifikator '%s'", item->lex);
-    else
-        return node->data->flags;
+    if(strcmp(lexema->lex, "integer") == 0){
+        node->data->vale->type = TERM_INT;
+        return;
+    }
+    if(strcmp(lexema->lex, "string") == 0){
+        node->data->vale->type = TERM_STRING;
+        return;
+    }
+    if(strcmp(lexema->lex, "real") == 0){
+        node->data->vale->type = TERM_REAL;
+        return;
+    }
+    if(strcmp(lexema->lex, "boolean") == 0){
+        node->data->vale->type = TERM_BOOL;
+        return;
+    }    
 }
 
+void SEM_varDec(PTStructLex lexema){
+    newNode = BS_Find(pointers->SCOPE, lexema);
+    
+    if(newNode != NULL)
+        error(ERR_SEM,"Semanticka chyba! Identifikator %s uz bol definovany\n", lexema->lex);
+        
+    newNode = BS_Add(pointers->SCOPE,lexema);
+    newNode->data->value = malloc(sizeof(struct STerm));
 
+    if(pointers->SYM_TABLE == pointers->SCOPE)  //JEDNA SA O DEKLARACIU GLOBALNEJ PREMENNEJ
+        newNode->data->value->index = false;
+    else                                        //JEDNA SA O DEKLARACIU LOKALNEJ PREMENNEJ
+        newNode->data->value->index = true;
+}
+
+void SEM_funcDef(PTStructLex lexema){
+    if(pointers->SCOPE != pointers->SYM_TABLE)
+        error(ERR_SEM,"Semanticka chyba! Definicia funkcie je povolena len na globalnej urovni \n", lexema->lex);
+        
+    newNode = BS_Find(pointers->SYM_TABLE, lexema);
+    
+    if(newNode != NULL){
+        if(newNode->data->flags & LEX_FLAGS_TYPE_FUNCTION == 0)
+            error(ERR_SEM,"Semanticka chyba! Chyba pri definicii funkcie %s. Existuje premenna s rovnakym nazvom\n", lexema->lex);
+        if(newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEK == 0)
+            error(ERR_SEM,"Semanticka chyba! Funkcia %s uz bola deklarovana\n", lexema->lex);
+    }
+    
+    newNode = BS_Add(pointers->SYM_TABLE,lexema);
+    newNode->data->value = malloc(sizeof(struct STerm));
+    newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
+}
+
+/*
 void SEM_createLeaf(ESyntaxRule pravidlo){
 /**
  *  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
  *  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
- */
-    TASS newLeaf = malloc(sizeof(struct ASS));
-    newLeaf->rptr = NULL;
-    newLeaf->lptr = NULL;
-    
+ 
+
     if(pravidlo == SRULE_ID){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
         
-        uint32_t flags = SEM_TestIfDefined(lexema, GLOBAL_SCOPE)
-      
+        TSbinstrom node = BS_Find(GLOBAL_scope, lexema);
+        
+        if((GLOBAL_scope != GLOBAL_sym_table)&&(node == NULL))                 
+            node = BS_Find(GLOBAL_sym_table, lexema);      
+            
+        if (node == NULL)
+            error(ERR_SEM,"Nedefinovana premenna '%s'", lexema->lex);
+            
         if (flags & LEX_FLAGS_TYPE_FUNCTION != 0)                  // CHYBOVA HLASKA AK SA POUZIL IDENTIFIKATOR FUNKCIE
-            error(ERR_SEM,"%s je identifikator funkcie", lexema->lex);
+           error(ERR_SEM,"%s je identifikator funkcie", lexema->lex);
+           
         if (flags & LEX_FLAGS_INIT == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
-            error(ERR_SEM,"Premenna %s nebola inicializovana", lexema->lex);        
-
-        newLeaf->flags = flags;                                    // ULOZENIE FLAGOV, POTREBUJEM PRE TYPOVU KONTROLU V STROME 
-        newLeaf->data = flags;                                     // NOVY UZOL BUDE ODKAZOVAT NA POLOZKU V TS, CI UZ GLOBALNU ALEBO LOKALNU
-                                                                                       // GLOBALNE PREMENNE OBSAHUJU PRIAMO HODNOTU, LOKALNE OBSAHUJU INDEX NA ZASOBNIKU 
-        SEM_pushSS(GLOBAL_SEM_ExpStack, newLeaf);                                      // ULOZENIE UZLU NA SEMANTICKY ZASOBNIK
-        return;
-    };
-    
+           error(ERR_SEM,"Premenna %s nebola inicializovana", lexema->lex);        
+        
+        SEM_pushSS(GLOBAL_SEM_ExpStack, node->data->value->type);        // ULOZENIE TYPU
+        SEM_generate(OP_PUSH, node->data->value, NULL, NULL);
+    }
     
     if(pravidlo == SRULE_CONST){                                     // V PRIPADE KONSTANTY JU POTREBUJEM ULOZIT DO STROMU AKO GENEROVANU PREMENNU   
-        struct STerm * term = malloc(sizeof(struct STerm));          // PRE KONSTANTY SA VYTVARA NOVE UMIESTNENIE, A TO PRIAMO V STROME VYRAZU
+        struct STerm * term = malloc(sizeof(struct STerm));          // PRE KONSTANTY SA VYTVARA NOVE UMIESTNENIE, A UKLADA SA DO ZOZNAMU KONSTANT
         
         switch(lexema->type){                                        // PODLA TYPU LEXEMY SA SKONVERTUJE STRING NA POZADOVANU HODNOTU
         
             case INT_CONST    :
                 term->value.integer = atoi(lexema->lex);
                 term->type = TERM_INT;
-                newLeaf->flags = LEX_FLAGS_TYPE_INT | LEX_FLAGS_INIT;   // KONSTANTA SA BUDE TVARIT AKO PREMENNA DANEHO TYPU, KTORA JE INICIALIZOVANA
             break;
             
             case REAL_CONST   :
                 term->value.real = atof(lexema->lex);
                 term->type = TERM_REAL;
-                newLeaf->flags = LEX_FLAGS_TYPE_REAL | LEX_FLAGS_INIT;
             break;
             
             case STRING_CONST :
                 term->value.string = lexema->lex;
                 term->type = TERM_STRING;
-                newLeaf->flags = LEX_FLAGS_TYPE_STRING | LEX_FLAGS_INIT;
             break;
             
             case KEY_TRUE   :
                 term->value.boolean = true;
                 term->type = TERM_BOOL;
-                newLeaf->flags = LEX_FLAGS_TYPE_BOOL | LEX_FLAGS_INIT;
             break;
             
             case KEY_FALSE  :
                 term->value.boolean = false;
                 term->type = TERM_BOOL;
-                newLeaf->flags = LEX_FLAGS_TYPE_BOOL | LEX_FLAGS_INIT;
             break;
             
             default : break;
         }
-        newLeaf->data = term;                         // PRIRADENIE HODNOTY UZLU    
-        SEM_pushSS(GLOBAL_SEM_ExpStack, newLeaf);     // ULOZENIE UZLU NA SEMANTICKY ZASOBNIK
-        return;
-    };
-    
-    return; // AK SA SEM DOSTANE TAK FILIP ZLE ZADAL PARAMETER. VO VYRAZOCH VYTVARAJU LISTY LEN KONSTANTY A IDENTIFIKATORY PREMENNYCH 
-            //(AK POCITAME S TYM, ZE VOLANIE FUNKCII NIE JE POVOLENE V RAMCI VYRAZOV, VTEDY SA TO NEMUSI RIESIT CEZ ASS, PRETOZE VIEM ZE BUDE FUNKCIA STAT SAMA NA PRAVEJ STRANE)
-}
 
-void SEM_createTree(ESyntaxRule pravidlo, TEnumLexem wParam){
-    TASS rightTree = SEM_popSS(GLOBAL_SEM_ExpStack);                        //  NAJPRV SA POPNE PRAVY, LEBO SA DAL NESKOR NA ZASOBNIK
-    TASS leftTree  = SEM_popSS(GLOBAL_SEM_ExpStack);
+        SEM_pushSS(GLOBAL_SEM_ExpStack, term->type);     // ULOZENIE TYPU NA SEMANTICKY ZASOBNIK
+        SEM_generate(OP)
+        SEM_addCL(term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
+        return;
+    }
+ 
+ }
+
+void SEM_createTree(ESyntaxRule pravidlo, E_OP wParam){
     
-    if(leftTree->flags != rightTree->flags)                     //  KONTROLA TYPOVEJ KOMPATIBILITY
+    ETermType typeRight = SEM_popSS(GLOBAL_SEM_ExpStack);
+    ETermType typeLeft  = SEM_popSS(GLOBAL_SEM_ExpStack);
+    
+    if(typeLeft != typeRight)
         error(ERR_SEM, "Nekompatibilne datove typy.");
-        
-        
-    TASS newNode = malloc(sizeof(struct ASS));              //  MIESTO PRE NOVY UZOL
-    newNode->lptr = leftTree;                               //  SPOJENIE UZLOV
-    newNode->rptr = rightTree;
-    newNode->data = malloc(sizeof(struct STerm));           //  PRIPRAVA MIESTA PRE VYSLEDOK
-    newNode->flags = leftTree->flags;                       //  VYSLEDOK MA ROVNAKY TYP AKO LUBOVOLNY OPERAND
     
-    if(newNode->flags & LEX_FLAGS_TYPE_INT != 0)            // NASTAVENIE SPRAVNEHO TYPU MEDZIVYSLEDKOVEHO TERMU 
-        newNode->data->type = TERM_INT;
-    if(newNode->flags & LEX_FLAGS_TYPE_REAL != 0)
-        newNode->data->type = TERM_REAL;
-    if(newNode->flags & LEX_FLAGS_TYPE_BOOL != 0)
-        newNode->data->type = TERM_BOOL;
-    if(newNode->flags & LEX_FLAGS_TYPE_STRING != 0)
-        newNode->data->type = TERM_STRING;
-        
+    GLOBAL_SEM_ReturnRegister->type = typeRight;
+    
+    SEM_generate(OP_POP, NULL, NULL, GLOBAL_SEM_SourceOne);
+    SEM_generate(OP_POP, NULL, NULL, GLOBAL_SEM_SourceTwo);
+    
     switch(pravidlo){
         case SRULE_PLUS     :
-            SEM_generate(OP_PLUS, leftTree->data, rightTree->data, newNode->data);         //  GENEROVANIE 3AK  
+            SEM_generate(OP_PLUS, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);         
         break;                                                                          
         
         case SRULE_MINUS    :
-            if(newNode->flags & LEX_FLAGS_TYPE_STRING == 0)
-                SEM_generate(OP_MINUS, leftTree->data, rightTree->data, newNode->data);
+            if(typeRight != TERM_STRING)
+                SEM_generate(OP_MINUS, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);
             else 
                 error(ERR_SEM, "Retazce nie je mozne odcitat");
 
         break;
         
         case SRULE_MUL      :
-            if(newNode->flags & LEX_FLAGS_TYPE_STRING == 0)
-                SEM_generate(OP_MUL, leftTree->data, rightTree->data, newNode->data);
+            if(typeRight != TERM_STRING)
+                SEM_generate(OP_MUL, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);
             else 
                 error(ERR_SEM, "Retazce nie je mozne nasobit");
         break;
         
         case SRULE_DIV      :
-            if(newNode->flags & LEX_FLAGS_TYPE_STRING == 0)
-                SEM_generate(OP_DIV, leftTree->data, rightTree->data, newNode->data);
+            if(typeRight != TERM_STRING)
+                SEM_generate(OP_DIV, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);
             else 
                 error(ERR_SEM, "Retazec nie je mozne delit retazcom");
-            break;
+        break;
         
         case SRULE_REL      :
-                newNode->data->type = TERM_BOOL;
-                SEM_generate(wParam, leftTree->data, rightTree->data, newNode->data);           //!< TU POZOR NA WPARAM
-            break;
-        
-        
+                GLOBAL_SEM_ReturnRegister->type = TERM_BOOL;
+                SEM_generate(wParam, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);           //!< TU POZOR NA WPARAM
+        break;
+
         default             :   break;
-        } 
+        }     
+    
+        SEM_pushSS(GLOBAL_SEM_ExpStack, GLOBAL_SEM_ReturnRegister->type);
+        SEM_generate(OP_PUSH, GLOBAL_SEM_ReturnRegister, NULL, NULL);
 }
 
-void SEM_functionPrepare(int *paramCounter){    // PREROBIT DA SA TO KURVA JEDNODUCHSIE :D
-/**
- *  VYSLEDOK FUNKCIE PO JEJ VOLANI JE NA GLOBALNEJ UROVNI, TEDA MA VLASTNOST GLOBALNEJ PREMENNEJ
- *  Z POHLADU SEMANTIKY A INTERPRETACIE SA HODNOTA VYSLEDKU UKLADA DO EAX
- */
+void SEM_assignValue(){
     
-    uint32_t flags = SEM_TestIfDefined(lexema, GLOBAL_sym_table)
-   
-    if(flags & LEX_FLAGS_TYPE_FUNCTION == 0)
-        error(SEM_ERR,"%s nie je funkcia, ale premenna\n", lexema->lex);
-    if(flags & LEX_FLAGS_TYPE_FUNC_DEK == 0)
-        error(SEM_ERR,"Funkcia %s nie je deklarovana \n", lexema->lex);
+    TSbinstrom node = BS_Find(GLOBAL_scope, lexema);
         
-    *paramCounter = 0;
-    generate(OP_PUSH, GLOBAL_SEM_funcEAX, NULL, NULL);
+    if((GLOBAL_scope != GLOBAL_sym_table)&&(node == NULL))                 
+        node = BS_Find(GLOBAL_sym_table, lexema);      
+        
+    if (node == NULL)
+        error(ERR_SEM,"Nedefinovany identifikator '%s'", lexema->lex);    
+    
+    SEM_generate(OP_POP, GLOBAL_SEM_SourceOne, NULL, NULL);
+    ETermType retType = SEM_popSS(GLOBAL_SEM_ExpStack);
+    
+    if(node->data->value->type != retType)
+        error(ERR_SEM,"Nekompatibilne typy priradenia");
+        
+    SEM_generate(OP_ASSIGN, GLOBAL_SEM_SourceOne, NULL, node->data->value)
+    
     return;
 }
 
@@ -241,7 +278,7 @@ void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
 /**
  *  VOLA SA PRI SPRACOVAVANI PARAMETROV VOLANEJ FUNKCIE
  *  V TERME FUNKCIE, KONKRETNE VO VALUE.STRING JE STRING OBSAHUJUCI PARAMETRE FUNKCIE
- */
+ 
  
     if((*paramCounter+1) > strlen(functionNode->data->param))
         error(ERR_SEM,"Prilis vela parametrov funkcie");
@@ -261,19 +298,19 @@ void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
     
     char cTyp;
     
-    if(variableNode->flags & LEX_FLAGS_TYPE_INT != 0)            // NASTAVENIE SPRAVNEHO TYPU MEDZIVYSLEDKOVEHO TERMU 
+    if(variableNode->data->value->type == TERM_INT)            // NASTAVENIE SPRAVNEHO TYPU MEDZIVYSLEDKOVEHO TERMU 
         cTyp = 'i';
-    if(variableNode->flags & LEX_FLAGS_TYPE_REAL != 0)
+    if(variableNode->data->value->type == TERM_REAL)
         cTyp = 'r';
-    if(variableNode->flags & LEX_FLAGS_TYPE_BOOL != 0)
+    if(variableNode->data->value->type == TERM_BOOL)
         cTyp = 'b';
-    if(variableNode->flags & LEX_FLAGS_TYPE_STRING != 0)
+    if(variableNode->data->value->type == TERM_STRING)
         cTyp = 's';
     
     if(cTyp != functionNode->data->param[*paramCounter])
         error(ERR_SEM,"Argument %s je nespravneho typu", lexema->lex);
         
-    generate(OP_PUSH, variableNode->data->value, NULL, NULL);
+    SEM_generate(OP_PUSH, variableNode->data->value, NULL, NULL);
     *paramCounter++;
     return;
 }
@@ -284,7 +321,7 @@ void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
 /**
  *  FUNKCIA, KTORA VYTVORI TROJADRESNU INSTRUKCIU A PRIDA JU DO PROGRAMU
- */ 
+  
     P3AC newInstruction = malloc(sizeof(struct S3AC));
     newInstruction->op = operation;
     newInstruction->op1 = op1;
@@ -293,6 +330,6 @@ void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
     
     SEM_addInstruction(newInstruction);
 };
-
+*/
 
 
