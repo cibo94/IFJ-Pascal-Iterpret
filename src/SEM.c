@@ -1,4 +1,5 @@
 #include "inc.h"
+extern PGLOB_DEST pointers;
 
 //  GLOBALNE PREMENNE
    
@@ -69,31 +70,31 @@ void SEM_disposeCL(TSconstList list){
 //  OSTATNE FUNKCIE
 
 void SEM_typeDefinition(PTStructLex id, PTStructLex lexema){
-    node = BS_Find(pointers->SCOPE, id);
+    TSbinstrom node = BS_Find(pointers->SCOPE, id);
     
     if(strcmp(lexema->lex, "integer") == 0){
-        node->data->vale->type = TERM_INT;
+        node->data->value->type = TERM_INT;
         return;
     }
     if(strcmp(lexema->lex, "string") == 0){
-        node->data->vale->type = TERM_STRING;
+        node->data->value->type = TERM_STRING;
         return;
     }
     if(strcmp(lexema->lex, "real") == 0){
-        node->data->vale->type = TERM_REAL;
+        node->data->value->type = TERM_REAL;
         return;
     }
     if(strcmp(lexema->lex, "boolean") == 0){
-        node->data->vale->type = TERM_BOOL;
+        node->data->value->type = TERM_BOOL;
         return;
     }    
 }
 
 void SEM_varDec(PTStructLex lexema){
-    newNode = BS_Find(pointers->SCOPE, lexema);
+    TSbinstrom newNode = BS_Find(pointers->SCOPE, lexema);
     
     if(newNode != NULL)
-        error(ERR_SEM,"Semanticka chyba! Identifikator %s uz bol definovany\n", lexema->lex);
+        error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator %s uz bol definovany\n", lexema->lex);
         
     newNode = BS_Add(pointers->SCOPE,lexema);
     newNode->data->value = malloc(sizeof(struct STerm));
@@ -106,20 +107,25 @@ void SEM_varDec(PTStructLex lexema){
 
 void SEM_funcDef(PTStructLex lexema){
     if(pointers->SCOPE != pointers->SYM_TABLE)
-        error(ERR_SEM,"Semanticka chyba! Definicia funkcie je povolena len na globalnej urovni \n", lexema->lex);
+        error(ERR_SEM_UNDEF,"Semanticka chyba! Definicia funkcie je povolena len na globalnej urovni \n");
         
-    newNode = BS_Find(pointers->SYM_TABLE, lexema);
+    TSbinstrom newNode = BS_Find(pointers->SYM_TABLE, lexema);
     
     if(newNode != NULL){
-        if(newNode->data->flags & LEX_FLAGS_TYPE_FUNCTION == 0)
-            error(ERR_SEM,"Semanticka chyba! Chyba pri definicii funkcie %s. Existuje premenna s rovnakym nazvom\n", lexema->lex);
-        if(newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEK == 0)
-            error(ERR_SEM,"Semanticka chyba! Funkcia %s uz bola deklarovana\n", lexema->lex);
+        if((newNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) == 0)
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Chyba pri definicii funkcie %s. Existuje premenna s rovnakym nazvom\n", lexema->lex);
+        if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) == 0)
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Funkcia %s uz bola deklarovana\n", lexema->lex);
     }
     
     newNode = BS_Add(pointers->SYM_TABLE,lexema);
     newNode->data->value = malloc(sizeof(struct STerm));
     newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
+    pointers->SCOPE = newNode->loc_table;
+}
+
+void SEM_funcEnd(){
+    pointers->SCOPE = pointers->SYM_TABLE;
 }
 
 /*

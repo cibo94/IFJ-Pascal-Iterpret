@@ -1,11 +1,20 @@
+//#ifndef h_SEM
+//#define h_SEM
+
+void SEM_varDec(PTStructLex lexema);
+void SEM_funcDef(PTStructLex lexema);
+void SEM_typeDefinition(PTStructLex id, PTStructLex lexema);
+void SEM_funcEnd();
+//#endif
 /**
  * \file SEM.h
  * \brief Kniznica definujuca struktury a funkcie potrebne pre semanticku analyzu
  * \author 69DreamTeam
  */
 /*
-#ifndef h_SEM
-#define h_SEM
+
+
+
 
 // DATOVE TYPY
 

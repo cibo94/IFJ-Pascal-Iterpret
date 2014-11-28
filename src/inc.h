@@ -22,3 +22,4 @@
 #include "SYN_parser.h"
 #include "INT_interpret.h"
 #include "init.h"               //!< Inicializacne funkcie
+#include "SEM.h"

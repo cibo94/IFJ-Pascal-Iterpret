@@ -1,4 +1,5 @@
-#include"inc.h"
+#include "inc.h"
+
  
 PTStructLex lexema;
 
@@ -302,6 +303,7 @@ bool SYN_onlyDecFunc(FILE *f){
       if (SYN_decPrem(f) && SYN_funcBody(f) && SYN_decFunc(f)) return true;
       else return false;
     case KEY_FORWARD:
+      SEM_funcEnd(); // Semanticka akcia
       SYN_readLexem(f);
       if (lexema->type!=STREDNIK) return false;
       SYN_readLexem(f);
@@ -329,12 +331,13 @@ bool SYN_endParam(FILE *f){
 bool SYN_param(FILE *f){
   PTStructLex temp_lex=lexema;
   int typ;  
-
+  
   if (lexema->type!=IDENTIFICATOR) return false;
+  SEM_varDec(lexema);  // Semanticka akcia
   SYN_readLexem(f);
   if (lexema->type!=DDOT) return false;
   SYN_readLexem(f);
-  if (SYN_type(f,&typ)) temp_lex->flags=typ;
+  if (SYN_type(f,&typ)) temp_lex->flags=typ; 
   else return false;
   if (SYN_endParam(f)) return true; 
   else return false;
@@ -362,6 +365,7 @@ bool SYN_decFunc(FILE *f){
   	  SYN_readLexem(f);
   	  if (lexema->type!=IDENTIFICATOR) return false;
   	  temp_lex=lexema;
+      SEM_funcDef(lexema); // Semanticka akcia
           SYN_readLexem(f);
   	  if (lexema->type!=LBRACKET) return false;
   	  SYN_readLexem(f);
@@ -425,6 +429,7 @@ bool SYN_prem(FILE *f){
 
   if (lexema->type!=IDENTIFICATOR) return false;
   temp_lex=lexema;
+  SEM_varDec(lexema); // Semanticka akcia
   SYN_readLexem(f);
   if (lexema->type!=DDOT) return false;
   SYN_readLexem(f);

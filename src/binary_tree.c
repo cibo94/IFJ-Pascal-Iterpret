@@ -1,5 +1,5 @@
 #include "inc.h"
-
+extern PGLOB_DEST pointers;
 
 static uint32_t hash (char *key) {
     uint32_t hash, i;
@@ -40,8 +40,12 @@ TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
     uint32_t key = hash(data->lex);
     int c = 0;
 
-    if (root==NULL)
-    	return BS_New(data);    
+    if (root==NULL){
+    TSbinstrom Uk=BS_New(data);
+    if (pointers->SYM_TABLE==NULL)
+        pointers->SYM_TABLE=Uk;
+    return Uk;
+    }
 
  	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
  		if (key==pom->key &&
