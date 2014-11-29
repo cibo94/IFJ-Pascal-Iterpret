@@ -76,33 +76,36 @@ void SEM_disposeCL(TSconstList list){
 void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
     TSbinstrom node = BS_Find(pointers->SCOPE, term_lex);
     
-    if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){  // AK JE FUNKCIA DEFINOVANA TAK POKRACUJE A ROBI TYPOVU KONTROLU
-        switch(lexema->type){
-        case KEY_INTEGER:
-            if(node->data->value->type != TERM_INT) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;   
+    if((pointers->SCOPE != pointers->SYM_TABLE)&&(node != pointers->SCOPE)){    // AK SME VO FUNKCII, A NEPRIRADUJE SA NAVRATOVY TYP FUNKCIE
+        if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){      // AK JE FUNKCIA DEFINOVANA TAK POKRACUJE A ROBI TYPOVU KONTROLU
+            switch(lexema->type){
+            case KEY_INTEGER:
+                if(node->data->value->type != TERM_INT) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;   
         
-        case KEY_STRING:
-            if(node->data->value->type != TERM_STRING) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;   
+            case KEY_STRING:
+                if(node->data->value->type != TERM_STRING) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;   
         
-        case KEY_REAL:
-            if(node->data->value->type != TERM_REAL) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;   
+            case KEY_REAL:
+                if(node->data->value->type != TERM_REAL) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;   
         
-        case KEY_BOOLEAN:
-            if(node->data->value->type != TERM_BOOL) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;  
+            case KEY_BOOLEAN:
+                if(node->data->value->type != TERM_BOOL) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;  
 
-        default : break;
+            default : break;
+            }
+            return;
         }
     }
-    else{  // INAK PRIDAVA TYPY DO STROMU (FUNKCIA SA DEFINUJE)
-        switch(lexema->type){
+    // AK SA PRIRADUJE TYP GLOBALNEJ PREMENNEJ, FUNKCII ALEBO LOKALNYM PREMENNYM A PARAMETROM NEDEFINOVANEJ FUNKCIE
+    switch(lexema->type){
         case KEY_INTEGER:
             node->data->value->type = TERM_INT;
             if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));
@@ -125,7 +128,7 @@ void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
     
         default : break;
         }
-    }
+
     return;
 }
 
@@ -167,14 +170,14 @@ void SEM_funcDef(PTStructLex lexema){
     
     if(newNode != NULL){
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) == 0)
-            error(ERR_SEM_UNDEF,"Semanticka chyba! Chyba pri definicii funkcie %s. Existuje premenna s rovnakym nazvom\n", lexema->lex);
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Chyba pri definicii funkcie %s. Existuje premenna s rovnakym nazvom.\n", lexema->lex);
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0)
-            error(ERR_SEM_UNDEF,"Semanticka chyba! Funkcia %s uz bola deklarovana\n", lexema->lex);
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Funkcia %s uz bola deklarovana.\n", lexema->lex);
     }
     else {
         newNode = BS_Add(pointers->SYM_TABLE,lexema);
         newNode->data->value = malloc(sizeof(struct STerm));
-        if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+        if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
     }
     pointers->SCOPE = newNode;
@@ -190,36 +193,35 @@ void SEM_funcEnd(PTStructLex lexema){
     pointers->SCOPE = pointers->SYM_TABLE;
 }
 
-/*
-void SEM_createLeaf(ESyntaxRule pravidlo){
 
+void SEM_createLeaf(PTStructLex lexema){
+/**
  *  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
  *  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
- 
+ */ 
 
-    if(pravidlo == SRULE_ID){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
+    if(lexema->type == IDENTIFICATOR){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
         
-        TSbinstrom node = BS_Find(GLOBAL_scope, lexema);
+        TSbinstrom node = BS_Find(pointers->SCOPE, lexema);
         
-        if((GLOBAL_scope != GLOBAL_sym_table)&&(node == NULL))                 
-            node = BS_Find(GLOBAL_sym_table, lexema);      
+        if((pointers->SCOPE != pointers->SYM_TABLE)&&(node == NULL))                 
+            node = BS_Find(pointers->SYM_TABLE, lexema);      
             
         if (node == NULL)
-            error(ERR_SEM,"Nedefinovana premenna '%s'", lexema->lex);
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Nedefinovana premenna '%s' vo vyraze.\n", lexema->lex);
             
-        if (flags & LEX_FLAGS_TYPE_FUNCTION != 0)                  // CHYBOVA HLASKA AK SA POUZIL IDENTIFIKATOR FUNKCIE
-           error(ERR_SEM,"%s je identifikator funkcie", lexema->lex);
+        if ((node->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0)                  // CHYBOVA HLASKA AK SA POUZIL IDENTIFIKATOR FUNKCIE
+           error(ERR_SEM_OTHERS,"Semanticka chyba! Identifikator funkcie '%s' vo vyraze.\n", lexema->lex);
            
-        if (flags & LEX_FLAGS_INIT == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
-           error(ERR_SEM,"Premenna %s nebola inicializovana", lexema->lex);        
+        if ((node->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
+           error(ERR_SEM_UNDEF,"Semanticka chyba! Neinicializovana premenna '%s' vo vyraze.\n", lexema->lex);        
         
-        SEM_pushSS(GLOBAL_SEM_ExpStack, node->data->value->type);        // ULOZENIE TYPU
+        SEM_pushSS(pointers->EXPRSTACK, node->data->value->type);        // ULOZENIE TYPU
         SEM_generate(OP_PUSH, node->data->value, NULL, NULL);
     }
-    
-    if(pravidlo == SRULE_CONST){                                     // V PRIPADE KONSTANTY JU POTREBUJEM ULOZIT DO STROMU AKO GENEROVANU PREMENNU   
+    else{                                                            // V PRIPADE KONSTANTY JU POTREBUJEM ULOZIT DO STROMU AKO GENEROVANU PREMENNU   
         struct STerm * term = malloc(sizeof(struct STerm));          // PRE KONSTANTY SA VYTVARA NOVE UMIESTNENIE, A UKLADA SA DO ZOZNAMU KONSTANT
-        
+        if (term == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         switch(lexema->type){                                        // PODLA TYPU LEXEMY SA SKONVERTUJE STRING NA POZADOVANU HODNOTU
         
             case INT_CONST    :
@@ -247,69 +249,76 @@ void SEM_createLeaf(ESyntaxRule pravidlo){
                 term->type = TERM_BOOL;
             break;
             
-            default : break;
+            default : error(ERR_SEM_OTHERS,"Nie tak celkom semanticka chyba. Dostalo sa mi sem '%s' namiesto nejakeho termu.\n", lexema->lex); break;
         }
 
-        SEM_pushSS(GLOBAL_SEM_ExpStack, term->type);     // ULOZENIE TYPU NA SEMANTICKY ZASOBNIK
-        SEM_generate(OP)
-        SEM_addCL(term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
+        SEM_pushSS(pointers->EXPRSTACK, term->type);     // ULOZENIE TYPU NA SEMANTICKY ZASOBNIK
+        SEM_generate(OP_PUSH, term, NULL, NULL);
+        SEM_addCL(pointers->CONSTLIST,term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
         return;
     }
  
  }
 
-void SEM_createTree(ESyntaxRule pravidlo, E_OP wParam){
+void SEM_createTree(PTStructLex lexema){
     
-    ETermType typeRight = SEM_popSS(GLOBAL_SEM_ExpStack);
-    ETermType typeLeft  = SEM_popSS(GLOBAL_SEM_ExpStack);
+    E_OP relOperator = 0;
+    ETermType typeRight = SEM_popSS(pointers->EXPRSTACK);
+    ETermType typeLeft  = SEM_popSS(pointers->EXPRSTACK);
     
     if(typeLeft != typeRight)
-        error(ERR_SEM, "Nekompatibilne datove typy.");
+        error(ERR_SEM_TYPE,"Nekompatibilne datove typy vo vyraze.");
     
-    GLOBAL_SEM_ReturnRegister->type = typeRight;
+    pointers->ACCREG->type = typeRight;
     
-    SEM_generate(OP_POP, NULL, NULL, GLOBAL_SEM_SourceOne);
-    SEM_generate(OP_POP, NULL, NULL, GLOBAL_SEM_SourceTwo);
+    SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
+    SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
     
-    switch(pravidlo){
-        case SRULE_PLUS     :
-            SEM_generate(OP_PLUS, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);         
+    switch(lexema->type){
+        case OPERATOR_PLUS     :
+            SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);         
         break;                                                                          
         
-        case SRULE_MINUS    :
+        case OPERATOR_MINUS    :
             if(typeRight != TERM_STRING)
-                SEM_generate(OP_MINUS, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);
+                SEM_generate(OP_MINUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
             else 
-                error(ERR_SEM, "Retazce nie je mozne odcitat");
+                error(ERR_SEM_TYPE, "Semanticka chyba! Retazce nie je mozne odcitat");
 
         break;
         
-        case SRULE_MUL      :
+        case OPERATOR_TIMES    :
             if(typeRight != TERM_STRING)
-                SEM_generate(OP_MUL, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);
+                SEM_generate(OP_MUL, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
             else 
-                error(ERR_SEM, "Retazce nie je mozne nasobit");
+                error(ERR_SEM_TYPE, "Semanticka chyba! Retazce nie je mozne nasobit");
         break;
         
-        case SRULE_DIV      :
+        case OPERATOR_DIV      :
             if(typeRight != TERM_STRING)
-                SEM_generate(OP_DIV, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);
+                SEM_generate(OP_DIV, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
             else 
-                error(ERR_SEM, "Retazec nie je mozne delit retazcom");
+                error(ERR_SEM_TYPE, "Semanticka chyba! Retazec nie je mozne delit retazcom");
         break;
         
-        case SRULE_REL      :
-                GLOBAL_SEM_ReturnRegister->type = TERM_BOOL;
-                SEM_generate(wParam, GLOBAL_SEM_SourceOne, GLOBAL_SEM_SourceTwo, GLOBAL_SEM_ReturnRegister);           //!< TU POZOR NA WPARAM
-        break;
-
+        case OPERATOR_GREATER  : relOperator = OP_GREAT;   break;
+        case OPERATOR_SMALLER  : relOperator = OP_LESS;    break;
+        case OPERATOR_GREATEQ  : relOperator = OP_GREATEQ; break;
+        case OPERATOR_SMALLEQ  : relOperator = OP_LESSEQ;  break;
+        case OPERATOR_EQUAL    : relOperator = OP_EQUAL;   break;
+        case OPERATOR_NEQUAL   : relOperator = OP_NEQUAL;  break;    
         default             :   break;
         }     
     
-        SEM_pushSS(GLOBAL_SEM_ExpStack, GLOBAL_SEM_ReturnRegister->type);
-        SEM_generate(OP_PUSH, GLOBAL_SEM_ReturnRegister, NULL, NULL);
+        if(relOperator != 0){
+            pointers->ACCREG->type = TERM_BOOL;
+            SEM_generate(relOperator, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);  
+        }
+    
+        SEM_pushSS(pointers->EXPRSTACK, pointers->ACCREG->type);
+        SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
 }
-
+/*
 void SEM_assignValue(){
     
     TSbinstrom node = BS_Find(GLOBAL_scope, lexema);
@@ -385,7 +394,7 @@ void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
 
 //  DALSIE FUNKCIE
 
-
+*/
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
 
  // FUNKCIA, KTORA VYTVORI TROJADRESNU INSTRUKCIU A PRIDA JU DO PROGRAMU
@@ -395,9 +404,10 @@ void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
     newInstruction->op1 = op1;
     newInstruction->op2 = op2;
     newInstruction->ret = result;
-    
-    SEM_addInstruction(newInstruction);
-};
-*/
+    free (newInstruction);
+    return;
+    //SEM_addInstruction(newInstruction);
+}
+
 
 
