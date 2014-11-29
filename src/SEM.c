@@ -76,33 +76,36 @@ void SEM_disposeCL(TSconstList list){
 void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
     TSbinstrom node = BS_Find(pointers->SCOPE, term_lex);
     
-    if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){  // AK JE FUNKCIA DEFINOVANA TAK POKRACUJE A ROBI TYPOVU KONTROLU
-        switch(lexema->type){
-        case KEY_INTEGER:
-            if(node->data->value->type != TERM_INT) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;   
+    if((pointers->SCOPE != pointers->SYM_TABLE)&&(node != pointers->SCOPE)){    // AK SME VO FUNKCII, A NEPRIRADUJE SA NAVRATOVY TYP FUNKCIE
+        if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){      // AK JE FUNKCIA DEFINOVANA TAK POKRACUJE A ROBI TYPOVU KONTROLU
+            switch(lexema->type){
+            case KEY_INTEGER:
+                if(node->data->value->type != TERM_INT) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;   
         
-        case KEY_STRING:
-            if(node->data->value->type != TERM_STRING) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;   
+            case KEY_STRING:
+                if(node->data->value->type != TERM_STRING) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;   
         
-        case KEY_REAL:
-            if(node->data->value->type != TERM_REAL) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;   
+            case KEY_REAL:
+                if(node->data->value->type != TERM_REAL) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;   
         
-        case KEY_BOOLEAN:
-            if(node->data->value->type != TERM_BOOL) 
-            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
-        break;  
+            case KEY_BOOLEAN:
+                if(node->data->value->type != TERM_BOOL) 
+                error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+            break;  
 
-        default : break;
+            default : break;
+            }
+            return;
         }
     }
-    else{  // INAK PRIDAVA TYPY DO STROMU (FUNKCIA SA DEFINUJE)
-        switch(lexema->type){
+    // AK SA PRIRADUJE TYP GLOBALNEJ PREMENNEJ, FUNKCII ALEBO LOKALNYM PREMENNYM A PARAMETROM NEDEFINOVANEJ FUNKCIE
+    switch(lexema->type){
         case KEY_INTEGER:
             node->data->value->type = TERM_INT;
             if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));
@@ -125,7 +128,7 @@ void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
     
         default : break;
         }
-    }
+
     return;
 }
 
