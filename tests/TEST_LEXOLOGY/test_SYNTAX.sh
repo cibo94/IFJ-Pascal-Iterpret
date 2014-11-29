@@ -1,6 +1,6 @@
 export dir="SYNTAX"
 export name="SYNTAX"
-export file="../src/SYN_parser.c ../src/LEX_lexem.c ../src/SEM.c  "
+export file="../src/SYN_parser.c ../src/LEX_lexem.c "
 export src='#include "../src/inc.h"
 PGLOB_DEST pointers;
 int main(int argc, char **argv) {
@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
 
     }'
 export input="Var   disks: integer;
-      ahoj: string;
-      noha:integer;
+     ahoj: string;
+     disks:integer;
 
 function test():integer;
 begin
@@ -26,16 +26,19 @@ end;
 
 function test2(p1:string; p2:integer; p3:boolean; p4:real): integer;
 begin
-test2:=p1+p2+4;
+test2:=p1+p2+4
 end;
 
 
  
 
  begin
+ 
+ disks:=test2(1,2,3)
  end.
  "
   
 export output="SYNTAX OK.
 "
 export retCode=0
+
