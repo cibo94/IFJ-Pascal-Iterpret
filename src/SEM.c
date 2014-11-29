@@ -76,31 +76,56 @@ void SEM_disposeCL(TSconstList list){
 void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
     TSbinstrom node = BS_Find(pointers->SCOPE, term_lex);
     
-    switch(lexema->type){
-    
-    case KEY_INTEGER:
-        node->data->value->type = TERM_INT;
-        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));
-    break;
-    
-    case KEY_STRING:
-        node->data->value->type = TERM_STRING;
-        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'r',&(pointers->PARAMCOUNT));
-    break;
-    
-    case KEY_REAL:
-        node->data->value->type = TERM_REAL;
-        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'s',&(pointers->PARAMCOUNT));
-    break;
-    
-    case KEY_BOOLEAN:
-        node->data->value->type = TERM_BOOL;
-        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'b',&(pointers->PARAMCOUNT));
-    break;
-    
-    default : break;
+    if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){  // AK JE FUNKCIA DEFINOVANA TAK POKRACUJE A ROBI TYPOVU KONTROLU
+        switch(lexema->type){
+        case KEY_INTEGER:
+            if(node->data->value->type != TERM_INT) 
+            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+        break;   
+        
+        case KEY_STRING:
+            if(node->data->value->type != TERM_STRING) 
+            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+        break;   
+        
+        case KEY_REAL:
+            if(node->data->value->type != TERM_REAL) 
+            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+        break;   
+        
+        case KEY_BOOLEAN:
+            if(node->data->value->type != TERM_BOOL) 
+            error(ERR_SEM_TYPE,"Semanticka chyba! Nekompatibilne datove typy parametrov funkcie\n");
+        break;  
+
+        default : break;
+        }
     }
+    else{  // INAK PRIDAVA TYPY DO STROMU (FUNKCIA SA DEFINUJE)
+        switch(lexema->type){
+        case KEY_INTEGER:
+            node->data->value->type = TERM_INT;
+            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));
+        break;
+        
+        case KEY_STRING:
+            node->data->value->type = TERM_STRING;
+            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'r',&(pointers->PARAMCOUNT));
+        break;
     
+        case KEY_REAL:
+            node->data->value->type = TERM_REAL;
+            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'s',&(pointers->PARAMCOUNT));
+        break;
+    
+        case KEY_BOOLEAN:
+            node->data->value->type = TERM_BOOL;
+            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'b',&(pointers->PARAMCOUNT));
+        break;
+    
+        default : break;
+        }
+    }
     return;
 }
 
@@ -156,7 +181,7 @@ void SEM_funcDef(PTStructLex lexema){
 }
 
 void SEM_funcEnd(PTStructLex lexema){
-    if(lexema->type == KEY_END){
+    if(lexema->type == STREDNIK){
         pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEK);
         pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEF);
     }
@@ -167,8 +192,9 @@ void SEM_funcEnd(PTStructLex lexema){
 
 /*
 void SEM_createLeaf(ESyntaxRule pravidlo){
- //  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
- //  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
+
+ *  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
+ *  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
  
 
     if(pravidlo == SRULE_ID){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
