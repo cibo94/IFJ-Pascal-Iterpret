@@ -15,7 +15,7 @@
 #define LEX_FLAGS_TYPE_STRING       0x00000010      //!< premenna typu real
 #define LEX_FLAGS_TYPE_FUNCTION     0x00000020      //!< lexema je funkcia
 #define LEX_FLAGS_TYPE_FUNC_DEK     0x00000040      //!< funkcia bola deklarovana
-
+#define LEX_FLAGS_TYPE_FUNC_DEF     0x00000080      //!< funkcia bola definovana
 
 #define STD_LNGTH 32                //!< pociatocna dlzka stringu
 

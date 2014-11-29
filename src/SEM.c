@@ -1,37 +1,35 @@
 #include "inc.h"
-extern PGLOB_DEST pointers;
 
 //  GLOBALNE PREMENNE
-   
-     TTerm *      GLOBAL_SEM_ReturnRegister;
-     TTerm *      GLOBAL_SEM_SourceOne;
-     TTerm *      GLOBAL_SEM_SourceTwo;
-/*     
-     TProgram     GLOBAL_SEM_Program;
+     
+     extern PGLOB_DEST pointers;
      
 //  FUNKCIE NAD ZASOBNIKOM
 
-void SEM_initSS(TSemStack stack){
-    stack = malloc(sizeof(struct SemStack));
+TSemStack SEM_initSS(){
+    TSemStack stack = malloc(sizeof(struct SemStack));
+    if(stack == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     stack->top = NULL;
+    return stack;
 }
 
 void SEM_pushSS(TSemStack stack, ETermType elem){
     TStackElem new = malloc(sizeof(struct StackElem));
+    if (new == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     new->previous = stack->top;                     // VRCHOL SA STANE PREDCHODCOM NOVEHO VRCHOLU
     new->data = elem;                               // NASTAVENIE OBSAHU PRVKU ZASOBNIKA
     stack->top = new;                               // NASTAVI SA NOVY VRCHOL
 }
 
 ETermType SEM_popSS(TSemStack stack){
-    if(stack->top == NULL)
-        return NULL; 
-        
+    if(stack->top != NULL){        
     ETermType returnType = stack->top->data;       // ULOZENIE NAVRATOVEHO TYPU
     TStackElem toDelete  = stack->top;             // ULOZENIE PRVKU KTORY SA ZMAZE 
     stack->top = toDelete->previous;               // ZNIZENIE VRCHOLU ZASOBNIKA
     free(toDelete);                                // UVOLNENIE POPNUTEHO PRVKU 
     return returnType;
+    }
+    return 0;
 }
 
 void SEM_disposeSS(TSemStack stack){
@@ -41,19 +39,23 @@ void SEM_disposeSS(TSemStack stack){
         stack->top = toDelete->previous;
         free(toDelete);
     }
+    free(stack);
 }
 
 // FUNKCIE PRE ZOZNAM KONSTANT
 
-void SEM_initCL(TSconstList list){
-    list = malloc(sizeof(struct SconstList));
-    list->first = NULL;
+TSconstList SEM_initCL(){
+    TSconstList newList = malloc(sizeof(struct SconstList));
+    if (newList == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+    newList->first = NULL;
+    return newList;
 }
 
 void SEM_addCL(TSconstList list, TTerm * elem){
     TSlistElem newElem = malloc(sizeof(struct SlistElem));
-    newElem->data = elem;
-    newElem = list->first;
+    if (newElem == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+    newElem->constTerm = elem;
+    newElem->next = list->first;
     list->first = newElem;
 }
 
@@ -63,76 +65,110 @@ void SEM_disposeCL(TSconstList list){
     while (list->first != NULL){
         toDelete = list->first;
         list->first = toDelete->next;
+        free(toDelete->constTerm);
         free(toDelete);
     }
+    free(list);
 }
-*/
-//  OSTATNE FUNKCIE
 
-void SEM_typeDefinition(PTStructLex id, PTStructLex lexema){
-    TSbinstrom node = BS_Find(pointers->SCOPE, id);
+//  FUNKCIE POTREBNE PRI DEFINICII A DEKLARACII PREMENNYCH A FUNKCII
+
+void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
+    TSbinstrom node = BS_Find(pointers->SCOPE, term_lex);
     
-    if(strcmp(lexema->lex, "integer") == 0){
+    switch(lexema->type){
+    
+    case KEY_INTEGER:
         node->data->value->type = TERM_INT;
-        return;
-    }
-    if(strcmp(lexema->lex, "string") == 0){
+        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));
+    break;
+    
+    case KEY_STRING:
         node->data->value->type = TERM_STRING;
-        return;
-    }
-    if(strcmp(lexema->lex, "real") == 0){
+        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'r',&(pointers->PARAMCOUNT));
+    break;
+    
+    case KEY_REAL:
         node->data->value->type = TERM_REAL;
-        return;
-    }
-    if(strcmp(lexema->lex, "boolean") == 0){
+        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'s',&(pointers->PARAMCOUNT));
+    break;
+    
+    case KEY_BOOLEAN:
         node->data->value->type = TERM_BOOL;
-        return;
-    }    
+        if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'b',&(pointers->PARAMCOUNT));
+    break;
+    
+    default : break;
+    }
+    
+    return;
 }
 
 void SEM_varDec(PTStructLex lexema){
+    
     TSbinstrom newNode = BS_Find(pointers->SCOPE, lexema);
     
-    if(newNode != NULL)
-        error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator %s uz bol definovany\n", lexema->lex);
+    if((pointers->SCOPE != pointers->SYM_TABLE)&&(newNode != NULL))         // AK SA HLADA VO FUNKCII A NIECO SA NASLO
+        if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){        // AK BOLA FUNKCIA DEFINOVANA (PRIPAD FORWARD)
+            if(((unsigned)*(newNode->data->param) == pointers->PARAMCOUNT)&&((pointers->PARAMCOUNT) < strlen(pointers->SCOPE->data->param) ) ) // AK SA INDEX PARAMETRA NAJDENEHO PRVKU ROVNA SUCASNEMU INDEXU A ZAROVEN JE SUCASNY INDEX MENSI NEZ POCET PARAMETROV FUNKCIE
+                return;                                                     // TAK JE VSETKO OK
+            else
+                error(ERR_SEM_UNDEF,"Semanticka chyba! Parametre hlavicky funkcie definovanej cez forward a jej deklaracie sa nezhoduju\n");
+        }       //  INAK NASTAVA CHYBA, BUD SA NEZHODUJU NAZVY IDENTIFIKATOROV NA ROVNAKOM INDEXE, ALEBO SA V DEKLARACNEJ HLAVICKE OBJAVIL VYSSI POCET PARAMETROV NEZ V DEFINICNEJ HLAVICKE
+    
+    
+    if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator %s uz bol definovany\n", lexema->lex); // AK SA NIECO NASLO TAK SA REDEFINUJE -> ERROR
         
-    newNode = BS_Add(pointers->SCOPE,lexema);
+    newNode = BS_Add(pointers->SCOPE,lexema);  // INAK SA NIC NENASLO A DEKLARUJE SA
     newNode->data->value = malloc(sizeof(struct STerm));
-
+    if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+    
+   
     if(pointers->SYM_TABLE == pointers->SCOPE)  //JEDNA SA O DEKLARACIU GLOBALNEJ PREMENNEJ
         newNode->data->value->index = false;
-    else                                        //JEDNA SA O DEKLARACIU LOKALNEJ PREMENNEJ
+    else{                                        //JEDNA SA O DEKLARACIU LOKALNEJ PREMENNEJ
+        newNode->data->param = malloc(sizeof(char));
+        if(newNode->data->param == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+        *(newNode->data->param) = pointers->PARAMCOUNT; // ULOZENIE INDEXU LOKALNEJ PREMENNEJ / PARAMETRA
         newNode->data->value->index = true;
+    }
 }
 
+
 void SEM_funcDef(PTStructLex lexema){
-    if(pointers->SCOPE != pointers->SYM_TABLE)
-        error(ERR_SEM_UNDEF,"Semanticka chyba! Definicia funkcie je povolena len na globalnej urovni \n");
-        
+       
     TSbinstrom newNode = BS_Find(pointers->SYM_TABLE, lexema);
+    pointers->PARAMCOUNT = 0;
     
     if(newNode != NULL){
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) == 0)
             error(ERR_SEM_UNDEF,"Semanticka chyba! Chyba pri definicii funkcie %s. Existuje premenna s rovnakym nazvom\n", lexema->lex);
-        if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) == 0)
+        if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0)
             error(ERR_SEM_UNDEF,"Semanticka chyba! Funkcia %s uz bola deklarovana\n", lexema->lex);
     }
-    
-    newNode = BS_Add(pointers->SYM_TABLE,lexema);
-    newNode->data->value = malloc(sizeof(struct STerm));
-    newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
-    pointers->SCOPE = newNode->loc_table;
+    else {
+        newNode = BS_Add(pointers->SYM_TABLE,lexema);
+        newNode->data->value = malloc(sizeof(struct STerm));
+        if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+        newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
+    }
+    pointers->SCOPE = newNode;
 }
 
-void SEM_funcEnd(){
+void SEM_funcEnd(PTStructLex lexema){
+    if(lexema->type == KEY_END){
+        pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEK);
+        pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEF);
+    }
+    if(lexema->type == KEY_FORWARD) pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEF);
+    
     pointers->SCOPE = pointers->SYM_TABLE;
 }
 
 /*
 void SEM_createLeaf(ESyntaxRule pravidlo){
-/**
- *  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
- *  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
+ //  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
+ //  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
  
 
     if(pravidlo == SRULE_ID){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
@@ -281,9 +317,9 @@ void SEM_functionCall(int *paramCounter, PTStructLex functionLexem){
 }
 
 void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
-/**
- *  VOLA SA PRI SPRACOVAVANI PARAMETROV VOLANEJ FUNKCIE
- *  V TERME FUNKCIE, KONKRETNE VO VALUE.STRING JE STRING OBSAHUJUCI PARAMETRE FUNKCIE
+
+//  VOLA SA PRI SPRACOVAVANI PARAMETROV VOLANEJ FUNKCIE
+//  V TERME FUNKCIE, KONKRETNE VO VALUE.STRING JE STRING OBSAHUJUCI PARAMETRE FUNKCIE
  
  
     if((*paramCounter+1) > strlen(functionNode->data->param))
@@ -325,8 +361,8 @@ void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
 
 
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
-/**
- *  FUNKCIA, KTORA VYTVORI TROJADRESNU INSTRUKCIU A PRIDA JU DO PROGRAMU
+
+ // FUNKCIA, KTORA VYTVORI TROJADRESNU INSTRUKCIU A PRIDA JU DO PROGRAMU
   
     P3AC newInstruction = malloc(sizeof(struct S3AC));
     newInstruction->op = operation;

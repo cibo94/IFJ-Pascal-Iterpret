@@ -1,20 +1,11 @@
-//#ifndef h_SEM
-//#define h_SEM
-
-void SEM_varDec(PTStructLex lexema);
-void SEM_funcDef(PTStructLex lexema);
-void SEM_typeDefinition(PTStructLex id, PTStructLex lexema);
-void SEM_funcEnd();
-//#endif
 /**
  * \file SEM.h
  * \brief Kniznica definujuca struktury a funkcie potrebne pre semanticku analyzu
  * \author 69DreamTeam
  */
-/*
 
-
-
+#ifndef h_SEM
+#define h_SEM
 
 // DATOVE TYPY
 
@@ -31,48 +22,79 @@ typedef struct SemStack{
 }*TSemStack;
 
 
-typedef struct SconstList {
-    TSlistElem first;
-}*TSconstList;
-
 typedef struct SlistElem {
-    TTerm * constTerm;
-    TSlistElem next;
+    struct STerm * constTerm;
+    struct SlistElem * next;
 }*TSlistElem;
+
+typedef struct SconstList {
+    struct SlistElem * first;
+}*TSconstList;
 
 
 // GLOBALNE PREMENNE
 
-    extern TSemStack    GLOBAL_SEM_ExpStack;
-    extern int          GLOBAL_SEM_localVarCount;
-    extern PTStructLex  lexema;
-    extern TSbinstrom   GLOBAL_scope;
-    extern TSbinstrom   GLOBAL_sym_table;
-    extern TTerm *      GLOBAL_SEM_funcEAX;
-    extern TProgram     GLOBAL_SEM_Program;
+    extern PGLOB_DEST pointers;
     
 // FUNKCIE PRE ZASOBNIK
 
-void SEM_initSS(TSemStack stack);
-void SEM_pushSS(TSemStack stack, TStackElem uzol);
+TSemStack SEM_initSS();
+void SEM_pushSS(TSemStack stack, ETermType elem);
 ETermType SEM_popSS(TSemStack stack);
 void SEM_disposeSS(TSemStack stack);
 
 // FUNKCIE PRE ZOZNAM KONSTANT
-
-void SEM_initCL(TSconstList list);
+TSconstList SEM_initCL();
 void SEM_addCL(TSconstList list, TTerm * elem);
 void SEM_disposeCL(TSconstList list);
 
 
 // FUNKCIE PRE ABSTRAKTNY SYNTAKTICKY STROM
-
+/*
 void SEM_createLeaf(TSemStack stack, ESyntaxRule pravidlo);
 void SEM_createTree(TSemStack stack, ESyntaxRule pravidlo, ERelationOperator wParam);
 void SEM_functionCall();
-void SEM_ASSdispose(TASS tree);
+*/
+//  FUNKCIE POTREBNE PRI DEFINICII A DEKLARACII PREMENNYCH A FUNKCII
+void SEM_varDec(PTStructLex lexema);
+/**
+ * SEM_varDec
+ * ----------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK NASTAVA DEKLARACIA PREMENNEJ (BEZ OHLADU NA UROVEN)
+ * @param:LEXEMA = LEXEMA PREMENNEJ/FUNKCIE TYPU ID
+ * @return: FUNKCIA VYTVORI V TABULKE SYMBOLOV UZOL PREMENNEJ
+ */
+ 
 
-//  DALSIE FUNKCIE SEMANTICKEJ ANALYZY
+void SEM_funcDef(PTStructLex lexema);
+/**
+ * SEM_funcDef
+ * -----------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK SA DEFINUJE/DEKLARUJE FUNKCIA
+ * @param:LEXEMA = LEXEMA ID FUNKCIE
+ * @return: VYTVORI UZOL V TABULKE SYMBOLOV A ZMENI SCOPE NA TUTO FUNKCIU
+ */
 
+ 
+void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex);
+/**
+ * SEM_typeDefinition
+ * ------------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR POKIAL PRIRADUJE PREMENNEJ/FUNKCII TYP
+ * @param:LEXEMA = LEXEMA TYPU (integer, real...)
+ * @param:TERM_LEX = LEXEMA PREMENNEJ/FUNKCIE TYPU ID
+ * @return: NASTAVI SPRAVNY TYP TERMU V UZLE, PRE LOKALNE PREMENNE NASTAVUJE STRING PARAMETROV
+ */
+ 
+ 
+void SEM_funcEnd();
+/**
+ * SEM_funcEnd
+ * -----------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR VO CHVILI KEDY KONCI DEFINICIA/DEKLARACIA FUNKCIE (keyword forward/end funkcie)
+ * @return: ZMENA SCOPE NA SYM_TABLE
+ */
+ 
+//  DALSIE FUNKCIE
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
-#endif*/
+#endif
