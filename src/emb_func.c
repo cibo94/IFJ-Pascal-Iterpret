@@ -46,7 +46,7 @@ int EMB_find(char *s, char *search){
         r,                                                  // Pomocna premenna pre urcenie vektora spatnych indexov
         c = 0;                                              // Posledny index urcenia spatneho indexu
 
-    char *fail = malloc(inputLength*sizeof(char));          // Pole navratovych indexov v pripade neuspesneho hladania
+    char *fail = malloc(inputLength*sizeof(char)+1);          // Pole navratovych indexov v pripade neuspesneho hladania
     if (fail == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!");
     fail[0] = 0;
 

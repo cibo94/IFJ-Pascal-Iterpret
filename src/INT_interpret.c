@@ -68,7 +68,7 @@ static void SFree () {
 }
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -91,7 +91,7 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -110,7 +110,7 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -128,7 +128,7 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -146,7 +146,7 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
 
 static void assign (TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -155,7 +155,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 }
 
 static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -178,7 +178,7 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -201,7 +201,7 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -224,7 +224,7 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
@@ -247,7 +247,7 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
-    if (ret->type == TERM_OFFSET) {
+    if (ret->index) {
         op1 = SPick(op1->value.offset);
         op2 = SPick(op2->value.offset);
         ret = SPick(ret->value.offset);
