@@ -291,6 +291,7 @@ bool SYN_funcBody(FILE *f){
 
   if (!SYN_comStatement(f)) return false;
   if (lexema->type!=STREDNIK) return false;
+  SEM_funcEnd();  // Semanticka akcia
   SYN_readLexem(f);
   return true;
 }
@@ -330,15 +331,13 @@ bool SYN_endParam(FILE *f){
 
 bool SYN_param(FILE *f){
   PTStructLex temp_lex=lexema;
-  int typ;  
-  
+    
   if (lexema->type!=IDENTIFICATOR) return false;
   SEM_varDec(lexema);  // Semanticka akcia
   SYN_readLexem(f);
   if (lexema->type!=DDOT) return false;
   SYN_readLexem(f);
-  if (SYN_type(f,&typ)) temp_lex->flags=typ; 
-  else return false;
+  if (!SYN_type(f,temp_lex)) return false;
   if (SYN_endParam(f)) return true; 
   else return false;
 }
@@ -358,14 +357,13 @@ bool SYN_paramList(FILE *f){
 
 bool SYN_decFunc(FILE *f){
   PTStructLex temp_lex;
-  int typ;
 
   switch (lexema->type){
   	case KEY_FUNCTION:
   	  SYN_readLexem(f);
   	  if (lexema->type!=IDENTIFICATOR) return false;
   	  temp_lex=lexema;
-      SEM_funcDef(lexema); // Semanticka akcia
+          SEM_funcDef(lexema); // Semanticka akcia
           SYN_readLexem(f);
   	  if (lexema->type!=LBRACKET) return false;
   	  SYN_readLexem(f);
@@ -374,9 +372,8 @@ bool SYN_decFunc(FILE *f){
   	  SYN_readLexem(f);
   	  if (lexema->type!=DDOT) return false;
   	  SYN_readLexem(f);
-  	  if (!SYN_type(f,&typ)) return false;	
-  	  temp_lex->flags=typ;
-          if (lexema->type!=STREDNIK) return false;
+  	  if (!SYN_type(f,temp_lex)) return false;	
+  	  if (lexema->type!=STREDNIK) return false;
   	  SYN_readLexem(f);
   	  if (SYN_onlyDecFunc(f)) return true;
   	  else return false;
@@ -401,20 +398,14 @@ bool SYN_nextPrem(FILE *f){
   }
 }
 
-bool SYN_type(FILE *f,int *type){
+bool SYN_type(FILE *f,PTStructLex id){
   
   switch (lexema->type){
     case KEY_INTEGER:
-      *type=LEX_FLAGS_TYPE_INT;
-      break;
     case KEY_REAL:
-      *type=LEX_FLAGS_TYPE_REAL;
-      break;
     case KEY_STRING:
-      *type=LEX_FLAGS_TYPE_STRING;
-      break;
     case KEY_BOOLEAN:
-      *type=LEX_FLAGS_TYPE_BOOL;
+      SEM_typeDefinition(lexema,id);  //Semanticka akcia
       break;
     default:
       return false;
@@ -425,7 +416,6 @@ bool SYN_type(FILE *f,int *type){
 
 bool SYN_prem(FILE *f){
   PTStructLex temp_lex;
-  int typ;
 
   if (lexema->type!=IDENTIFICATOR) return false;
   temp_lex=lexema;
@@ -433,8 +423,7 @@ bool SYN_prem(FILE *f){
   SYN_readLexem(f);
   if (lexema->type!=DDOT) return false;
   SYN_readLexem(f);
-  if (!SYN_type(f,&typ)) return false;
-  temp_lex->flags=typ;
+  if (!SYN_type(f,temp_lex)) return false;
   if (lexema->type!=STREDNIK) return false;
   SYN_readLexem(f);
   return true;

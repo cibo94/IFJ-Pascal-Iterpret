@@ -58,7 +58,7 @@ bool SYN_prem(FILE *f);
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_type(FILE *f,int *type);
+bool SYN_type(FILE *f,PTStructLex id);
 
 /** SYN_nextPrem
  * \brief Pravidlo na deklaraciu dalsej premennej (5,6 pravidlo)
