@@ -17,6 +17,7 @@ typedef enum {
     OP_LESSEQ,
     OP_GREATEQ, 
     OP_EQUAL,
+    OP_NEQUAL,
     OP_CALL, 
     OP_RET, 
     OP_PUSH, 

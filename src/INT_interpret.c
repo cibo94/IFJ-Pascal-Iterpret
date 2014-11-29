@@ -377,7 +377,7 @@ __attribute__ ((unused))
 static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     &plus, &minus, &mul, &division, 
     &assign, &less, &greater, &lesseq, 
-    &greateq, &equal,  &call, &ret, 
+    &greateq, &equal, &nequal,  &call, &ret, 
     &push, &pop, &jtrue, &jmp, 
     &nop, &load, &not, &store
     // TODO: Pridat dalsie funkcie!
