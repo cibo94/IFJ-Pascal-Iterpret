@@ -269,6 +269,10 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
     }
 }
 
+static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
+    equal(op1, op2, ret);
+    ret->value.boolean = !ret->value.boolean;
+}
 
 static void ret (        TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
