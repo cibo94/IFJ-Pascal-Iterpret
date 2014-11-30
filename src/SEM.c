@@ -93,7 +93,9 @@ void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
-    TSbinstrom funcParam;
+    
+    TSbinstrom funcParam = BS_Find(pointers->SYM_TABLE, dataID);
+    if(funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' sa zhoduje s globalnym identifikatorom\n", dataID->lex);
     
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) == 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
         funcParam = BS_Find(pointers->SCOPE, dataID);
@@ -126,7 +128,10 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
-    TSbinstrom newNode = BS_Find(pointers->SCOPE, dataID);
+    TSbinstrom newNode = BS_Find(pointers->SYM_TABLE, dataID);
+    if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' sa zhoduje s globalnym identifikatorom\n", dataID->lex);
+    
+    newNode = BS_Find(pointers->SCOPE, dataID);
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator lokalnej premennej '%s' uz bol definovany\n", dataID->lex);
     newNode = BS_Add(pointers->SCOPE, dataID);
     
@@ -211,7 +216,7 @@ void SEM_createLeaf(PTStructLex lexema){
     if(lexema->type == IDENTIFICATOR){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
         
         node = BS_Find(pointers->SCOPE, lexema);
-        if(pointers->SYM_TABLE != pointers->SCOPE) && (node == NULL)
+        if((pointers->SYM_TABLE != pointers->SCOPE) && (node == NULL))
             node = BS_Find(pointers->SYM_TABLE, lexema);
             
         if (node == NULL)
@@ -341,49 +346,73 @@ void SEM_assignValue(PTStructLex lexema){
         error(ERR_SEM_TYPE,"Semanticka chyba! Vysledok vyrazu je ineho typu nez '%s'.", lexema->lex);   
         
     SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
-    SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, node->data->value)
+    SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, node->data->value);
     
     return;
 }
 
 
 void SEM_insertEmbFunc(){
-    PTStructLex embFunc;
+    PTStructLex embFunc = malloc(sizeof(PTStructLex));
+    PTStructLex paramID = malloc(sizeof(PTStructLex));
+    PTStructLex dataType = malloc(sizeof(PTStructLex));
     
-    embFunc->lex = "length";
-    TSbinstrom node = BS_Add(pointers->SYM_TABLE, embFunc);
-    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
-    node->data->value = malloc(sizeof(struct STerm));
-    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
-    node->data->value->type = TERM_INT;
-    node->data->param = "s";
-    embFunc->lex = "s";
-    param = BS_Add(node->loc_table, embFunc)
-
-    embFunc->lex = "copy";
-    node = BS_Add(pointers->SYM_TABLE, embFunc);
-    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
-    node->data->value = malloc(sizeof(struct STerm));
-    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
-    node->data->value->type = TERM_STRING;
-    node->data->param = "sii";  
-
-    embFunc->lex = "find";
-    node = BS_Add(pointers->SYM_TABLE, embFunc);
-    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
-    node->data->value = malloc(sizeof(struct STerm));
-    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
-    node->data->value->type = TERM_STRING;
-    node->data->param = "sii";
-
-    embFunc->lex = "sort";
-    node = BS_Add(pointers->SYM_TABLE, embFunc);
-    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
-    node->data->value = malloc(sizeof(struct STerm));
-    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
-    node->data->value->type = TERM_STRING;
-    node->data->param = "sii";    
+    // FUNKCIA LENGTH
+        embFunc->lex = "length";
+    SEM_defineFunction(embFunc);   
+        paramID->lex = "s";
+        dataType->type = KEY_STRING;
+    SEM_defineParam(paramID, dataType);
+        embFunc->type = KEY_INTEGER;
+    SEM_defFuntionType(embFunc);
+        embFunc->type = KEY_FORWARD;    // FUNKCIA JE REDEKLAROVATELNA
+    SEM_endFunctionDef(embFunc);
     
+    // FUNKCIA COPY
+        embFunc->lex = "copy";
+    SEM_defineFunction(embFunc); 
+        paramID->lex = "s";
+        dataType->type = KEY_STRING;
+    SEM_defineParam(paramID, dataType);
+        paramID->lex = "i";
+        dataType->type = KEY_INTEGER;   
+    SEM_defineParam(paramID, dataType);
+        paramID->lex = "n";
+        dataType->type = KEY_INTEGER;   
+    SEM_defineParam(paramID, dataType);
+        embFunc->type = KEY_STRING;
+    SEM_defFuntionType(embFunc);
+        embFunc->type = KEY_FORWARD;     // FUNKCIA JE REDEKLAROVATELNA
+    SEM_endFunctionDef(embFunc);
+    
+    // FUNKCIA FIND
+        embFunc->lex = "find";
+    SEM_defineFunction(embFunc);
+        paramID->lex = "s";
+        dataType->type = KEY_STRING;
+    SEM_defineParam(paramID, dataType);    
+        paramID->lex = "search";
+        dataType->type = KEY_STRING;
+    SEM_defineParam(paramID, dataType);       
+        embFunc->type = KEY_INTEGER;
+    SEM_defFuntionType(embFunc);
+        embFunc->type = STREDNIK;    // FUNKCIU NIE JE MOZNE REDEKLAROVAT
+    SEM_endFunctionDef(embFunc);    
+    
+    // FUNCKIA SORT
+        embFunc->lex = "sort";
+    SEM_defineFunction(embFunc);
+        paramID->lex = "s";
+        dataType->type = KEY_STRING;
+    SEM_defineParam(paramID, dataType);       
+        embFunc->type = KEY_STRING;
+    SEM_defFuntionType(embFunc);
+        embFunc->type = STREDNIK;     // FUNKCIU NIE JE MOZNE REDEKLAROVAT
+    SEM_endFunctionDef(embFunc);    
+    
+    free(embFunc);
+    free(paramID);
+    free(dataType);
 }
 
 
