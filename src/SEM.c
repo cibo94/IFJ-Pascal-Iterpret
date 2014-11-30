@@ -113,6 +113,7 @@ void SEM_disposeCL(TSconstList list){
 //  FUNKCIE POTREBNE PRI DEFINICII A DEKLARACII PREMENNYCH A FUNKCII
 
 void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType){
+    printf("SCOPE pre identifikator '%s' je : '%s'\n", dataID->lex, pointers->CURRENTFUNCT->data->lex);
     TSbinstrom newNode = BS_Find(pointers->SYM_TABLE, dataID);
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator '%s' uz bol definovany\n", dataID->lex);
     newNode = BS_Add(pointers->SYM_TABLE, dataID);
@@ -132,6 +133,7 @@ void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
+    printf("SCOPE pre identifikator '%s' je : '%s'\n", dataID->lex, pointers->CURRENTFUNCT->data->lex);
     TSbinstrom funcParam;
     
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
@@ -151,16 +153,16 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     }
     else{                                                                               // AK SA JEDNA O NEDEFINOVANU FUNKCIU
         funcParam = BS_Find(pointers->SCOPE, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
-        if (funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' je pouzity 2 krat", dataID->lex);
+        if (funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' je pouzity 2 krat\n", dataID->lex);
         funcParam = BS_Add(pointers->SCOPE, dataID);
         funcParam->data->value = malloc(sizeof(struct STerm));
         if(funcParam->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
         
         switch(dataType->type){                                                         // NASTAVENIE DATOVEHO TYPU  A ROZSIRENIE STRINGU FUNKCIE
-            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));*/   break;        
-            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));*/   break;    
-            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));*/   break;    
-            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));*/   break;    
+            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));   break;        
+            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));   break;    
+            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));   break;    
+            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
             default : break;
         }    
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
@@ -170,6 +172,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
+    printf("SCOPE pre identifikator '%s' je : '%s'\n", dataID->lex, pointers->CURRENTFUNCT->data->lex);
     TSbinstrom newNode = BS_Find(pointers->SCOPE, dataID);
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator lokalnej premennej '%s' uz bol definovany\n", dataID->lex);
     newNode = BS_Add(pointers->SCOPE, dataID);
@@ -192,6 +195,7 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineFunction(PTStructLex dataID){
+    printf("SCOPE pre identifikator '%s' je : '%s'\n", dataID->lex, pointers->CURRENTFUNCT->data->lex);
     TSbinstrom newNode = BS_Find(pointers->SYM_TABLE, dataID);
     pointers->PARAMCOUNT = 0;
     
