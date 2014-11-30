@@ -132,5 +132,22 @@ void SEM_endFunctionDef(PTStructLex lexema);
  */
  
 //  DALSIE FUNKCIE
+void SEM_assignValue(PTStructLex lexema);
+/**
+ * SEM_assignValue
+ * ---------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR POTOM, CO SA VYHODNOTI PRAVA STRANA PRIRADENIA
+ * @param:LEXEMA IDENTIFIKATOR LAVEJ STRANY
+ * @return: PRIRADENIE HODNOTY VYSLEDKU
+ */
+
+ 
+void SEM_insertEmbFunc();
+/**
+ * SEM_insertEmbFunc
+ * -----------------
+ * @brief:FUNKCIA, KTORA NAPLNI TABULKU SYMBOLOV VSTAVANYMI FUNKCIAMI (length, copy, find, sort)
+ */
+ 
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
 #endif
