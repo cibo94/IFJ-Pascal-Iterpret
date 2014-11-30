@@ -30,6 +30,7 @@ constructor static void __init__ (void) {
     pointers->LABELSTACK = SEM_initLS();
     pointers->CONSTLIST = SEM_initCL();
     pointers->PARAMCOUNT = 0;
+    pointers->PROGRAMINDEX = 0;
    // log("Initialization");
 }
 destructor static void __free__ (void) {

@@ -9,10 +9,10 @@
 
 
 #define LEX_FLAGS_INIT              0x00000001      //!< premenna bola inicializovana
-#define LEX_FLAGS_TYPE_BOOL         0x00000002      //!< premenna typu bool
-#define LEX_FLAGS_TYPE_INT          0x00000004      //!< premenna typu integer
-#define LEX_FLAGS_TYPE_REAL         0x00000008      //!< premenna typu string
-#define LEX_FLAGS_TYPE_STRING       0x00000010      //!< premenna typu real
+#define LEX_FLAGS_TYPE_BOOL         0x00000002      //!< funkcia vracia bool
+#define LEX_FLAGS_TYPE_INT          0x00000004      //!< funkcia vracia int
+#define LEX_FLAGS_TYPE_REAL         0x00000008      //!< funkcia vracia real
+#define LEX_FLAGS_TYPE_STRING       0x00000010      //!< funkcia vracia string
 #define LEX_FLAGS_TYPE_FUNCTION     0x00000020      //!< lexema je funkcia
 #define LEX_FLAGS_TYPE_FUNC_DEK     0x00000040      //!< funkcia bola deklarovana
 #define LEX_FLAGS_TYPE_FUNC_DEF     0x00000080      //!< funkcia bola definovana
