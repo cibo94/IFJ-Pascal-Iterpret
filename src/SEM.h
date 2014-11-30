@@ -113,7 +113,7 @@ void SEM_defineFunction(PTStructLex dataID);
  */
 
 
-void SEM_defFuntionType(PTStructLex dataType)
+void SEM_defFuntionType(PTStructLex dataType);
 /**
  * SEM_defineFunction
  * ------------------
