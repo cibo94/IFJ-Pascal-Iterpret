@@ -1,17 +1,33 @@
+# Project Name #
 TARGET=proj
-IGNORE=
-SOURCE=$(filter-out $(IGNORE),$(wildcard src/*.c))
+# Source dir #
 SRCDIR=src
+# Build dir #
 BUILDDIR=build
+# Source ignore list #
+IGNORE=
+# C compiler #
+CC=gcc
+# C compiler flags #
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -DDEBUG
+# Linker #
+LD=$(CC)
+# Linker flags #
+LDFLAGS=
+# Doxygen config file #
+DOXCONF=config.dox
+
+
+#####################################
+# 			DO NOT TOUCH			#
+#####################################
+SOURCE=$(filter-out $(IGNORE),$(wildcard $(SRCDIR)/*.c))
 NSRC=$(shell echo "$(SOURCE)" | wc | sed -e 's/\ \ */,/g' | cut -d "," -f 3)
 NthSRC=0
-HEADER=$(wildcard src/*.h)
-OBJECT=$(patsubst src/%.c,build/%.o,$(SOURCE))
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -DDEBUG
-LD=$(CC)
+HEADER=$(wildcard $(SRCDIR)/*.h)
+OBJECT=$(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SOURCE))
 CERR=$(CC).err
-DOXCONF=config.dox
-.PHONY: init clean doc help
+.PHONY: clean doc help
 
 $(TARGET): $(OBJECT)
 	@bash -c "echo -e \"\e[34mLD\e[39m \e[32m\e[1mLinking \e[21m\e[39m ... \e[31m100%\e[39m: 	$(LD) $(LDFLAGS) $^ -o $@\""
