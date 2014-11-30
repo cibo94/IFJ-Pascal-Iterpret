@@ -112,12 +112,22 @@ void SEM_defineFunction(PTStructLex dataID);
  * @return: VYTVORI UZOL V TABULKE SYMBOLOV A ZMENI SCOPE NA TUTO FUNKCIU
  */
 
+
+void SEM_defFuntionType(PTStructLex dataType)
+/**
+ * SEM_defineFunction
+ * ------------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK SA DEFINUJE NAVRATOVY TYP FUNKCIE
+ * @param:dataType = LEXEMA TYP FUNKCIE
+ * @return: VYTVORI UZOL V TABULKE SYMBOLOV A ZMENI SCOPE NA TUTO FUNKCIU
+ */
  
 void SEM_endFunctionDef(PTStructLex lexema);
 /**
  * SEM_endFunctionDef
  * ------------------
  * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR VO CHVILI KEDY KONCI DEFINICIA/DEKLARACIA FUNKCIE (keyword forward/end funkcie)
+ * @param:LEXEMA = strednik/forward
  * @return: ZMENA SCOPE NA SYM_TABLE
  */
  

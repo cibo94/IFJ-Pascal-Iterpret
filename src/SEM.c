@@ -169,6 +169,27 @@ void SEM_defineFunction(PTStructLex dataID){
     return;
 }
 
+void SEM_defFuntionType(PTStructLex dataType){  
+    if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){
+        switch(dataType->type){
+            case KEY_INTEGER: if(pointers->SCOPE->data->value->type != TERM_INT); error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");     break;        
+            case KEY_STRING:  if(pointers->SCOPE->data->value->type != TERM_STRING); error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");  break;    
+            case KEY_REAL:    if(pointers->SCOPE->data->value->type != TERM_REAL); error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");    break;    
+            case KEY_BOOLEAN: if(pointers->SCOPE->data->value->type != TERM_BOOL); error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");    break;    
+            default : break;
+            return;
+    }    
+
+    switch(dataType->type){
+        case KEY_INTEGER: pointers->SCOPE->data->value->type = TERM_INT;       break;        
+        case KEY_STRING:  pointers->SCOPE->data->value->type = TERM_STRING;    break;    
+        case KEY_REAL:    pointers->SCOPE->data->value->type = TERM_REAL;      break;    
+        case KEY_BOOLEAN: pointers->SCOPE->data->value->type = TERM_BOOL;      break;    
+        default : break;
+    }
+    return;
+}
+
 void SEM_endFunctionDef(PTStructLex lexema){
     pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEF); 
     if(lexema->type == STREDNIK)
