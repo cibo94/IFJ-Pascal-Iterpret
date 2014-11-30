@@ -2,12 +2,19 @@
  * \file SYN_parser.h
  * \brief Kniznica pracujuca so syntaxom
  * \author 69DreamTeam
- */
+ */ 
 #ifndef h_SYN_parser
 #define h_SYN_parser
 #include<stdbool.h>
 #include<stdio.h>
 #include "LEX_lexem.h"
+
+typedef enum {
+    LOCAL,
+    GLOBAL,
+    PARAM,
+    FUNCTION
+} TTypeIdentEnum;
 
 typedef enum {
     TERM,
@@ -37,35 +44,33 @@ typedef struct {
     int length;
 } TRule;
 
-extern PTStructLex lexema;
-
 /** SYN_decPrem
  * \brief Pravidlo na deklaraciu premenu (2,3 pravidlo) 
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_decPrem(FILE *f);
+bool SYN_decPrem(FILE *f,TTypeIdentEnum typ_ident);
 
 /** SYN_prem
  * \brief Pravidlo na deklaraciu premenu (4 pravidlo)
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_prem(FILE *f);
+bool SYN_prem(FILE *f,TTypeIdentEnum typ_ident);
 
 /** SYN_type
  * \brief Pravidlo na urcenie typu premennej (7,8,9,10 pravidlo)
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_type(FILE *f,PTStructLex id);
+bool SYN_type(FILE *f,PTStructLex id,TTypeIdentEnum typ_id);
 
 /** SYN_nextPrem
  * \brief Pravidlo na deklaraciu dalsej premennej (5,6 pravidlo)
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_nextPrem(FILE *f);
+bool SYN_nextPrem(FILE *f,TTypeIdentEnum typ_ident);
 
 /** SYN_decFunc
  * \brief Pravidlo na deklaraciu funkcie (11,12 pravidlo)
@@ -100,7 +105,7 @@ bool SYN_endParam(FILE *f);
  * \param f File handle
  * \return TRUE ak je syntakticky spravna ak nie tak FALSE
  */
-bool SYN_onlyDecFunc(FILE *f);
+bool SYN_onlyDecFunc(FILE *f,TTypeIdentEnum typ_ident);
 
 /** SYN_funcBody
  * \brief Pravidlo na telo fukncie (20 pravidlo)
