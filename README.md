@@ -9,7 +9,7 @@ make
 make clean
 make doc
 make IGNORE=src/LEX_lexem.c
-make SRC=src
+make SRCDIR=src
 make BUILDDIR=build
 ```
 atd atd resp pred odovzdanim upravime iba premennu SRC a BUILDDIR (tuto mozna asi ani nebudeme musiet to je jedno) 
