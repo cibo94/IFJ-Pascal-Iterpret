@@ -97,7 +97,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     TSbinstrom funcParam = BS_Find(pointers->SYM_TABLE, dataID);
     if(funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' sa zhoduje s globalnym identifikatorom\n", dataID->lex);
     
-    if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) == 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
+    if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
         funcParam = BS_Find(pointers->SCOPE, dataID);
         if(funcParam == NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
         if(funcParam->data->value->value.offset != pointers->PARAMCOUNT)
@@ -128,10 +128,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
-    TSbinstrom newNode = BS_Find(pointers->SYM_TABLE, dataID);
-    if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' sa zhoduje s globalnym identifikatorom\n", dataID->lex);
-    
-    newNode = BS_Find(pointers->SCOPE, dataID);
+    TSbinstrom newNode = BS_Find(pointers->SCOPE, dataID);
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator lokalnej premennej '%s' uz bol definovany\n", dataID->lex);
     newNode = BS_Add(pointers->SCOPE, dataID);
     
@@ -203,6 +200,7 @@ void SEM_endFunctionDef(PTStructLex lexema){
         pointers->CURRENTFUNCT->data->flags = (pointers->CURRENTFUNCT->data->flags | LEX_FLAGS_TYPE_FUNC_DEK);
 
     pointers->SCOPE = pointers->SYM_TABLE;
+    pointers->CURRENTFUNCT = NULL;
 }
 
 
