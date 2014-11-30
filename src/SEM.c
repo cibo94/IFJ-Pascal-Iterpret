@@ -152,10 +152,10 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     else{                                                                               // AK SA JEDNA O NEDEFINOVANU FUNKCIU
         funcParam = BS_Add(pointers->SCOPE, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
         switch(dataType->type){                                                         // NASTAVENIE DATOVEHO TYPU  A ROZSIRENIE STRINGU FUNKCIE
-            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));   break;        
-            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));   break;    
-            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));   break;    
-            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
+            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));*/   break;        
+            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));*/   break;    
+            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));*/   break;    
+            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));*/   break;    
             default : break;
         }    
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
