@@ -150,8 +150,12 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         return; // INAK OK
     }
     else{                                                                               // AK SA JEDNA O NEDEFINOVANU FUNKCIU
-        funcParam = BS_Add(pointers->SCOPE, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
-        if (funcParam == NULL) error(ERR_SEM_OTHER,"Co to kurva, preco som NULL?");
+        funcParam = BS_Find(pointers->SCOPE, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
+        if (funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' je pouzity 2 krat", dataID->lex);
+        funcParam = BS_Add(pointers->SCOPE, dataID);
+        funcParam->data->value = malloc(sizeof(struct STerm));
+        if(funcParam->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+        
         switch(dataType->type){                                                         // NASTAVENIE DATOVEHO TYPU  A ROZSIRENIE STRINGU FUNKCIE
             case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));*/   break;        
             case KEY_STRING:  funcParam->data->value->type = TERM_STRING; /*LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));*/   break;    
