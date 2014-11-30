@@ -1,6 +1,20 @@
 IFJ project 69.
 ================
 
+MAKEFILE:
+----------------
+
+```
+make
+make clean
+make doc
+make IGNORE=src/LEX_lexem.c
+make SRC=src
+make BUILDDIR=build
+```
+atd atd resp pred odovzdanim upravime iba premennu SRC a BUILDDIR (tuto mozna asi ani nebudeme musiet to je jedno) 
+a malo by to ist pichnut ten makefile napr do zlozky src, toto bolo potrebne lebo odovzdavame vsetky subory v jednej zlozke
+
 Vytvaranie testov:
 ------------------
 
