@@ -387,7 +387,7 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     // TODO: Pridat dalsie funkcie!
 };
 
-static void sort () {
+static void __sort () {
     TTerm *str = SPick(1),
            zero = {
                .value.integer = 0,
@@ -396,7 +396,7 @@ static void sort () {
     str->value.string = EMB_sort (str->value.string, EMB_length(str->value.string));
     ret(&zero, &zero, NULL);
 }
-static void copy () {
+static void __copy () {
     TTerm *str = SPick(1),
           *from = SPick(2),
           *size = SPick(3),
@@ -410,7 +410,7 @@ static void copy () {
     size->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
     ret(&zero, &two, NULL);
 }
-static void length () {
+static void __length () {
     TTerm *str = SPick(1),
            zero = {
                .value.integer = 0
@@ -418,7 +418,7 @@ static void length () {
     str->value.integer = EMB_length(str->value.string);
     ret(&zero, &zero, NULL);
 }
-static void find () {
+static void __find () {
     TTerm *str = SPick(1),
           *fstr= SPick(2),
            zero = {
@@ -430,7 +430,7 @@ static void find () {
     fstr->value.integer = EMB_find(str->value.string, fstr->value.string);
     ret(&zero, &one, NULL);
 }
-static void write () {
+static void __write () {
     TTerm *n, k;
     int pocet = SPick (1)->value.integer; 
     for (int i = 0; i < pocet; i++) {
@@ -460,7 +460,7 @@ static void write () {
     };
     ret(&zero, &k, NULL);
 }
-static void __readln () {
+static void ____readln () {
     TTerm *id = SPick(1),
            one = {
                .value.integer = 1
@@ -498,32 +498,32 @@ static void __readln () {
 
 TTerm embededFunc[] = {
     {
-        .value.emb_function = &sort,
+        .value.emb_function = &__sort,
         .type = TERM_EMB,
         .name = "sort"
     },
     {
-        .value.emb_function = &copy,
+        .value.emb_function = &__copy,
         .type = TERM_EMB,
         .name = "copy" 
     },
     {
-        .value.emb_function = &length,
+        .value.emb_function = &__length,
         .type = TERM_EMB,
         .name = "length" 
     },
     {
-        .value.emb_function = &find,
+        .value.emb_function = &__find,
         .type = TERM_EMB,
         .name = "find" 
     }, 
     {
-        .value.emb_function = &write,
+        .value.emb_function = &__write,
         .type = TERM_EMB,
         .name = "write" 
     }, 
     {
-        .value.emb_function = &__readln,
+        .value.emb_function = &____readln,
         .type = TERM_EMB,
         .name = "readln" 
     }
