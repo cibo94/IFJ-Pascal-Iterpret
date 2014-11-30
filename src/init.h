@@ -19,7 +19,8 @@ typedef struct {
     TTerm *      SREG2;       //  (Source register 2) Operand 2
     struct SemStack   * EXPRSTACK;    //  (Expression stack)  Zasobnik vyuzivany pri typovej kontrole nad vyrazmi
     struct SconstList * CONSTLIST;    //  (Constant list)     Zoznam ukazatelov na vsetky konstanty v programe
-    unsigned int       PARAMCOUNT;   //  (Parameter counter) Pocitadlo parametrov funkcie (pouzivane pri deklaracii funkcii a volani funkcii)
+    struct SlabelStack* LABELSTACK;   //  (Label stack)       Zasobnik vyuzivany pri skokoch a navestiach
+    unsigned int       PARAMCOUNT;    //  (Parameter counter) Pocitadlo parametrov funkcie (pouzivane pri deklaracii funkcii a volani funkcii)
     
 } GLOB_DEST, *PGLOB_DEST;
 

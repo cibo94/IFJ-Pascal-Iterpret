@@ -22,6 +22,22 @@ typedef struct SemStack{
 }*TSemStack;
 
 
+
+//!< DOPLNENE
+typedef struct Slabel{
+//!< PRVOK ZASOBNIKA LABELOV
+    struct STerm * data;
+    struct Slabel * previous;
+}*TSlabel;
+
+typedef struct SlabelStack{
+//!< SEMANTICKY ZASOBNIK LABELOV
+    struct Slabel * top;
+}*TSlabelStack;
+//!< DOPLNENE END
+
+
+
 typedef struct SlistElem {
     struct STerm * constTerm;
     struct SlistElem * next;
@@ -36,12 +52,21 @@ typedef struct SconstList {
 
     extern PGLOB_DEST pointers;
     
-// FUNKCIE PRE ZASOBNIK
-
+// FUNKCIE PRE ZASOBNIK TYPOV
 TSemStack SEM_initSS();
 void SEM_pushSS(TSemStack stack, ETermType elem);
 ETermType SEM_popSS(TSemStack stack);
 void SEM_disposeSS(TSemStack stack);
+
+
+//!< DOPLNENE
+// FUNKCIE PRE ZASOBNIK LABELOV
+TSlabelStack SEM_initLS();
+void SEM_pushLS(TSlabelStack stack, TTerm * elem);
+TTerm * SEM_popLS(TSlabelStack stack);
+void SEM_disposeLS(TSlabelStack stack);
+//!< DOPLNENE END
+
 
 // FUNKCIE PRE ZOZNAM KONSTANT
 TSconstList SEM_initCL();

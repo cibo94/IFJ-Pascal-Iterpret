@@ -3,8 +3,48 @@
 //  GLOBALNE PREMENNE
      
      extern PGLOB_DEST pointers;
+
+//!< DOPLNENE     
+//  FUNKCIE NAD ZASOBNIKOM LABELOV
+TSlabelStack SEM_initLS(){
+    TSlabelStack stack = malloc(sizeof(struct SlabelStack));
+    if(stack == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+    stack->top = NULL;
+    return stack;
+}
+
+void SEM_pushLS(TSlabelStack stack, TTerm * elem){
+    TSlabel label = malloc(sizeof(struct Slabel));
+    if(label == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
+    label->data = elem;
+    label->previous = stack->top;
+    stack->top = label;
+}
+
+
+TTerm * SEM_popLS(TSlabelStack stack){
+    if(stack->top == NULL)
+        error(ERR_SEM_OTHERS,"Chyba, POP nad prazdnym zasobnikom skokov");
+    TSlabel label = stack->top;
+    TTerm * toReturn = label->data;
+    stack->top = label->previous;
+    free(label);
+    return toReturn;
+}
+
+
+void SEM_disposeLS(TSlabelStack stack){
+    TSlabel label;
+    while(stack->top != NULL){
+        label = stack->top;
+        stack->top = label->previous;
+        free(label);
+    }
+    free(stack);
+}
+//!< DOPLNENE END     
      
-//  FUNKCIE NAD ZASOBNIKOM
+//  FUNKCIE NAD ZASOBNIKOM TYPOV
 
 TSemStack SEM_initSS(){
     TSemStack stack = malloc(sizeof(struct SemStack));
@@ -22,14 +62,13 @@ void SEM_pushSS(TSemStack stack, ETermType elem){
 }
 
 ETermType SEM_popSS(TSemStack stack){
-    if(stack->top != NULL){        
+    if(stack->top == NULL)    
+        error(ERR_SEM_OTHERS,"Chyba, POP nad prazdnym zasobnikom typov");
     ETermType returnType = stack->top->data;       // ULOZENIE NAVRATOVEHO TYPU
     TStackElem toDelete  = stack->top;             // ULOZENIE PRVKU KTORY SA ZMAZE 
     stack->top = toDelete->previous;               // ZNIZENIE VRCHOLU ZASOBNIKA
     free(toDelete);                                // UVOLNENIE POPNUTEHO PRVKU 
     return returnType;
-    }
-    return 0;
 }
 
 void SEM_disposeSS(TSemStack stack){
@@ -93,9 +132,7 @@ void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
-    
-    TSbinstrom funcParam = BS_Find(pointers->SYM_TABLE, dataID);
-    if(funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' sa zhoduje s globalnym identifikatorom\n", dataID->lex);
+    TSbinstrom funcParam;
     
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
         funcParam = BS_Find(pointers->SCOPE, dataID);
@@ -348,6 +385,8 @@ void SEM_assignValue(PTStructLex lexema){
     
     return;
 }
+
+
 
 
 void SEM_insertEmbFunc(){

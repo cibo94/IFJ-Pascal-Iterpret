@@ -27,6 +27,7 @@ constructor static void __init__ (void) {
     pointers->SREG2 = malloc(sizeof(struct STerm));
     if (pointers->SREG2 == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     pointers->EXPRSTACK = SEM_initSS();
+    pointers->LABELSTACK = SEM_initLS();
     pointers->CONSTLIST = SEM_initCL();
     pointers->PARAMCOUNT = 0;
    // log("Initialization");
@@ -36,6 +37,7 @@ destructor static void __free__ (void) {
     
     SEM_disposeCL(pointers->CONSTLIST);
     SEM_disposeSS(pointers->EXPRSTACK);
+    SEM_disposeLS(pointers->LABELSTACK);
     free(pointers->ACCREG);
     free(pointers->SREG1);
     free(pointers->SREG2);
