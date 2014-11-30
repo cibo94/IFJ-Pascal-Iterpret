@@ -72,41 +72,51 @@ void SEM_createTree(PTStructLex lexema);
  
  
 //  FUNKCIE POTREBNE PRI DEFINICII A DEKLARACII PREMENNYCH A FUNKCII
-void SEM_varDec(PTStructLex lexema);
+void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType);
 /**
- * SEM_varDec
- * ----------
- * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK NASTAVA DEKLARACIA PREMENNEJ (BEZ OHLADU NA UROVEN)
- * @param:LEXEMA = LEXEMA PREMENNEJ TYPU ID
+ * SEM_defineGlobal
+ * ----------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK NASTAVA DEKLARACIA GLOBALNEJ PREMENNEJ
+ * @param:dataID = LEXEMA ID PREMENNEJ
+ * @param:dataType = LEXEMA TYP PREMENNEJ
  * @return: FUNKCIA VYTVORI V TABULKE SYMBOLOV UZOL PREMENNEJ
+ */
+
+ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType);
+ /**
+ * SEM_defineParam
+ * ---------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK NASTAVA DEKLARACIA PARAMETRA FUNKCIE
+ * @param:dataID = LEXEMA ID PREMENNEJ
+ * @param:dataType = LEXEMA TYP PREMENNEJ
+ * @return: FUNKCIA VYTVORI V LOKALNEJ TABULKE SYMBOLOV UZOL PREMENNEJ
+ */
+
+void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType);
+/**
+ * SEM_defineLocal
+ * ---------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK NASTAVA DEKLARACIA LOKALNEJ PREMENNEJ
+ * @param:dataID = LEXEMA ID PREMENNEJ
+ * @param:dataType = LEXEMA TYP PREMENNEJ
+ * @return: FUNKCIA VYTVORI V LOKALNEJ TABULKE SYMBOLOV UZOL PREMENNEJ
  */
  
 
-void SEM_funcDef(PTStructLex lexema);
+void SEM_defineFunction(PTStructLex dataID);
 /**
- * SEM_funcDef
- * -----------
+ * SEM_defineFunction
+ * ------------------
  * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR AK SA DEFINUJE/DEKLARUJE FUNKCIA
- * @param:LEXEMA = LEXEMA ID FUNKCIE
+ * @param:dataID = LEXEMA ID FUNKCIE
  * @return: VYTVORI UZOL V TABULKE SYMBOLOV A ZMENI SCOPE NA TUTO FUNKCIU
  */
 
  
-void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex);
+void SEM_endFunctionDef(PTStructLex lexema);
 /**
- * SEM_typeDefinition
+ * SEM_endFunctionDef
  * ------------------
- * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR POKIAL PRIRADUJE PREMENNEJ/FUNKCII TYP
- * @param:LEXEMA = LEXEMA TYPU (integer, real...)
- * @param:TERM_LEX = LEXEMA PREMENNEJ/FUNKCIE TYPU ID
- * @return: NASTAVI SPRAVNY TYP TERMU V UZLE, PRE LOKALNE PREMENNE NASTAVUJE STRING PARAMETROV
- */
- 
- 
-void SEM_funcEnd();
-/**
- * SEM_funcEnd
- * -----------
  * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR VO CHVILI KEDY KONCI DEFINICIA/DEKLARACIA FUNKCIE (keyword forward/end funkcie)
  * @return: ZMENA SCOPE NA SYM_TABLE
  */
