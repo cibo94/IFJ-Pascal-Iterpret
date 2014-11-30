@@ -1,5 +1,6 @@
 TARGET=proj
-SOURCE=$(wildcard src/*.c)
+IGNORE=
+SOURCE=$(filter-out $(IGNORE),$(wildcard src/*.c))
 SRCDIR=src
 BUILDDIR=build
 NSRC=$(shell echo "$(SOURCE)" | wc | sed -e 's/\ \ */,/g' | cut -d "," -f 3)
