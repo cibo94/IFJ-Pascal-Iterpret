@@ -74,7 +74,9 @@ void SEM_disposeCL(TSconstList list){
 //  FUNKCIE POTREBNE PRI DEFINICII A DEKLARACII PREMENNYCH A FUNKCII
 
 void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
-    TSbinstrom node = BS_Find(pointers->SCOPE, term_lex);
+    TSbinstrom node = BS_Find(pointers->SCOPE->loc_table, term_lex);
+    if (node==NULL)
+        node=BS_Find(pointers->SYM_TABLE, term_lex);
     
     if((pointers->SCOPE != pointers->SYM_TABLE)&&(node != pointers->SCOPE)){    // AK SME VO FUNKCII, A NEPRIRADUJE SA NAVRATOVY TYP FUNKCIE
         if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){      // AK JE FUNKCIA DEFINOVANA TAK POKRACUJE A ROBI TYPOVU KONTROLU
@@ -104,21 +106,27 @@ void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
             return;
         }
     }
+    if(node==NULL){
+        printf("err %s\n",pointers->SCOPE->data->lex );
+        //printf("%s\n",term_lex->lex );
+        return;
+    }
     // AK SA PRIRADUJE TYP GLOBALNEJ PREMENNEJ, FUNKCII ALEBO LOKALNYM PREMENNYM A PARAMETROM NEDEFINOVANEJ FUNKCIE
     switch(lexema->type){
         case KEY_INTEGER:
+        //printf("%s\n",node->data->lex );
             node->data->value->type = TERM_INT;
             if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));
         break;
         
         case KEY_STRING:
             node->data->value->type = TERM_STRING;
-            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'r',&(pointers->PARAMCOUNT));
+            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'s',&(pointers->PARAMCOUNT));
         break;
     
         case KEY_REAL:
             node->data->value->type = TERM_REAL;
-            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'s',&(pointers->PARAMCOUNT));
+            if(pointers->SCOPE != pointers->SYM_TABLE) LEX_string(&(pointers->SCOPE->data->param),'r',&(pointers->PARAMCOUNT));
         break;
     
         case KEY_BOOLEAN:
@@ -128,13 +136,16 @@ void SEM_typeDefinition(PTStructLex lexema, PTStructLex term_lex){
     
         default : break;
         }
-
+        printf("%s\n",pointers->SCOPE->data->lex );
     return;
 }
 
 void SEM_varDec(PTStructLex lexema){
-    
-    TSbinstrom newNode = BS_Find(pointers->SCOPE, lexema);
+    TSbinstrom newNode;
+    if (pointers->SCOPE != pointers->SYM_TABLE)
+        newNode = BS_Find(pointers->SCOPE->loc_table, lexema);
+    else
+        newNode = BS_Find(pointers->SYM_TABLE, lexema);
     
     if((pointers->SCOPE != pointers->SYM_TABLE)&&(newNode != NULL))         // AK SA HLADA VO FUNKCII A NIECO SA NASLO
         if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){        // AK BOLA FUNKCIA DEFINOVANA (PRIPAD FORWARD)
@@ -146,8 +157,12 @@ void SEM_varDec(PTStructLex lexema){
     
     
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator %s uz bol definovany\n", lexema->lex); // AK SA NIECO NASLO TAK SA REDEFINUJE -> ERROR
-        
-    newNode = BS_Add(pointers->SCOPE,lexema);  // INAK SA NIC NENASLO A DEKLARUJE SA
+    
+     if (pointers->SCOPE != pointers->SYM_TABLE)
+        newNode = BS_Add(pointers->SCOPE->loc_table,lexema);
+    else   
+        newNode = BS_Add(pointers->SYM_TABLE,lexema);  // INAK SA NIC NENASLO A DEKLARUJE SA
+
     newNode->data->value = malloc(sizeof(struct STerm));
     if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     
@@ -177,6 +192,7 @@ void SEM_funcDef(PTStructLex lexema){
     else {
         newNode = BS_Add(pointers->SYM_TABLE,lexema);
         newNode->data->value = malloc(sizeof(struct STerm));
+        newNode->data->param = malloc(32);
         if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
     }
@@ -202,7 +218,7 @@ void SEM_createLeaf(PTStructLex lexema){
 
     if(lexema->type == IDENTIFICATOR){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
         
-        TSbinstrom node = BS_Find(pointers->SCOPE, lexema);
+        TSbinstrom node = BS_Find(pointers->SCOPE->loc_table, lexema); // mozna chyba ->loc_table
         
         if((pointers->SCOPE != pointers->SYM_TABLE)&&(node == NULL))                 
             node = BS_Find(pointers->SYM_TABLE, lexema);      

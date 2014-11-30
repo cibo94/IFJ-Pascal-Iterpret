@@ -10,32 +10,38 @@ int main(int argc, char **argv) {
 
     	SYN_parser(f);
 
-      BS_Print(pointers->SYM_TABLE);
-
+     BS_Print(pointers->SYM_TABLE);
+     printf("%s\n",pointers->SCOPE->data->lex);
+     //BS_Print(BS_Find(pointers->SYM_TABLE,"f1"));
+    // BS_Free(pointers->SYM_TABLE);
+     //BS_Print(pointers->SYM_TABLE);
     	fclose(f);
 
     }'
-export input="Var   disks: integer;
-     ahoj: string;
-     disks:integer;
+export input="var
+a:integer;
+b:real;
+c:string;
+d:boolean;
 
-function test():integer;
+
+function f1(lol: boolean; lola:string):integer;
+var joj:integer;
+	joj2:real;
+	joj3:boolean;
 begin
-test:=1
 end;
 
-function test2(p1:string; p2:integer; p3:boolean; p4:real): integer;
+function f2(lol: boolean; lola:string):integer;
+var joj:integer;
+	joj2:real;
+	joj3:boolean;
 begin
-test2:=p1+p2+4
 end;
 
+begin
+end.
 
- 
-
- begin
- 
- disks:=test2(1,2,3)
- end.
  "
   
 export output="SYNTAX OK.

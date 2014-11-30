@@ -33,6 +33,23 @@ TSbinstrom BS_New(PTStructLex data){
 }
 
 TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
+/*
+TSbinstrom pom_root;
+
+    if (root != pointers->SYM_TABLE)
+        pom_root=root->loc_table;
+    else
+        pom_root=root;
+*/
+// NIE som si uplne isty ci ich netreba vymenit, v tom pripade vsak ma valgrind problem s neinicializovanym LEFT
+    if (root==NULL){
+    TSbinstrom Uk=BS_New(data);
+    if( pointers->SYM_TABLE==NULL){
+        pointers->SYM_TABLE=Uk;
+        pointers->SCOPE=Uk;
+    }
+    return Uk;
+    }
 
  	TSbinstrom pom=root;
  	TSbinstrom koren=root;
@@ -40,12 +57,7 @@ TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
     uint32_t key = hash(data->lex);
     int c = 0;
 
-    if (root==NULL){
-    TSbinstrom Uk=BS_New(data);
-    if (pointers->SYM_TABLE==NULL)
-        pointers->SYM_TABLE=Uk;
-    return Uk;
-    }
+    
 
  	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
  		if (key==pom->key &&
@@ -75,6 +87,12 @@ TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
 
 TSbinstrom BS_Find(TSbinstrom root, PTStructLex dat){
     uint32_t key = hash(dat->lex);
+if (root == NULL)
+    return NULL;
+/*
+    if (root != pointers->SYM_TABLE)
+        root=root->loc_table;
+ */
     TSbinstrom pom=root;
     int c;
     
@@ -106,6 +124,7 @@ void BS_Free(TSbinstrom root){
         free(root->data);
     }
 	free(root);
+
 }
 
 static void Print_tree2(TSbinstrom TempTree, char* sufix, char fromdir) {
@@ -119,9 +138,9 @@ static void Print_tree2(TSbinstrom TempTree, char* sufix, char fromdir) {
 	        suf2 = strcat(suf2, "   ");
 	    Print_tree2(TempTree->rptr, suf2, 'R'); 
         if (TempTree->data != NULL)
-            printf("%s  +-[%s, %llu]\n", sufix, ((PTStructLex)TempTree->data)->lex, (long long unsigned int)TempTree->key);
+            printf("%s  +-[%s, %d]\n", sufix, ((PTStructLex)TempTree->data)->lex, TempTree->data->value->type);
 	    else
-            printf("%s  +-[NULL, %llu]\n", sufix, (long long unsigned int)TempTree->key);
+            printf("%s  +-[NULL, %d]\n", sufix, TempTree->data->value->type);
         strcpy(suf2, sufix);
         if (fromdir == 'R')
 	        suf2 = strcat(suf2, "  |");	
