@@ -46,8 +46,11 @@ TSbinstrom pom_root;
     TSbinstrom Uk=BS_New(data);
     if( pointers->SYM_TABLE==NULL){
         pointers->SYM_TABLE=Uk;
-        pointers->SCOPE=Uk;
     }
+    else
+        pointers->CURRENTFUNCT->loc_table=Uk;
+    pointers->SCOPE=Uk;
+
     return Uk;
     }
 
