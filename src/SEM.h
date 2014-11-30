@@ -51,6 +51,8 @@ typedef struct SconstList {
 // GLOBALNE PREMENNE
 
     extern PGLOB_DEST pointers;
+    extern P3AC *EIP, *PEIP;
+    extern TTerm embededFunc[];
     
 // FUNKCIE PRE ZASOBNIK TYPOV
 TSemStack SEM_initSS();
@@ -172,6 +174,14 @@ void SEM_insertEmbFunc();
  * SEM_insertEmbFunc
  * -----------------
  * @brief:FUNKCIA, KTORA NAPLNI TABULKU SYMBOLOV VSTAVANYMI FUNKCIAMI (length, copy, find, sort)
+ */
+
+ 
+void SEM_setFunctionLabel();
+/**
+ * SEM_setFunctionLabel
+ * --------------------
+ * @brief:FUNKCIA, KTORA VYTVORI LABEL SKOKU FUNKCIE
  */
  
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
