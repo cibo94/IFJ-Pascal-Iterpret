@@ -95,8 +95,8 @@ void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType){
 void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     TSbinstrom funcParam;
     
-    if( (pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) == 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
-        funcParam = BS_Find(pointers->SCOPE->loc_table, dataID);
+    if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) == 0 ){                                            // AK SA JEDNA O UZ DEFINOVANU FUNKCIU
+        funcParam = BS_Find(pointers->SCOPE, dataID);
         if(funcParam == NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
         if(funcParam->data->value->value.offset != pointers->PARAMCOUNT)
             error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n"); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
@@ -111,12 +111,12 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         return; // INAK OK
     }
     else{                                                                               // AK SA JEDNA O NEDEFINOVANU FUNKCIU
-        funcParam = BS_Add(pointers->SCOPE->loc_table, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
+        funcParam = BS_Add(pointers->SCOPE, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
         switch(dataType->type){                                                         // NASTAVENIE DATOVEHO TYPU  A ROZSIRENIE STRINGU FUNKCIE
-            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->SCOPE->data->param),'i',&(pointers->PARAMCOUNT));   break;        
-            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->SCOPE->data->param),'s',&(pointers->PARAMCOUNT));   break;    
-            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->SCOPE->data->param),'r',&(pointers->PARAMCOUNT));   break;    
-            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->SCOPE->data->param),'b',&(pointers->PARAMCOUNT));   break;    
+            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));   break;        
+            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));   break;    
+            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));   break;    
+            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
             default : break;
         }    
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
@@ -126,9 +126,9 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
-    TSbinstrom newNode = BS_Find(pointers->SCOPE->loc_table, dataID);
+    TSbinstrom newNode = BS_Find(pointers->SCOPE, dataID);
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator lokalnej premennej '%s' uz bol definovany\n", dataID->lex);
-    newNode = BS_Add(pointers->SCOPE->loc_table, dataID);
+    newNode = BS_Add(pointers->SCOPE, dataID);
     
     newNode->data->value = malloc(sizeof(struct STerm));
     if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
@@ -165,36 +165,37 @@ void SEM_defineFunction(PTStructLex dataID){
         if(newNode->data->param == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;
     }
-    pointers->SCOPE = newNode;
+    pointers->CURRENTFUNCT = newNode;
+    pointers->SCOPE = newNode->loc_table;
     return;
 }
 
 void SEM_defFuntionType(PTStructLex dataType){  
-    if((pointers->SCOPE->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){
+    if((pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0){
         switch(dataType->type){
-            case KEY_INTEGER: if(pointers->SCOPE->data->value->type != TERM_INT) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");     break;        
-            case KEY_STRING:  if(pointers->SCOPE->data->value->type != TERM_STRING) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");  break;    
-            case KEY_REAL:    if(pointers->SCOPE->data->value->type != TERM_REAL) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");    break;    
-            case KEY_BOOLEAN: if(pointers->SCOPE->data->value->type != TERM_BOOL) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");    break;    
+            case KEY_INTEGER: if(pointers->CURRENTFUNCT->data->value->type != TERM_INT) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");     break;        
+            case KEY_STRING:  if(pointers->CURRENTFUNCT->data->value->type != TERM_STRING) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");  break;    
+            case KEY_REAL:    if(pointers->CURRENTFUNCT->data->value->type != TERM_REAL) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");    break;    
+            case KEY_BOOLEAN: if(pointers->CURRENTFUNCT->data->value->type != TERM_BOOL) error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ\n");    break;    
             default : break;
             }
             return;
     }    
 
     switch(dataType->type){
-        case KEY_INTEGER: pointers->SCOPE->data->value->type = TERM_INT;       break;        
-        case KEY_STRING:  pointers->SCOPE->data->value->type = TERM_STRING;    break;    
-        case KEY_REAL:    pointers->SCOPE->data->value->type = TERM_REAL;      break;    
-        case KEY_BOOLEAN: pointers->SCOPE->data->value->type = TERM_BOOL;      break;    
+        case KEY_INTEGER: pointers->CURRENTFUNCT->data->value->type = TERM_INT;       break;        
+        case KEY_STRING:  pointers->CURRENTFUNCT->data->value->type = TERM_STRING;    break;    
+        case KEY_REAL:    pointers->CURRENTFUNCT->data->value->type = TERM_REAL;      break;    
+        case KEY_BOOLEAN: pointers->CURRENTFUNCT->data->value->type = TERM_BOOL;      break;    
         default : break;
     }
     return;
 }
 
 void SEM_endFunctionDef(PTStructLex lexema){
-    pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEF); 
+    pointers->CURRENTFUNCT->data->flags = (pointers->CURRENTFUNCT->data->flags | LEX_FLAGS_TYPE_FUNC_DEF); 
     if(lexema->type == STREDNIK)
-        pointers->SCOPE->data->flags = (pointers->SCOPE->data->flags | LEX_FLAGS_TYPE_FUNC_DEK);
+        pointers->CURRENTFUNCT->data->flags = (pointers->CURRENTFUNCT->data->flags | LEX_FLAGS_TYPE_FUNC_DEK);
 
     pointers->SCOPE = pointers->SYM_TABLE;
 }
@@ -205,13 +206,13 @@ void SEM_createLeaf(PTStructLex lexema){
  *  FUNKCIA, KTORA VYTVARA LISTOVY UZOL PRE KAZDY PRVOK VYRAZU. TENTO UZOL OBSAHUJE UKAZATEL NA TERM, V KTOROM SU POTREBNE DATA PRE VYHODNOTENIE VYRAZU
  *  LISTOVY UZOL OBSAHUJE BUD ODKAZ NA TERM PRIAMO V TABULKE SYMBOLOV (GLOBALNE PREMENNE/LOKALNE PREMENNE A PARAMETRE), ALEBO PRIAMO TERM S HODNOTOU KONSTANTNOU.
  */ 
-
+    TSbinstrom node;   
+ 
     if(lexema->type == IDENTIFICATOR){               // AK JE PRAVIDLO, REDUKUJ IDENTIFIKATOR NA 'E', TAK SA V KAZDOM PRIPADE HLADA POLOZKA V TABULKE SYMBOLOV
         
-        TSbinstrom node = BS_Find(pointers->SCOPE->loc_table, lexema); // mozna chyba ->loc_table
-        
-        if((pointers->SCOPE != pointers->SYM_TABLE)&&(node == NULL))                 
-            node = BS_Find(pointers->SYM_TABLE, lexema);      
+        node = BS_Find(pointers->SCOPE, lexema);
+        if(pointers->SYM_TABLE != pointers->SCOPE) && (node == NULL)
+            node = BS_Find(pointers->SYM_TABLE, lexema);
             
         if (node == NULL)
             error(ERR_SEM_UNDEF,"Semanticka chyba! Nedefinovana premenna '%s' vo vyraze.\n", lexema->lex);
@@ -324,83 +325,68 @@ void SEM_createTree(PTStructLex lexema){
         SEM_pushSS(pointers->EXPRSTACK, pointers->ACCREG->type);
         SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
 }
-/*
-void SEM_assignValue(){
+
+
+void SEM_assignValue(PTStructLex lexema){
     
-    TSbinstrom node = BS_Find(GLOBAL_scope, lexema);
-        
-    if((GLOBAL_scope != GLOBAL_sym_table)&&(node == NULL))                 
-        node = BS_Find(GLOBAL_sym_table, lexema);      
+    TSbinstrom node = BS_Find(pointers->SCOPE, lexema);  
+    if((pointers->SCOPE != pointers->SYM_TABLE)&&(node == NULL))                 
+        node = BS_Find(pointers->SYM_TABLE, lexema);      
         
     if (node == NULL)
-        error(ERR_SEM,"Nedefinovany identifikator '%s'", lexema->lex);    
+        error(ERR_SEM_UNDEF,"Semanticka chyba! Nedefinovany identifikator '%s'.", lexema->lex);    
     
-    SEM_generate(OP_POP, GLOBAL_SEM_SourceOne, NULL, NULL);
-    ETermType retType = SEM_popSS(GLOBAL_SEM_ExpStack);
-    
-    if(node->data->value->type != retType)
-        error(ERR_SEM,"Nekompatibilne typy priradenia");
+    ETermType retType = SEM_popSS(pointers->EXPRSTACK);
+    if(retType != node->data->value->type)
+        error(ERR_SEM_TYPE,"Semanticka chyba! Vysledok vyrazu je ineho typu nez '%s'.", lexema->lex);   
         
-    SEM_generate(OP_ASSIGN, GLOBAL_SEM_SourceOne, NULL, node->data->value)
+    SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
+    SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, node->data->value)
     
     return;
 }
 
-void SEM_functionCall(int *paramCounter, PTStructLex functionLexem){
+
+void SEM_insertEmbFunc(){
+    PTStructLex embFunc;
     
-    TSbinstrom fNode = BS_Find(GLOBAL_sym_table, functionLexem);
-    if(*paramCounter != strlen(fNode->data->param) )
-        error(ERR_SEM,"Chybny pocet parametrov pri volani funkcie %s", functionLexem->lex);
+    embFunc->lex = "length";
+    TSbinstrom node = BS_Add(pointers->SYM_TABLE, embFunc);
+    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
+    node->data->value = malloc(sizeof(struct STerm));
+    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
+    node->data->value->type = TERM_INT;
+    node->data->param = "s";
+    embFunc->lex = "s";
+    param = BS_Add(node->loc_table, embFunc)
+
+    embFunc->lex = "copy";
+    node = BS_Add(pointers->SYM_TABLE, embFunc);
+    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
+    node->data->value = malloc(sizeof(struct STerm));
+    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
+    node->data->value->type = TERM_STRING;
+    node->data->param = "sii";  
+
+    embFunc->lex = "find";
+    node = BS_Add(pointers->SYM_TABLE, embFunc);
+    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
+    node->data->value = malloc(sizeof(struct STerm));
+    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
+    node->data->value->type = TERM_STRING;
+    node->data->param = "sii";
+
+    embFunc->lex = "sort";
+    node = BS_Add(pointers->SYM_TABLE, embFunc);
+    node->data->flags = (LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_FUNC_DEK);
+    node->data->value = malloc(sizeof(struct STerm));
+    if(node->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacie pamate");
+    node->data->value->type = TERM_STRING;
+    node->data->param = "sii";    
     
-    //generate(OP_CALL, fNode->data)
-    // SKOK
-    return;
 }
 
-void SEM_functionParam(int *paramCounter, TSbinstrom functionNode){
 
-//  VOLA SA PRI SPRACOVAVANI PARAMETROV VOLANEJ FUNKCIE
-//  V TERME FUNKCIE, KONKRETNE VO VALUE.STRING JE STRING OBSAHUJUCI PARAMETRE FUNKCIE
- 
- 
-    if((*paramCounter+1) > strlen(functionNode->data->param))
-        error(ERR_SEM,"Prilis vela parametrov funkcie");
-    
-    variableNode = BS_Find(GLOBAL_scope, lexema);
-    if ((variableNode == NULL)&&(GLOBAL_scope != GLOBAL_sym_table))
-        variableNode = BS_Find(GLOBAL_sym_table, lexema);
-        
-    if(variableNode == NULL);
-        error(ERR_SEM,"Premenna %s nie je definovana", lexema->lex);
-       
-    uint32_t flags = variableNode->data->flags
-    if (flags & LEX_FLAGS_TYPE_FUNCTION != 0)
-        error(ERR_SEM,"Argumentom funkcie nemoze byt identifikator funkcie");
-    if (flags & LEX_FLAGS_INIT  == 0)
-        error(ERR_SEM,"Argument funkcie nie je inicializovany");
-    
-    char cTyp;
-    
-    if(variableNode->data->value->type == TERM_INT)            // NASTAVENIE SPRAVNEHO TYPU MEDZIVYSLEDKOVEHO TERMU 
-        cTyp = 'i';
-    if(variableNode->data->value->type == TERM_REAL)
-        cTyp = 'r';
-    if(variableNode->data->value->type == TERM_BOOL)
-        cTyp = 'b';
-    if(variableNode->data->value->type == TERM_STRING)
-        cTyp = 's';
-    
-    if(cTyp != functionNode->data->param[*paramCounter])
-        error(ERR_SEM,"Argument %s je nespravneho typu", lexema->lex);
-        
-    SEM_generate(OP_PUSH, variableNode->data->value, NULL, NULL);
-    *paramCounter++;
-    return;
-}
-
-//  DALSIE FUNKCIE
-
-*/
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
 
  // FUNKCIA, KTORA VYTVORI TROJADRESNU INSTRUKCIU A PRIDA JU DO PROGRAMU

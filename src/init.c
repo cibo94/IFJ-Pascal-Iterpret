@@ -19,6 +19,7 @@ constructor static void __init__ (void) {
     if (pointers == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     pointers->SYM_TABLE = NULL;
     pointers->SCOPE=NULL;
+    pointers->CURRENTFUNCT =NULL;
     pointers->ACCREG = malloc(sizeof(struct STerm));
     if (pointers->ACCREG == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     pointers->SREG1 = malloc(sizeof(struct STerm));

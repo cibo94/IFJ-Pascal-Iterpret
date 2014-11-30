@@ -13,6 +13,7 @@
 typedef struct {
     TSbinstrom   SYM_TABLE;
     TSbinstrom   SCOPE;
+    TSbinstrom   CURRENTFUNCT;
     TTerm *      ACCREG;      //  (Accumulator)       Akumulator vysledku 
     TTerm *      SREG1;       //  (Source register 1) Operand 1
     TTerm *      SREG2;       //  (Source register 2) Operand 2
