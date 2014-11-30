@@ -6,12 +6,12 @@
 #ifndef h_INT_PAR
 #define h_INT_PAR
 
-#define sort    embededFunc[0]
-#define copy    embededFunc[1]
-#define length  embededFunc[2]
-#define find    embededFunc[3]
-#define write   embededFunc[4]
-#define readln  embededFunc[5]
+#define EMBsort    embededFunc[0]
+#define EMBcopy    embededFunc[1]
+#define EMBlength  embededFunc[2]
+#define EMBfind    embededFunc[3]
+#define EMBwrite   embededFunc[4]
+#define EMBreadln  embededFunc[5]
 
 typedef enum {
     OP_PLUS, 
