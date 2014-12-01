@@ -3,7 +3,8 @@
 //  GLOBALNE PREMENNE
      
      extern PGLOB_DEST pointers;
-
+     extern TTerm embededFunc[];
+     
 //!< DOPLNENE     
 //  FUNKCIE NAD ZASOBNIKOM LABELOV
 TSlabelStack SEM_initLS(){
