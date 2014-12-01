@@ -181,8 +181,35 @@ void SEM_setFunctionLabel();
 /**
  * SEM_setFunctionLabel
  * --------------------
- * @brief:FUNKCIA, KTORA VYTVORI LABEL SKOKU FUNKCIE
+ * @brief:FUNKCIA, KTORA VYTVORI LABEL SKOKU FUNKCIE. VOLA SA NA ZACIATKU DEKLARACNEJ CASTI PRED DEFINICIOU LOKALNYCH PREMENNYCH
  */
+ 
+ 
+void SEM_thenStat();
+/**
+ * SEM_thenStat
+ * ------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY THEN V IF STATEMENTE
+ * @return: VYTVORENIE POTREBNYCH LABELOV A INSTRUKCII PRE INTERPRET
+ */ 
+ 
+ 
+void SEM_elseStat();
+/**
+ * SEM_elseStat
+ * ------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY ELSE V IF STATEMENTE
+ * @return: VYTVORENIE SKOKU NA KONIEC IFU A NAPLNENIE LABELA ELSE
+ */ 
+
+ 
+void SEM_endIf();
+/**
+ * SEM_endIf
+ * ---------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO UKONCENI IF STATEMENTU
+ * @return: NAPLNENIE ADRESY LABELU ZA VETVOU ELSE
+ */  
  
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
 #endif
