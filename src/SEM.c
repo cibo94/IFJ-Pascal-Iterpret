@@ -265,11 +265,11 @@ void SEM_endFunctionDef(PTStructLex lexema){
         SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
         
         TTerm * pocetParametrov = malloc(sizeof(struct STerm));
-        if (pocetParametrov != NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+        if (pocetParametrov == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
         pocetParametrov->value.integer = ((x = strstr(helpParam, "x")) == NULL)?(strlen(helpParam)):(unsigned)(x - helpParam);
         
         TTerm * pocetLokalnych = malloc(sizeof(struct STerm));
-        if (pocetLokalnych != NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+        if (pocetLokalnych == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
         pocetLokalnych->value.integer = ((x = strstr(helpParam, "x")) == NULL)?(0):(pocetParametrov->value.integer -(x - helpParam));
         
         SEM_addCL(pointers->CONSTLIST, pocetLokalnych);
@@ -277,7 +277,7 @@ void SEM_endFunctionDef(PTStructLex lexema){
         SEM_generate(OP_RET, pocetLokalnych, pocetParametrov, NULL);
         
         pointers->CURRENTFUNCT->data->flags = (pointers->CURRENTFUNCT->data->flags | LEX_FLAGS_TYPE_FUNC_DEF);
-        if((pointers->SCOPE->data->flags & LEX_FLAGS_INIT) == 0)
+        if((pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_INIT) == 0)
             error(ERR_SEM_OTHERS,"Semanticka chyba! Funkcii '%s' nebol priradeny vystup.\n", pointers->CURRENTFUNCT->data->lex);
     }
     pointers->SCOPE = pointers->SYM_TABLE;
@@ -432,6 +432,7 @@ void SEM_assignValue(PTStructLex lexema){
         error(ERR_SEM_UNDEF,"Semanticka chyba! Nedefinovany identifikator '%s'.", lexema->lex);    
        
     ETermType retType = SEM_popSS(pointers->EXPRSTACK);
+
     if(node == pointers->CURRENTFUNCT){
         switch(retType){
         case TERM_INT : if((node->data->flags & LEX_FLAGS_TYPE_INT) == 0) error(ERR_SEM_TYPE,"Semanticka chyba! Vysledok pravej strany je ineho typu nez typ '%s'.", lexema->lex); break;
