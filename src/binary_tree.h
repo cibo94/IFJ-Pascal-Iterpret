@@ -41,6 +41,8 @@ void BS_Free(TSbinstrom root);
  */
 void BS_Print(TSbinstrom root);
 
+void BS_checkFunction(TSbinstrom root);
+
 
 /** MODELOVE VOLANIA
  * ========================================================
