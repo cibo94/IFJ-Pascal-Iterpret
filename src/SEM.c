@@ -453,7 +453,7 @@ void SEM_assignValue(PTStructLex lexema){
     else if(retType != node->data->value->type)
         error(ERR_SEM_TYPE,"Semanticka chyba! Vysledok pravej strany je ineho typu nez typ '%s'.", lexema->lex);   
     
-    node->data->flags = LEX_FLAGS_INIT;
+    node->data->flags = (LEX_FLAGS_INIT | node->data->flags);
     
     if(node != pointers->CURRENTFUNCT){
         SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
