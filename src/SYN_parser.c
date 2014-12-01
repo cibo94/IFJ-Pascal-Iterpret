@@ -609,6 +609,7 @@ bool SYN_program(FILE *f){
 	case KEY_FUNCTION:
 	case KEY_BEGIN:
   	  if (!SYN_decPrem(f,GLOBAL) || !SYN_decFunc(f)) return false; 
+      BS_checkFunction(pointers->SYM_TABLE);
       if (!SYN_comStatement(f)) return false;
       if (lexema->type!=BODKA) return false;
       SYN_readLexem(f);

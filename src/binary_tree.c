@@ -170,6 +170,12 @@ void BS_Print(TSbinstrom root){
     Print_tree(root);
 }
 
+  void BS_checkFunction(TSbinstrom root){
 
-
+    if (root==NULL)
+        return;
+    BS_checkFunction(root->lptr);
+    BS_checkFunction(root->rptr);
+    SEM_checkFunction(root->data);
+}
 
