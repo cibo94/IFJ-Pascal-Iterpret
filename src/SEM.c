@@ -3,7 +3,7 @@
 //  GLOBALNE PREMENNE
      
      extern PGLOB_DEST pointers;
-     extern TTerm embededFunc[];
+     //extern TTerm embededFunc[];
      
 //!< DOPLNENE     
 //  FUNKCIE NAD ZASOBNIKOM LABELOV
@@ -514,7 +514,7 @@ void SEM_whileBegin(){
 
 
 // DALSIE FUNKCIE
-
+/*
 void SEM_insertEmbFunc(){
     PTStructLex embFunc = malloc(sizeof(PTStructLex));
     PTStructLex paramID = malloc(sizeof(PTStructLex));
@@ -581,7 +581,7 @@ void SEM_insertEmbFunc(){
     free(paramID);
     free(dataType);
 }
-
+*/
 
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
 
