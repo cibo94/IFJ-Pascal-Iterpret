@@ -498,8 +498,12 @@ bool SYN_assignStatemnet(FILE *f){
   
   if (lexema->type!=OPERATOR_ASSIGN) return false;
   SYN_readLexem(f);
-  if (SYN_expression(f)) return true;
-  else return false;
+  SEM_createLeaf(lexema);                               // tu bola zmena
+  // SKUSKA KVOLI  TESTOVANIU
+  //if (SYN_expression(f)) return true;
+  //else return false;
+  SYN_readLexem(f);
+  return true;
 }
 
 bool SYN_whileStatemnet(FILE *f){
@@ -530,6 +534,7 @@ bool SYN_ifStatemnet(FILE *f){
 }
 
 bool SYN_statement(FILE *f){
+  PTStructLex term_lex = lexema;
   
   switch (lexema->type){
   	case KEY_IF:
@@ -542,7 +547,7 @@ bool SYN_statement(FILE *f){
   	  else return false;
   	case IDENTIFICATOR:
   	  SYN_readLexem(f);
-  	  if (SYN_assignStatemnet(f)) return true;
+  	  if (SYN_assignStatemnet(f)) {SEM_assignValue(term_lex) ;return true;}    // tu bola zmena
   	  else return false;
   	case KEY_READLN:
   	  SYN_readLexem(f);
