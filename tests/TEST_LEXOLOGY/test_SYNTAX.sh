@@ -34,24 +34,19 @@ b:real;
 c:string;
 d:boolean;
 function f1(f1_p1: boolean; f1_p2:string):integer;
-var f1_v1:integer;
-	f1_v2:real;
-	f1_v3:boolean;
+var f1_v:string;
+xxx: integer;
+a:boolean;
 begin
-
+f1:=5
 end;
-
-function f2(lol: boolean; lola:string):integer;
-var joj:integer;
-	joj2:real;
-	joj3:boolean;
 begin
-end;
-
-begin
-a:=1.4
+a:=1;
+if b then begin
+    end
+else begin
+    end
 end.
-
  "
   
 export output="SYNTAX OK.

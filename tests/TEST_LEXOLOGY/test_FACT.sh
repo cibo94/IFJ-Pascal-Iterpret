@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export dir="FACTORIAL"
 export name="FACTORiAL"
-export file="../src/INT_interpret.c ../src/LEX_lexem.c"
+export file="../src/LEX_lexem.c"
 export src='#include "../src/inc.h"
 int main(int argc, char **argv) {
     FILE *f;

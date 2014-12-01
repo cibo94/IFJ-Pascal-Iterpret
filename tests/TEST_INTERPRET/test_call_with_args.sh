@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export dir="CALL_WITH_ARGS"
 export name="CALL_WITH_ARGS"
-export file="../src/INT_interpret.c ../src/LEX_lexem.c"
+export file="../src/LEX_lexem.c"
 export src='#include "../src/inc.h"
 
 extern P3AC *EIP;
