@@ -150,7 +150,10 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         (pointers->PARAMCOUNT)++;
         return; // INAK OK
     }
-    else{                                                                     // AK SA JEDNA O NEDEKLAROVANU FUNKCIU
+    else{    // AK SA JEDNA O NEDEKLAROVANU FUNKCIU
+        if(strcmp(dataID->lex,pointers->CURRENTFUNCT->data->lex) == 0)
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Parameter funkcie nemoze mat rovnaky nazov ako funkcia\n");
+            
         funcParam = BS_Find(pointers->SCOPE, dataID);                         // PRIDANIE NOVEHO PRVKU DO PODSTROMU FUNKCIE
         if (funcParam != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator parametra '%s' je pouzity 2 krat\n", dataID->lex);
         funcParam = BS_Add(pointers->SCOPE, dataID);
@@ -172,6 +175,9 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 }
 
 void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
+    if(strcmp(dataID->lex,pointers->CURRENTFUNCT->data->lex) == 0)
+        error(ERR_SEM_UNDEF,"Semanticka chyba! Parameter funkcie nemoze mat rovnaky nazov ako funkcia\n");
+
     TSbinstrom newNode = BS_Find(pointers->SCOPE, dataID);
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Semanticka chyba! Identifikator lokalnej premennej '%s' uz bol definovany\n", dataID->lex);
     newNode = BS_Add(pointers->SCOPE, dataID);
