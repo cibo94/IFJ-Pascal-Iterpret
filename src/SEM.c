@@ -141,10 +141,10 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         if(funcParam->data->value->value.offset != pointers->PARAMCOUNT)
             error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n"); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
-            case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n");       break;        
-            case KEY_STRING:  if(funcParam->data->value->type != TERM_STRING) error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n");    break;    
-            case KEY_REAL:    if(funcParam->data->value->type != TERM_REAL) error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n");      break;    
-            case KEY_BOOLEAN: if(funcParam->data->value->type != TERM_BOOL) error(ERR_SEM_UNDEF,"Semanticka chyba! Chybne parametre pri deklaracii funkcie\n");      break;    
+            case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) error(ERR_SEM_TYPE,"Semanticka chyba! Chybne parametre (typ) pri deklaracii funkcie\n");       break;        
+            case KEY_STRING:  if(funcParam->data->value->type != TERM_STRING) error(ERR_SEM_TYPE,"Semanticka chyba! Chybne parametre (typ) pri deklaracii funkcie\n");    break;    
+            case KEY_REAL:    if(funcParam->data->value->type != TERM_REAL) error(ERR_SEM_TYPE,"Semanticka chyba! Chybne parametre (typ) pri deklaracii funkcie\n");      break;    
+            case KEY_BOOLEAN: if(funcParam->data->value->type != TERM_BOOL) error(ERR_SEM_TYPE,"Semanticka chyba! Chybne parametre (typ) pri deklaracii funkcie\n");      break;    
             default : break;
         }
         (pointers->PARAMCOUNT)++;
@@ -255,9 +255,10 @@ void SEM_checkFunction(PTStructLex lexema){
 void SEM_endFunctionDef(PTStructLex lexema){
 
     if(lexema->type == KEY_FORWARD)
-    if((pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0)
-        error(ERR_SEM_UNDEF,"Semanticka chyba! Opatovna redeklaracia funkcie '%s'\n", pointers->CURRENTFUNCT->data->lex);
-        
+        if((pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0)
+            error(ERR_SEM_UNDEF,"Semanticka chyba! Opatovna redeklaracia funkcie '%s'\n", pointers->CURRENTFUNCT->data->lex);
+
+     
     pointers->CURRENTFUNCT->data->flags = (pointers->CURRENTFUNCT->data->flags | LEX_FLAGS_TYPE_FUNC_DEK); 
     if(lexema->type == STREDNIK){
         char * helpParam = pointers->CURRENTFUNCT->data->param;

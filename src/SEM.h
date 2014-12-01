@@ -169,6 +169,9 @@ void SEM_assignValue(PTStructLex lexema);
  */
 
  
+void SEM_checkFunction(PTStructLex lexema);
+ 
+ 
 void SEM_insertEmbFunc();
 /**
  * SEM_insertEmbFunc
