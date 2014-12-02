@@ -132,6 +132,12 @@ void prevodnik(TEnumLexem in, TStackEnum *out) {
 	return;
     }
     switch(in) {
+     case KEY_TRUE:
+	*out = TERM;
+	break;
+	 case KEY_FALSE:
+	*out = TERM;
+	break;
     case INT_CONST:
 	*out = TERM;
 	break;
@@ -182,7 +188,7 @@ bool SYN_expression(FILE *f) {
 	TStructLex *funid;
     StackInit(&stack1); 
     rule = malloc(sizeof(TRule)); /*premenna na vyber pravidla*/
-    pom = malloc(sizeof(TItem)); /* premenna pre hodnotu na vrchole zasobniku */
+    //pom = malloc(sizeof(TItem)); /* premenna pre hodnotu na vrchole zasobniku */
 
     
     TStackEnum input_lex, top_terminal = TERMINATOR; /*prazdny zasobnik - dno*/
@@ -192,9 +198,10 @@ bool SYN_expression(FILE *f) {
 	SPush(&stack1, lexema);
 	funid = lexema;
 	top_terminal = TERM;
-	LEX_getLexem(lexema,f);
+	SYN_readLexem(f);
 	prevodnik(lexema->type, &input_lex);
-	if (input_lex == LBRACK) {isfunc = 1; SEM_fCallPrologue(funid);}
+	if (input_lex == LBRACK) {
+	isfunc = 1; SEM_fCallPrologue(funid);}
 
     }
     if (top_terminal == input_lex && input_lex == TERMINATOR) return false;
@@ -219,7 +226,7 @@ bool SYN_expression(FILE *f) {
 				if (ind == 1 && rule->length == 3 && rule->RSide[1] != COMMA && rule->RSide[1] != NONTERMINAL) 
 				  SEM_createTree(pom->data);
 				if (ind == 3) 
-				  SEM_functionCall(pom->data);
+				  SEM_functionCall(funid);
 			}
 		    SPop(&stack1);
 		    pom = STop(&stack1); /*az kym nenarazi na zarazku alebo */
@@ -248,14 +255,14 @@ bool SYN_expression(FILE *f) {
 		SPush(&stack1, lexema); /* vlozi novy neterminal, vezme dalsiu lexemu */
 		pom = STop(&stack1); 
 		top_terminal = pom->type;
-		LEX_getLexem(lexema, f);
+		SYN_readLexem(f);
 		prevodnik(lexema->type, &input_lex);
 		break;
 	    case '=':
 		SPush(&stack1, lexema);
 		pom = STop(&stack1); 
 		top_terminal = pom->type;
-		LEX_getLexem(lexema, f);
+		SYN_readLexem(f);
 		prevodnik(lexema->type, &input_lex);
 		break;
 	    case '0':
@@ -278,7 +285,7 @@ bool SYN_expression(FILE *f) {
 
 void SYN_readLexem(FILE *f){
   
-  switch (lexema->type) {
+  /*switch (lexema->type) {
     case IDENTIFICATOR:
     case INT_CONST:
     case REAL_CONST:
@@ -289,7 +296,7 @@ void SYN_readLexem(FILE *f){
     default:
       free(lexema->lex);
       free(lexema);
-  }
+  }*/
   lexema=(PTStructLex)malloc(sizeof(TStructLex));
   if (lexema==NULL) error(ERR_INTERNAL, "Chyba alokacie pamete");
   LEX_getLexem(lexema,f); 
