@@ -4,7 +4,8 @@
      
      extern PGLOB_DEST pointers;
      //extern TTerm embededFunc[];
-     
+     TTerm * EBP;
+     TTerm * ESP;
    
 //!<  FUNKCIE NAD ZASOBNIKOM LABELOV
 TSlabelStack SEM_initLS(){
@@ -233,7 +234,7 @@ void SEM_defineFunction(PTStructLex dataID){
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
     pointers->SCOPE = newNode->loc_table;           //  NASTAVENIE JEJ PODSTROMU
     
-    SEM_generate(OP_PUSH, pointers->ACCREG, NULL,NULL)  //  PRIPRAVA MIESTA PRE VYSLEDOK
+    SEM_generate(OP_PUSH, pointers->ACCREG, NULL,NULL);  //  PRIPRAVA MIESTA PRE VYSLEDOK
     (pointers->PARAMCOUNT)++;
   
     if(strcmp(dataID->lex, "find")==0)
