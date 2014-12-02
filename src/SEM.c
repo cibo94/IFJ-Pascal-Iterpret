@@ -230,6 +230,15 @@ void SEM_defineFunction(PTStructLex dataID){
     }
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
     pointers->SCOPE = newNode->loc_table;           //  NASTAVENIE JEJ PODSTROMU
+    
+    if(strcmp(dataID->lex, "find")==0)
+        newNode->data->flags = (newNode->data->flags | LEX_FLAGS_INIT);
+    if(strcmp(dataID->lex, "sort")==0)
+        newNode->data->flags = (newNode->data->flags | LEX_FLAGS_INIT);
+    if(strcmp(dataID->lex, "copy")==0)
+        newNode->data->flags = (newNode->data->flags | LEX_FLAGS_INIT);
+    if(strcmp(dataID->lex, "length")==0)
+        newNode->data->flags = (newNode->data->flags | LEX_FLAGS_INIT);
     return;
 }
 
