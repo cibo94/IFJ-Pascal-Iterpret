@@ -613,30 +613,29 @@ void SEM_whileEnd(){
 
 //!< DALSIE FUNKCIE
 void SEM_insertEmbFunc(){
-    PTStructLex forward = malloc(sizeof(PTStructLex));
+    PTStructLex forward = malloc(sizeof( TStructLex));
         if(forward == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    forward->lex = malloc(8);
     forward->lex = "forward";
     forward->type = KEY_FORWARD;
     
-    PTStructLex strednik = malloc(sizeof(PTStructLex));
+    PTStructLex strednik = malloc(sizeof( TStructLex));
         if(strednik == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     strednik->lex = ";";
     strednik->type = STREDNIK;
     
-    PTStructLex fType = malloc(sizeof(PTStructLex));
-    if(fType == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-        PTStructLex pType1 = malloc(sizeof(PTStructLex));
-    if(pType1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-        PTStructLex pType2 = malloc(sizeof(PTStructLex));
-    if(pType2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-        PTStructLex pType3 = malloc(sizeof(PTStructLex));
-    if(pType3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex fType = malloc(sizeof( TStructLex));
+        if(fType == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pType1 = malloc(sizeof( TStructLex));
+        if(pType1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pType2 = malloc(sizeof( TStructLex));
+        if(pType2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pType3 = malloc(sizeof( TStructLex));
+        if(pType3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     
     // Funkcia length
-    PTStructLex fLength = malloc(sizeof(PTStructLex));
+    PTStructLex fLength = malloc(sizeof( TStructLex));
     if(fLength == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pLength1 = malloc(sizeof(PTStructLex));
+    PTStructLex pLength1 = malloc(sizeof( TStructLex));
     if(pLength1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
 
         
@@ -656,14 +655,14 @@ void SEM_insertEmbFunc(){
     
     
     // FUNKCIA COPY   
-    PTStructLex fCopy = malloc(sizeof(PTStructLex));
-    if(fCopy == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pCopy1 = malloc(sizeof(PTStructLex));
-    if(pCopy1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pCopy2 = malloc(sizeof(PTStructLex));
-    if(pCopy2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pCopy3 = malloc(sizeof(PTStructLex));
-    if(pCopy3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex fCopy = malloc(sizeof( TStructLex));
+        if(fCopy == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pCopy1 = malloc(sizeof( TStructLex));
+        if(pCopy1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pCopy2 = malloc(sizeof( TStructLex));
+        if(pCopy2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pCopy3 = malloc(sizeof( TStructLex));
+        if(pCopy3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     
         
         fCopy->value = &EMBcopy;
@@ -691,11 +690,11 @@ void SEM_insertEmbFunc(){
     SEM_endFunctionDef(forward);   // FUNKCIA JE REDEKLAROVATELNA
    
     // FUNKCIA FIND
-    PTStructLex fFind = malloc(sizeof(PTStructLex));
+    PTStructLex fFind = malloc(sizeof( TStructLex));
     if(fFind == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pFind1 = malloc(sizeof(PTStructLex));
+    PTStructLex pFind1 = malloc(sizeof( TStructLex));
     if(pFind1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pFind2 = malloc(sizeof(PTStructLex));
+    PTStructLex pFind2 = malloc(sizeof( TStructLex));
     if(pFind2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
 
  
@@ -719,9 +718,9 @@ void SEM_insertEmbFunc(){
     SEM_endFunctionDef(strednik);       // FUNKCIU NIE JE MOZNE REDEKLAROVAT
     
     // FUNCKIA SORT
-    PTStructLex fSort = malloc(sizeof(PTStructLex));
+    PTStructLex fSort = malloc(sizeof(TStructLex));
         if(fSort == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pSort1 = malloc(sizeof(PTStructLex));
+    PTStructLex pSort1 = malloc(sizeof(TStructLex));
         if(pSort1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");   
     
         fSort->value = &EMBsort;
