@@ -247,9 +247,24 @@ void SEM_whileEnd();
  * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY END NA KONCI CYKLU WHILE
  * @return: UKONCENIE CYKLU WHILE
  */ 
+ 
 
 void SEM_writeCall();
+/**
+ * SEM_whileBegin
+ * --------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO PREJDENI VSETKYCH PARAMETROV FUNKCIE WRITE
+ * @return: 3AK
+ */ 
+ 
+ 
 void SEM_writePrologue(); 
+/**
+ * SEM_writePrologue
+ * -----------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI FUNKCIE WRITE
+ */ 
+ 
  
 void SEM_prologue(); 
 /**
