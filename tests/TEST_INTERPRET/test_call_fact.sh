@@ -8,7 +8,7 @@ int main () {
     // VARIABLES GLOBAL, LABLES, TEMPORARY, CONSTANTS
     TTerm START = {
         .value.address = 13,
-        .type = TERM_LABEL
+        .type = TERM_EIP
     }, ONE = {
         .value.integer = 1,
         .type  = TERM_INT
@@ -23,10 +23,10 @@ int main () {
     RET = ONE,
     ELSE = {
         .value.address = 7,
-        .type = TERM_LABEL
+        .type = TERM_EIP
     }, FACT = {
         .value.address = 1,
-        .type = TERM_LABEL
+        .type = TERM_EIP
     }, NUM  = {
         .value.pointer = &RET,
         .type = TERM_INT
@@ -69,6 +69,7 @@ int main () {
     }
     EIP[22] = NULL;
     INT_interpret ();
+    print_EIP(EIP);
     free(EIP);
     return 0;
 }'

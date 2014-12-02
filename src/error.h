@@ -11,8 +11,7 @@
 #ifndef h_ERROR
 #define h_ERROR
 #include "LEX_lexem.h"
-// Prototypes
-
+#include "INT_interpret.h"
 /**
  * \brief Error function
  * \param retCode navratova hodnota
@@ -35,6 +34,15 @@ static inline void error (const int retCode, const char *format, ...)
 static inline void warning (const char *format, ...) 
     __attribute__ ((unused, format(printf, 1, 2)));
 /**
+ * \brief Funkcia vypise dekodovane instrukcie
+ * \param __EIP ukazatel na EIP
+ * \returns NOTHING
+ * \see P3AC
+ * \see INT_interpret(...)
+ */
+static inline void print_EIP (P3AC *__EIP)
+    __attribute__ ((unused));
+/**
  * \brief Logging function -> Do not use this function use log() instead
  * \param line Argument for define log(...)
  * \param function Argument for define log(...)
@@ -50,7 +58,6 @@ static inline void __log(const int line, const char *function, const char *file,
     __attribute__ ((unused, format(printf, 4, 5))); 
 
 #define log(...) __log(__LINE__, __FUNCTION__, __FILE__, ##__VA_ARGS__)
-
 #define ERR_LEX             1   //!< Lexikologicka chyba \see error
 #define ERR_SYN             2   //!< Syntakticka chyba \see error
 #define ERR_SEM_UNDEF       3   //!< Semanticka chyba - nedefinovana premenna \see error
@@ -62,18 +69,17 @@ static inline void __log(const int line, const char *function, const char *file,
 #define ERR_RNTM_OTHERS     9   //!< Behova chyba - ine \see error
 #define ERR_INTERNAL       99   //!< Vnutorna chyba programu (napr. malloc vratil null a pod) \see error
 #ifndef __GNUC__
-#define __attribute__(x)        //!< NOTHING
+#   define __attribute__(x)     //!< NOTHING
 #endif
 #define TIME_SIZE 9
 #define FORMAT_TIME \
-do { \
-    time_t rawtime; \
-    time (&rawtime); \
-    strftime (cas, TIME_SIZE, "%T", localtime (&rawtime));\
-} while (0);
+    do { \
+        time_t rawtime; \
+        time (&rawtime); \
+        strftime (cas, TIME_SIZE, "%T", localtime (&rawtime));\
+    } while (0);
 
 static char cas[TIME_SIZE];
-
 extern unsigned int LINE_NUM;
 extern char *FILE_NAME;
 
@@ -90,6 +96,43 @@ static const char *ERROR_MSG[] = {
     "Behova chyba - delenie nulou",
     "Behova chyba - ostatne",
     "Interna chyba programu"
+};
+
+__attribute__((unused))
+static const char *OPERATIONS[] = {
+    "OP_PLUS", 
+    "OP_MINUS", 
+    "OP_MUL", 
+    "OP_DIV", 
+    "OP_ASSIGN", 
+    "OP_LESS",
+    "OP_GREAT",
+    "OP_LESSEQ",
+    "OP_GREATEQ", 
+    "OP_EQUAL",
+    "OP_NEQUAL",
+    "OP_CALL", 
+    "OP_RET", 
+    "OP_PUSH", 
+    "OP_POP", 
+    "OP_JTRUE", 
+    "OP_JMP", 
+    "OP_NOP", 
+    "OP_LOAD",
+    "OP_NOT",
+    "OP_STORE" 
+};
+
+__attribute__ ((unused))
+static const char *TERM_TYPE[] = {
+    "TERM_INT",
+    "TERM_REAL",
+    "TERM_STRING",
+    "TERM_BOOL",
+    "TERM_EIP",
+    "TERM_POINTER",
+    "TERM_OFFSET",
+    "TERM_EMB"
 };
 
 extern char *KEY_WORDS[]; 
@@ -205,4 +248,21 @@ __log(const int   line,
 }
 
 #endif /*not defined(DEBUG)*/
+#ifdef h_INT_PAR
+static inline void print_EIP (P3AC *__EIP) {
+    for (P3AC *POS=__EIP;*__EIP!=NULL;__EIP++) {
+        printf("#%03u (%15s, %15s[%12s], %15s[%12s], %15s[%12s])\n",
+          (unsigned int)(__EIP-POS+1),
+          OPERATIONS[(*__EIP)->op],
+          (*__EIP)->op1 != NULL ? (*__EIP)->op1->name            : "NULL", 
+          (*__EIP)->op1 != NULL ? TERM_TYPE[(*__EIP)->op1->type] : "NULL",
+          (*__EIP)->op2 != NULL ? (*__EIP)->op2->name            : "NULL", 
+          (*__EIP)->op2 != NULL ? TERM_TYPE[(*__EIP)->op2->type] : "NULL",
+          (*__EIP)->ret != NULL ? (*__EIP)->ret->name            : "NULL", 
+          (*__EIP)->ret != NULL ? TERM_TYPE[(*__EIP)->ret->type] : "NULL");
+    }
+}
+#else  /*if defined(h_INT_PAR)*/
+
+#endif /*if defined(h_INT_PAR)*/
 #endif /*defined(h_ERROR)*/
