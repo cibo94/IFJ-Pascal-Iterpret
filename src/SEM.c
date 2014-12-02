@@ -789,7 +789,7 @@ void SEM_prologue(){
     startLabel->type = TERM_EIP;
     SEM_pushLS(pointers->LABELSTACK, startLabel);
     SEM_addCL(pointers->CONSTLIST, startLabel);
-    
+    if ((PEIP = EIP = malloc (sizeof(P3AC))) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     SEM_generate(OP_JMP, startLabel, NULL,NULL);
 }
 
@@ -799,6 +799,17 @@ void SEM_mainBegin(){
     startLabel->value.address = pointers->PROGRAMINDEX;
 }
 
+static inline void SEM_addInstruction (P3AC inst) {
+    uint32_t size = (uint32_t)(PEIP-EIP);
+    if (size%42 == 0) 
+        /* 
+         * Realokuje EIP o 42 adresu ulozi do EIP a pricita k nej velkost a ulozi do PEIP
+         * nasledne od toho cele odcita velkost aby sme vedeli ci nenastal NULL
+         */
+        if ((PEIP = size + (EIP=realloc(EIP, size+42))) - size == NULL)
+            error(ERR_INTERNAL, "Chyba realokacie!\n");
+    *(PEIP++) = inst;
+}
 
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
 
@@ -811,9 +822,6 @@ void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
     newInstruction->ret = result;
     free (newInstruction);
     (pointers->PROGRAMINDEX)++;
-    return;
-    //SEM_addInstruction(newInstruction);
+    SEM_addInstruction(newInstruction);
 }
-
-
 
