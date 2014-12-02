@@ -1,17 +1,18 @@
 /**
- * \file INT_parser.h
+ * \file INT_interpret.h
  * \brief Interpret 3 adresneho kodu
+ * \author Miroslav Cibulka
  */
 
 #ifndef h_INT_PAR
 #define h_INT_PAR
 
-#define EMBsort    embededFunc[0]
-#define EMBcopy    embededFunc[1]
-#define EMBlength  embededFunc[2]
-#define EMBfind    embededFunc[3]
-#define EMBwrite   embededFunc[4]
-#define EMBreadln  embededFunc[5]
+#define EMBsort    embededFunc[0]  //!< zabudovana funkcia na sort retazca
+#define EMBcopy    embededFunc[1]  //!< zabudovana funkcia na kopirovanie retazca
+#define EMBlength  embededFunc[2]  //!< zabudovana funkcia na dlzku retazca
+#define EMBfind    embededFunc[3]  //!< zabudovana funkcia na hladania podretazca v retazci
+#define EMBwrite   embededFunc[4]  //!< zabudovana funkcia na vypis
+#define EMBreadln  embededFunc[5]  //!< zabudovana funkcia na nacitanie
 
 typedef enum {
     OP_PLUS, 
@@ -35,7 +36,7 @@ typedef enum {
     OP_LOAD,
     OP_NOT,
     OP_STORE 
-} E_OP;
+} E_OP;                 //!< urcuje typ operatora
 
 typedef enum {
     TERM_INT,
@@ -47,38 +48,39 @@ typedef enum {
     TERM_POINTER,
     TERM_OFFSET,
     TERM_EMB
-} ETermType;
+} ETermType;            //!< urcuje typ TERMu
 
-typedef struct S3AC *P3AC;
+typedef struct S3AC *P3AC;  //!< pole 3adresnych kodov == samotne prikazy
 
 typedef struct STerm {
     union {
-        int             integer;
-        float           real;
-        char           *string;
-        bool            boolean;
-        uint32_t        address;
-        struct STerm   *pointer;
-        uint32_t        offset;
-        void          (*emb_function)();
-    } value;
-    ETermType type;
-    char *name;
-    bool index;
-} TTerm;
+        int             integer;         //!< Ak je term typ TERM_INT operacie pracuju s integerom
+        float           real;            //!< Ak je term typ TERM_REAL operacie pracuju s realnym cislom
+        char           *string;          //!< Ak je term tyo TERM_STRING operacie pracuju s ukazatelom na string
+        bool            boolean;         //!< Ak je term typ TERM_BOOL operacie pouzivaju hodnotu ako boolean
+        uint32_t        address;         //!< Adresa do pola instrukcii TERM_EIP alebo TERM_LABEL
+        struct STerm   *pointer;         //!< Ukazatel na iny Term -> koli readln, zo zadania nemame riesit TERM_POINTER
+        uint32_t        offset;          //!< Offset do zasobnika TERM_OFFSET
+        void          (*emb_function)(); //!< ukazatel na zabudovanu funkciu tyo TERM_EMB
+    } value;                //!< hodnota termu
+    ETermType type;         //!< typ termu
+    char *name;             //!< meno termu ???treba???
+    bool index;             //!< Pre lukasa -> poradie premennej/param vo funkcii/glob
+} TTerm;                    //!< Term -> struktura premennej
 
 
 
 struct S3AC {
-    E_OP   op;
-    TTerm *op1;
-    TTerm *op2;
-    TTerm *ret;
-};
+    E_OP   op;              //!< Operacia medzi operatormi
+    TTerm *op1;             //!< Operator 1
+    TTerm *op2;             //!< Operator 2
+    TTerm *ret;             //!< Navratova premenna
+};                          //!< Instrukcia
 
 
 __attribute__ ((unused))
-void INT_interpret ();
-extern P3AC *EIP, *PEIP;
-extern TTerm embededFunc[];
+void INT_interpret ();      //!< zakladna funkcia -> spusti interpret, musi byt vyplneny EIP a ukonceny NULLom
+extern P3AC *EIP,           //!< EIP -> globalne pole intrukcii
+            *PEIP;          //!< PEIP -> ukazatel do pola instrukcii -> koli skokom a pod
+extern TTerm embededFunc[]; //!< zabudovane funkcie -> readln, write, sort, length, ...
 #endif

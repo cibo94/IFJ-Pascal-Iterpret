@@ -1,3 +1,33 @@
+/**
+ * \file binary_tree.h
+ * \author Roman Selecky
+ * \brief Tabulka symbolov
+ *
+ *
+ * MODELOVE VOLANIA
+ * ========================================================
+ * pre pridanie uzlu (aj uplne prveho) do tabulky symbolov 
+ * alebo tabulky lokalnych premennych volame:
+ *  
+ * 		pom=BS_Add(NULL,lex);  	pre prvy uzol
+ * 		BS_Add(pom,lex2);		pre dalsie uzly
+ * 
+ * pre pridavanie do lokalnych tabuliek treba napnit 
+ * vysledok prveho pridavania do pom->loc_table;
+ *
+ *
+ * Pre hladanie v tabulke symbolov alebo jednotlivych 
+ * scope-och pouzivame funkciu:
+ *
+ * 		BS_Find(pom,lex2)		ak existuje vrati ukazatel
+ * 
+ *
+ *
+ * Cela Tabulka symbolov a aj lokalne tabulky sa uvolnia:
+ * 
+ * 		BS_Free(pom);
+ */
+
 #ifndef h_SYM
 #define h_SYM
 
@@ -13,56 +43,48 @@ typedef struct Sbinstrom {
 #endif
 
 /**
- * alokuje koren binarneho stromu a napni ho datami,
+ * \brief alokuje koren binarneho stromu a napni ho datami,
  * vrati pointer nan, v pripade chyby vrati NULL
+ * \param data Data ktore sa pichnu na zaciatok stromu
+ * \return Binary Tree
  */
 TSbinstrom BS_New(PTStructLex data);
 
 /**
- * ak najde kluc,ERR, inak
+ * \brief ak najde kluc,ERR, inak
  * vytvori a prida novy uzol do binarneho stromu
  * a naplni ho datami a zaradi podla kluca
+ * \param root Koren stromu
+ * \param data Data na vlozenie
+ * \return Pridany prvok
  */
 TSbinstrom BS_Add(TSbinstrom root, PTStructLex data);
 
 /**
- * Hlada uzol podla kluca a vrati ukazovatel
+ * \brief Hlada uzol podla kluca a vrati ukazovatel
  * na najdeny uzol alebo NULL
+ * \param root koren
+ * \param dat Data podla, ktorych ma hladat prvok
+ * \return Hladany prvok
  */
 TSbinstrom BS_Find(TSbinstrom root, PTStructLex dat);
 
 /**
- * pomocou PostOrder prejde stromom a uvolni vsetky uzly 
+ * \brief pomocou PostOrder prejde stromom a uvolni vsetky uzly 
+ * \param root Koren stromu
  */
 void BS_Free(TSbinstrom root);
  
 /**
- * prejde stromom a vypise kluce vsetkych uzlov 
+ * \brief prejde stromom a vypise kluce vsetkych uzlov 
+ * \param root Koren
  */
 void BS_Print(TSbinstrom root);
 
+/**
+ * \brief ???
+ * \param root Koren
+ */
 void BS_checkFunction(TSbinstrom root);
 
 
-/** MODELOVE VOLANIA
- * ========================================================
- * pre pridanie uzlu (aj uplne prveho) do tabulky symbolov 
- * alebo tabulky lokalnych premennych volame:
- *  
- * 		pom=BS_Add(NULL,lex);  	pre prvy uzol
- * 		BS_Add(pom,lex2);		pre dalsie uzly
- * 
- * pre pridavanie do lokalnych tabuliek treba napnit 
- * vysledok prveho pridavania do pom->loc_table;
- * ======================================================== 
- * Pre hladanie v tabulke symbolov alebo jednotlivych 
- * scope-och pouzivame funkciu:
- *
- * 		BS_Find(pom,lex2)		ak existuje vrati ukazatel
- * 
- * ========================================================
- * Cela Tabulka symbolov a aj lokalne tabulky sa uvolnia:
- * 
- * 		BS_Free(pom);
- * ========================================================
- */

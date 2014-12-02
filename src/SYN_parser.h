@@ -1,7 +1,7 @@
 /**
  * \file SYN_parser.h
  * \brief Kniznica pracujuca so syntaxom
- * \author 69DreamTeam
+ * \author Palo Vican
  */ 
 #ifndef h_SYN_parser
 #define h_SYN_parser
