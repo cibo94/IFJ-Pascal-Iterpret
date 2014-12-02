@@ -68,7 +68,10 @@ typedef struct STerm {
     bool index;             //!< Pre lukasa -> poradie premennej/param vo funkcii/glob
 } TTerm;                    //!< Term -> struktura premennej
 
-
+typedef struct SStack {
+    TTerm             *term;  //!< TERM
+    struct SStack     *next;  //!< dalsi term v zasobniku
+} TSStack, *PTSStack;
 
 struct S3AC {
     E_OP   op;              //!< Operacia medzi operatormi

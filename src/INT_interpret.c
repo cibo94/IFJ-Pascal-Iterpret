@@ -5,20 +5,9 @@
  */
 
 #include "inc.h"
+#include "init.h"
 
-// DUMMY typedefs:
-
-// DUMMY functions:
-
-///////////////////////
-
-
-typedef struct SStack {
-    TTerm             *term;
-    struct SStack     *next;
-} TSStack, *PTSStack;
-
-static PTSStack *STACK;
+static PTSStack *EBP;
 
 __attribute__ ((unused))
 P3AC *EIP, *PEIP;
@@ -28,43 +17,43 @@ static PTSStack SInit () {
 }
 
 static bool SEmpty () {
-    return *STACK == NULL;
+    return *EBP == NULL;
 }
 
 static void SPush (TTerm *add) {
     PTSStack el = malloc (sizeof(TSStack));
-    el->next = *STACK;
+    el->next = *EBP;
     el->term = add;
-    *STACK = el;
+    *EBP = el;
 }
 
 __attribute__((unused))
 static TTerm *STop () {
-    return (*STACK)->term;
+    return (*EBP)->term;
 }
 
 static TTerm *SPop () {
-    TTerm *ret = (*STACK)->term;
-    PTSStack pom = (*STACK)->next;
-    free(*STACK);
-    *STACK = pom;
+    TTerm *ret = (*EBP)->term;
+    PTSStack pom = (*EBP)->next;
+    free(*EBP);
+    *EBP = pom;
     return ret;
 }
 
 static TTerm *SPick (uint32_t pos) {
-    PTSStack s = *STACK;
+    PTSStack s = *EBP;
     for (; pos != 0; pos--)
         s = s->next;
     return s->term;
 }
 
 static void SFree () {
-    while (*STACK != NULL) {
-        PTSStack toDel = *STACK;
-        *STACK = (*STACK)->next;
+    while (*EBP != NULL) {
+        PTSStack toDel = *EBP;
+        *EBP = (*EBP)->next;
         free(toDel);
     }
-    free(STACK);
+    free(EBP);
 }
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -278,9 +267,9 @@ static void ret (        TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     // Local variable cleaning
     for (int i = 0; i < op1->value.integer; i++)
-        free(SPop(&STACK));
+        free(SPop(&EBP));
     
-    TTerm *add = SPop(&STACK);
+    TTerm *add = SPop(&EBP);
     P3AC *pom = &EIP[add->value.address];
     free(add);
     //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
@@ -288,7 +277,7 @@ __attribute__ ((unused)) TTerm *ret) {
 
     // Arguments cleaning
     for (int i = 0; i < op2->value.integer; i++)
-        free(SPop(&STACK));
+        free(SPop(&EBP));
 }
 
 static void push (       TTerm *op1,
@@ -305,12 +294,12 @@ static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret != NULL) {
-        if (!SEmpty(STACK)) {
-            ret->value = SPop(&STACK)->value;
+        if (!SEmpty(EBP)) {
+            ret->value = SPop(&EBP)->value;
         } else 
             error (ERR_INTERNAL, "Stack is empty");
     } else {
-        SPop(&STACK);
+        SPop(&EBP);
     }
     //log ("POP\n");
 }
@@ -343,7 +332,7 @@ __attribute__ ((unused)) TTerm *ret) {
         if (&embededFunc[i] == op1) {
             op1->value.emb_function();
             return;
-        }        
+        }
     }
     jmp(op1, NULL, NULL);
     //log ("CALL: to address: %u\n", op1->value.address);
@@ -528,7 +517,7 @@ TTerm embededFunc[] = {
         .name = "readln" 
     }
 };
-
+extern PGLOB_DEST pointers;
 void INT_interpret () {
     /// Instruction pointer
     PEIP = EIP;
@@ -536,8 +525,8 @@ void INT_interpret () {
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
-    STACK = malloc (sizeof (TSStack*));
-    *STACK = SInit();
+    pointers->ebp = EBP = malloc (sizeof (TSStack*));
+    *EBP = SInit();
 
     for (int i = 0; *PEIP != NULL; i++) {
         //log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
