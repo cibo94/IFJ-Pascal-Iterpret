@@ -216,8 +216,10 @@ bool SYN_expression(FILE *f) {
 				if (isfunc) SEM_functionParam(funid, pom->data);
 				else SEM_createLeaf(pom->data);
 				}
-				if (ind == 1 && rule->length == 3 && rule->RSide[1] != COMMA && rule->RSide[0] != NONTERMINAL) SEM_createTree(pom->data);
-				if (ind == 3) SEM_functionCall(pom->data);
+				if (ind == 1 && rule->length == 3 && rule->RSide[1] != COMMA && rule->RSide[1] != NONTERMINAL) 
+				  SEM_createTree(pom->data);
+				if (ind == 3) 
+				  SEM_functionCall(pom->data);
 			}
 		    SPop(&stack1);
 		    pom = STop(&stack1); /*az kym nenarazi na zarazku alebo */
@@ -504,11 +506,13 @@ bool SYN_assignStatemnet(FILE *f){
   
   if (lexema->type!=OPERATOR_ASSIGN) return false;
   SYN_readLexem(f);
-  SEM_createLeaf(lexema);                               // tu bola zmena
+  //SEM_createLeaf(lexema);                               // tu bola zmena
   // SKUSKA KVOLI  TESTOVANIU
-  //if (SYN_expression(f)) return true;
-  //else return false;
-  SYN_readLexem(f);
+  if (SYN_expression(f)) 
+  return true;
+  else 
+  return false;
+  //SYN_readLexem(f);
   return true;
 }
 
@@ -553,7 +557,10 @@ bool SYN_statement(FILE *f){
   	  else return false;
   	case IDENTIFICATOR:
   	  SYN_readLexem(f);
-  	  if (SYN_assignStatemnet(f)) {SEM_assignValue(term_lex) ;return true;}    // tu bola zmena
+  	  if (SYN_assignStatemnet(f)) {
+		SEM_assignValue(term_lex) ;
+		return true;
+	  }    // tu bola zmena
   	  else return false;
   	case KEY_READLN:
   	  SYN_readLexem(f);
