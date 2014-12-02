@@ -640,9 +640,14 @@ void SEM_insertEmbFunc(){
 
         
         fLength->value = &EMBlength;
-        fLength->lex = "length";        
+        fLength->lex = "length";    
+        fLength->param = NULL;
+        fLength->value = NULL;
+        fLength->flags = LEX_FLAGS_INIT;
         pLength1->lex = "s";        
         pLength1->type = IDENTIFICATOR;
+        pLength1->param = NULL;
+        pLength1->value = NULL;
         pType1->lex = "string";
         pType1->type = KEY_STRING;
         fType->lex = "integer";
@@ -666,17 +671,26 @@ void SEM_insertEmbFunc(){
     
         
         fCopy->value = &EMBcopy;
-        fCopy->lex = "copy";          
-        pCopy1->lex = "s";        
-        pCopy1->type = IDENTIFICATOR;       
+        fCopy->lex = "copy";      
+        fCopy->param = NULL;
+        fCopy->value = NULL;   
+        fCopy->flags = LEX_FLAGS_INIT;        
+        pCopy1->lex = "s";     
+        pCopy1->type = IDENTIFICATOR; 
+        pCopy1->param = NULL;
+        pCopy1->value = NULL;        
         pType1->lex = "string";
         pType1->type = KEY_STRING;       
         pCopy2->lex = "i";        
-        pCopy2->type = IDENTIFICATOR;        
+        pCopy2->type = IDENTIFICATOR;      
+        pCopy2->param = NULL;
+        pCopy2->value = NULL;        
         pType2->lex = "string";
         pType2->type = KEY_INTEGER;
         pCopy3->lex = "n";        
-        pCopy3->type = IDENTIFICATOR;       
+        pCopy3->type = IDENTIFICATOR;
+        pCopy3->param = NULL;
+        pCopy3->value = NULL;        
         pType3->lex = "string";
         pType3->type = KEY_INTEGER;        
         fType->lex = "integer";
@@ -699,13 +713,20 @@ void SEM_insertEmbFunc(){
 
  
         fFind->value = &EMBfind;
-        fFind->lex = "find";          
+        fFind->lex = "find";  
+        fFind->param = NULL;
+        fFind->value = NULL;  
+        fFind->flags = LEX_FLAGS_INIT;         
         pFind1->lex = "s";        
-        pFind1->type = IDENTIFICATOR;       
+        pFind1->type = IDENTIFICATOR;  
+        pFind1->param = NULL;
+        pFind1->value = NULL;        
         pType1->lex = "string";
         pType1->type = KEY_STRING;       
         pFind2->lex = "search";        
-        pFind2->type = IDENTIFICATOR;        
+        pFind2->type = IDENTIFICATOR; 
+        pFind2->param = NULL;
+        pFind2->value = NULL;        
         pType2->lex = "string";
         pType2->type = KEY_STRING;
         fType->lex = "integer";
@@ -725,8 +746,13 @@ void SEM_insertEmbFunc(){
     
         fSort->value = &EMBsort;
         fSort->lex = "sort";
+        fSort->param = NULL;
+        fSort->value = NULL;
+        fSort->flags = LEX_FLAGS_INIT;        
         pSort1->lex = "s";        
-        pSort1->type = IDENTIFICATOR;       
+        pSort1->type = IDENTIFICATOR;
+        pSort1->param = NULL;
+        pSort1->value = NULL;          
         pType1->lex = "string";
         pType1->type = KEY_STRING;       
         fType->lex = "string";
@@ -736,9 +762,7 @@ void SEM_insertEmbFunc(){
     SEM_defineParam(pSort1, pType1);       
     SEM_defFuntionType(fType);
     SEM_endFunctionDef(strednik);    
-    
-    free(fSort);
-    free(pSort1);
+   
     
     free(fType);
     free(pType1);
