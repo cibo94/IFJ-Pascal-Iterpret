@@ -170,6 +170,13 @@ void SEM_assignValue(PTStructLex lexema);
 
  
 void SEM_checkFunction(PTStructLex lexema);
+/**
+ * SEM_checkFunction
+ * -----------------
+ * @brief:FUNKCIA, KTORA SA VOLA PRI PRECHODE TABULKOU SYMBOLOV. VYKONAVA DETEKCIU NEDEFINOVANYCH FUNKCII
+ * @param:LEXEMA IDENTIFIKATOR PRVKU TABULKY SYMBOLOV
+ * @return: ERROR AK FUNKCIA NIE JE DEFINOVANA
+ */ 
  
  
 void SEM_insertEmbFunc();
@@ -213,6 +220,79 @@ void SEM_endIf();
  * @brief:FUNKCIA, KTORU VOLA SYNTAX PO UKONCENI IF STATEMENTU
  * @return: NAPLNENIE ADRESY LABELU ZA VETVOU ELSE
  */  
+ 
+ 
+ void SEM_whileStat();
+/**
+ * SEM_whileStat
+ * -------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY WHILE
+ * @return: VYTVORENIE POTREBNYCH LABELOV A INSTRUKCII PRE INTERPRET
+ */  
+ 
+ 
+void SEM_whileBegin();
+/**
+ * SEM_whileBegin
+ * --------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY BEGIN (PO VYHODNOTENI PODMIENKY) V CYKLE WHILE
+ * @return: VYTVORENIE POTREBNYCH LABELOV A INSTRUKCII PRE INTERPRET
+ */   
+ 
+
+void SEM_whileEnd();
+/**
+ * SEM_whileBegin
+ * --------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY END NA KONCI CYKLU WHILE
+ * @return: UKONCENIE CYKLU WHILE
+ */ 
+
+ 
+void SEM_prologue(); 
+/**
+ * SEM_prologue
+ * ------------
+ * @brief:PRVA VOLANA SEMANTICKA AKCIA. FUNKCIA VYGENERUJE INSTRUKCIU SKOKU NA ZACIATOK PROGRAMU
+ * @return: UKONCENIE CYKLU WHILE
+ */ 
+ 
+ 
+void SEM_mainBegin();
+/**
+ * SEM_prologue
+ * ------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR PO NAJDENI LEXEMY BEGIN HLAVNEHO TELA PROGRAMU
+ * @return: NAPLNENIE NAVESTIA SKOKU NA ZACIATOK PROGRAMU
+ */ 
+
+ 
+void SEM_fCallPrologue(PTStructLex functID);
+/**
+ * SEM_fCallPrologue
+ * -----------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR NA ZACIATKU VOLANIA FUNKCIE
+ * @return: NASTAVENIE PREMENNYCH
+ */ 
+ 
+ 
+void SEM_functionCall(PTStructLex functID); 
+/**
+ * SEM_functionCall
+ * ----------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR NA KONCI VOLANIA FUNKCIE (PO SPRACOVANI PARAMETROV)
+ * @return: VOLANIE FUNKCIE
+ */ 
+ 
+ 
+void SEM_functionParam(PTStructLex functID, PTStructLex paramID);
+/**
+ * SEM_functionParam
+ * -----------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAKTICKY ANALYZATOR NAD PARAMETRAMI FUNKCIE
+ * @return: TYPOVA KONTROLA PARAMETROV, VYTVORENIE KONSTANT AK SU V PARAMETROCH
+ */ 
+
  
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
 #endif
