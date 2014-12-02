@@ -613,73 +613,163 @@ void SEM_whileEnd(){
 
 //!< DALSIE FUNKCIE
 void SEM_insertEmbFunc(){
-    PTStructLex embFunc = malloc(sizeof(PTStructLex));
-    if(embFunc == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex paramID = malloc(sizeof(PTStructLex));
-    if(paramID == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex dataType = malloc(sizeof(PTStructLex));
-    if(dataType == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex forward = malloc(sizeof( TStructLex));
+        if(forward == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    forward->lex = "forward";
+    forward->type = KEY_FORWARD;
     
-    // FUNKCIA LENGTH
-        embFunc->value = &EMBlength;
-        embFunc->lex = "length";
-    SEM_defineFunction(embFunc);   
-        paramID->lex = "s";
-        dataType->type = KEY_STRING;
-    SEM_defineParam(paramID, dataType);
-        embFunc->type = KEY_INTEGER;
-    SEM_defFuntionType(embFunc);
-        embFunc->type = KEY_FORWARD;    // FUNKCIA JE REDEKLAROVATELNA
-    SEM_endFunctionDef(embFunc);
+    PTStructLex strednik = malloc(sizeof( TStructLex));
+        if(strednik == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    strednik->lex = ";";
+    strednik->type = STREDNIK;
     
-    // FUNKCIA COPY
-        embFunc->value = &EMBcopy;
-        embFunc->lex = "copy";
-    SEM_defineFunction(embFunc); 
-        paramID->lex = "s";
-        dataType->type = KEY_STRING;
-    SEM_defineParam(paramID, dataType);
-        paramID->lex = "i";
-        dataType->type = KEY_INTEGER;   
-    SEM_defineParam(paramID, dataType);
-        paramID->lex = "n";
-        dataType->type = KEY_INTEGER;   
-    SEM_defineParam(paramID, dataType);
-        embFunc->type = KEY_STRING;
-    SEM_defFuntionType(embFunc);
-        embFunc->type = KEY_FORWARD;     // FUNKCIA JE REDEKLAROVATELNA
-    SEM_endFunctionDef(embFunc);
+    PTStructLex fType = malloc(sizeof( TStructLex));
+        if(fType == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pType1 = malloc(sizeof( TStructLex));
+        if(pType1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pType2 = malloc(sizeof( TStructLex));
+        if(pType2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pType3 = malloc(sizeof( TStructLex));
+        if(pType3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     
+    // Funkcia length
+    PTStructLex fLength = malloc(sizeof( TStructLex));
+    if(fLength == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pLength1 = malloc(sizeof( TStructLex));
+    if(pLength1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+
+        
+        fLength->value = &EMBlength;
+        fLength->lex = "length";    
+        fLength->param = NULL;
+        fLength->value = NULL;
+        fLength->flags = LEX_FLAGS_INIT;
+        pLength1->lex = "s";        
+        pLength1->type = IDENTIFICATOR;
+        pLength1->param = NULL;
+        pLength1->value = NULL;
+        pType1->lex = "string";
+        pType1->type = KEY_STRING;
+        fType->lex = "integer";
+        fType->type = KEY_INTEGER;
+
+    SEM_defineFunction(fLength);   
+    SEM_defineParam(pLength1, pType1);
+    SEM_defFuntionType(fType);
+    SEM_endFunctionDef(forward);    // FUNKCIA JE REDEKLAROVATELNA
+    
+    
+    // FUNKCIA COPY   
+    PTStructLex fCopy = malloc(sizeof( TStructLex));
+        if(fCopy == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pCopy1 = malloc(sizeof( TStructLex));
+        if(pCopy1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pCopy2 = malloc(sizeof( TStructLex));
+        if(pCopy2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pCopy3 = malloc(sizeof( TStructLex));
+        if(pCopy3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    
+        
+        fCopy->value = &EMBcopy;
+        fCopy->lex = "copy";      
+        fCopy->param = NULL;
+        fCopy->value = NULL;   
+        fCopy->flags = LEX_FLAGS_INIT;        
+        pCopy1->lex = "s";     
+        pCopy1->type = IDENTIFICATOR; 
+        pCopy1->param = NULL;
+        pCopy1->value = NULL;        
+        pType1->lex = "string";
+        pType1->type = KEY_STRING;       
+        pCopy2->lex = "i";        
+        pCopy2->type = IDENTIFICATOR;      
+        pCopy2->param = NULL;
+        pCopy2->value = NULL;        
+        pType2->lex = "string";
+        pType2->type = KEY_INTEGER;
+        pCopy3->lex = "n";        
+        pCopy3->type = IDENTIFICATOR;
+        pCopy3->param = NULL;
+        pCopy3->value = NULL;        
+        pType3->lex = "string";
+        pType3->type = KEY_INTEGER;        
+        fType->lex = "integer";
+        fType->type = KEY_INTEGER;
+    
+    SEM_defineFunction(fCopy); 
+    SEM_defineParam(pCopy1, pType1);
+    SEM_defineParam(pCopy2, pType2);
+    SEM_defineParam(pCopy3, pType3);
+    SEM_defFuntionType(fType);
+    SEM_endFunctionDef(forward);   // FUNKCIA JE REDEKLAROVATELNA
+   
     // FUNKCIA FIND
-        embFunc->value = &EMBfind;
-        embFunc->lex = "find" ;
-    SEM_defineFunction(embFunc);
-        paramID->lex = "s";
-        dataType->type = KEY_STRING;
-    SEM_defineParam(paramID, dataType);    
-        paramID->lex = "search";
-        dataType->type = KEY_STRING;
-    SEM_defineParam(paramID, dataType);       
-        embFunc->type = KEY_INTEGER;
-    SEM_defFuntionType(embFunc);
-        embFunc->type = STREDNIK;    // FUNKCIU NIE JE MOZNE REDEKLAROVAT
-    SEM_endFunctionDef(embFunc);    
+    PTStructLex fFind = malloc(sizeof( TStructLex));
+    if(fFind == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pFind1 = malloc(sizeof( TStructLex));
+    if(pFind1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pFind2 = malloc(sizeof( TStructLex));
+    if(pFind2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+
+ 
+        fFind->value = &EMBfind;
+        fFind->lex = "find";  
+        fFind->param = NULL;
+        fFind->value = NULL;  
+        fFind->flags = LEX_FLAGS_INIT;         
+        pFind1->lex = "s";        
+        pFind1->type = IDENTIFICATOR;  
+        pFind1->param = NULL;
+        pFind1->value = NULL;        
+        pType1->lex = "string";
+        pType1->type = KEY_STRING;       
+        pFind2->lex = "search";        
+        pFind2->type = IDENTIFICATOR; 
+        pFind2->param = NULL;
+        pFind2->value = NULL;        
+        pType2->lex = "string";
+        pType2->type = KEY_STRING;
+        fType->lex = "integer";
+        fType->type = KEY_INTEGER;
+ 
+    SEM_defineFunction(fFind);
+    SEM_defineParam(pFind1, pType1);    
+    SEM_defineParam(pFind2, pType2);       
+    SEM_defFuntionType(fType);
+    SEM_endFunctionDef(strednik);       // FUNKCIU NIE JE MOZNE REDEKLAROVAT
     
     // FUNCKIA SORT
-        embFunc->value = &EMBsort;
-        embFunc->lex = "sort";
-    SEM_defineFunction(embFunc);
-        paramID->lex = "s";
-        dataType->type = KEY_STRING;
-    SEM_defineParam(paramID, dataType);       
-        embFunc->type = KEY_STRING;
-    SEM_defFuntionType(embFunc);
-        embFunc->type = STREDNIK;     // FUNKCIU NIE JE MOZNE REDEKLAROVAT
-    SEM_endFunctionDef(embFunc);    
+    PTStructLex fSort = malloc(sizeof(TStructLex));
+        if(fSort == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    PTStructLex pSort1 = malloc(sizeof(TStructLex));
+        if(pSort1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");   
     
-    free(embFunc);
-    free(paramID);
-    free(dataType);
+        fSort->value = &EMBsort;
+        fSort->lex = "sort";
+        fSort->param = NULL;
+        fSort->value = NULL;
+        fSort->flags = LEX_FLAGS_INIT;        
+        pSort1->lex = "s";        
+        pSort1->type = IDENTIFICATOR;
+        pSort1->param = NULL;
+        pSort1->value = NULL;          
+        pType1->lex = "string";
+        pType1->type = KEY_STRING;       
+        fType->lex = "string";
+        fType->type = KEY_STRING;
+        
+    SEM_defineFunction(fSort);
+    SEM_defineParam(pSort1, pType1);       
+    SEM_defFuntionType(fType);
+    SEM_endFunctionDef(strednik);    
+   
+    
+    free(fType);
+    free(pType1);
+    free(pType2);
+    free(pType3);
+    free(forward);
+    free(strednik);
 }
 
 

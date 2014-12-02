@@ -625,6 +625,7 @@ void SYN_parser(FILE *f){
   lexema=(PTStructLex)malloc(sizeof(TStructLex));
   if (lexema==NULL) error(ERR_INTERNAL, "Chyba alokacie pamete");
   LEX_getLexem(lexema,f);
+  SEM_insertEmbFunc();
   if (!SYN_program(f)) {
     free(lexema->lex);
     free(lexema);
