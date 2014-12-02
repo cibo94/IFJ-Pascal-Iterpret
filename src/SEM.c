@@ -167,14 +167,14 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         if(funcParam->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
         
         switch(dataType->type){                                                         // NASTAVENIE DATOVEHO TYPU  A ROZSIRENIE STRINGU FUNKCIE
-            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));   break;        
-            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));   break;    
-            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));   break;    
-            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
+            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT)-1);   break;        
+            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT)-1);   break;    
+            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT)-1);   break;    
+            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT)-1);   break;    
             default : break;
         }    
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
-        funcParam->data->value->value.offset = (pointers->PARAMCOUNT) - 1;                    // UKAZUJE TAM KAM PARAMCOUNT  
+        funcParam->data->value->value.offset = (pointers->PARAMCOUNT)-1;                    // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->flags = LEX_FLAGS_INIT;
         return;       
     }
@@ -193,17 +193,19 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
     if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     
     switch(dataType->type){
-        case KEY_INTEGER: newNode->data->value->type = TERM_INT;     LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;        
-        case KEY_STRING:  newNode->data->value->type = TERM_STRING;  LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
-        case KEY_REAL:    newNode->data->value->type = TERM_REAL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
-        case KEY_BOOLEAN: newNode->data->value->type = TERM_BOOL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
+        case KEY_INTEGER: newNode->data->value->type = TERM_INT;     LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;        
+        case KEY_STRING:  newNode->data->value->type = TERM_STRING;  LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;    
+        case KEY_REAL:    newNode->data->value->type = TERM_REAL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;    
+        case KEY_BOOLEAN: newNode->data->value->type = TERM_BOOL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;    
         default : break;
     }
     
     newNode->data->value->index = true;
     newNode->data->value->value.offset = pointers->PARAMCOUNT;
-    SEM_generate(OP_PUSH, newNode->data->value, NULL, NULL);            //  PUSH LOKALNEJ NA MIROV ZASOBNIK
-    pointers->SCOPE->data->value->value.address = pointers->PARAMCOUNT;
+    
+    SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);                 //  PUSH LOKALNEJ NA MIROV ZASOBNIK
+
+    pointers->SCOPE->data->value->value.offset = pointers->PARAMCOUNT;  // LOL?
     return;
 }
 
@@ -231,6 +233,9 @@ void SEM_defineFunction(PTStructLex dataID){
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
     pointers->SCOPE = newNode->loc_table;           //  NASTAVENIE JEJ PODSTROMU
     
+    SEM_generate(OP_PUSH, pointers->ACCREG, NULL,NULL)  //  PRIPRAVA MIESTA PRE VYSLEDOK
+    (pointers->PARAMCOUNT)++;
+  
     if(strcmp(dataID->lex, "find")==0)
         newNode->data->flags = (newNode->data->flags | LEX_FLAGS_INIT);
     if(strcmp(dataID->lex, "sort")==0)
@@ -271,6 +276,17 @@ void SEM_defFuntionType(PTStructLex dataType){
 }
 
 
+void SEM_functBegin(){
+    TTerm * pocet = malloc(sizeof(struct STerm));
+    if(pocet == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate.\n");
+    
+    pocet->value.integer = pointers->PARAMCOUNT;
+    SEM_generate(OP_PUSH, EBP, NULL, NULL);                 //  zasobnikovy ramec
+    SEM_generate(OP_ASSIGN, ESP, NULL, EBP);
+    SEM_addCL(pointers->CONSTLIST, pocet);
+}
+
+
 void SEM_checkFunction(PTStructLex lexema){
     if((lexema->flags & LEX_FLAGS_TYPE_FUNCTION)!=0)
         if((strcmp(lexema->lex, "copy") != 0)&&(strcmp(lexema->lex, "length") != 0)&&((lexema->flags & LEX_FLAGS_TYPE_FUNC_DEF)==0)) // AK NIE JE COPY, NIE JE LENGTH A NIE JE DEFINOVANA
@@ -302,6 +318,7 @@ void SEM_endFunctionDef(PTStructLex lexema){
         
         SEM_addCL(pointers->CONSTLIST, pocetLokalnych);
         SEM_addCL(pointers->CONSTLIST, pocetParametrov);
+        SEM_generate(OP_POP, NULL,NULL, EBP);
         SEM_generate(OP_RET, pocetLokalnych, pocetParametrov, NULL);
         
         pointers->CURRENTFUNCT->data->flags = (pointers->CURRENTFUNCT->data->flags | LEX_FLAGS_TYPE_FUNC_DEF);
@@ -441,6 +458,11 @@ void SEM_fCallPrologue(PTStructLex functID){
 void SEM_functionCall(PTStructLex functID){
     TSbinstrom node = BS_Find(pointers->SYM_TABLE, functID);
     SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU
+    
+    if((node->data->flags & LEX_FLAGS_TYPE_INT) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_INT); return; }
+    if((node->data->flags & LEX_FLAGS_TYPE_REAL) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_REAL); return; }
+    if((node->data->flags & LEX_FLAGS_TYPE_BOOL) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_BOOL); return; }
+    if((node->data->flags & LEX_FLAGS_TYPE_STRING) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_STRING); return; }
 }
 
 
@@ -521,6 +543,7 @@ void SEM_assignValue(PTStructLex lexema){
         case TERM_STRING: if((node->data->flags & LEX_FLAGS_TYPE_STRING) == 0) error(ERR_SEM_TYPE,"Typ pravej strany je iny nez typ lavej strany '%s'.", lexema->lex); break;
         default : break;
         }
+        
     }
     else {
         if ((node->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0)                    // AK NASLO FUNKCIU, ALE NIE SUCASNU, TAK CHYBA
