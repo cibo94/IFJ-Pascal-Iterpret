@@ -615,13 +615,14 @@ void SEM_whileEnd(){
 void SEM_insertEmbFunc(){
     PTStructLex forward = malloc(sizeof(PTStructLex));
         if(forward == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    forward->lex = malloc(8);
     forward->lex = "forward";
     forward->type = KEY_FORWARD;
     
     PTStructLex strednik = malloc(sizeof(PTStructLex));
         if(strednik == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    forward->lex = ";";
-    forward->type = STREDNIK;
+    strednik->lex = ";";
+    strednik->type = STREDNIK;
     
     PTStructLex fType = malloc(sizeof(PTStructLex));
     if(fType == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
