@@ -483,8 +483,8 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
     
         if((pNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0) error(ERR_SEM_UNDEF,"Parametrom funkcie je identifikator funkcie '%s'.\n", paramID->lex);    // AK SA NAJDE A JE TO IDENTIFIKATOR FUNKCIE TAK ERROR
         
-        if ((node->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
-           error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", lexema->lex);    
+        if ((pNode->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
+           error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", functID->lex);    
         
         printf("Func param: %s\n", fNode->data->param);
         switch(pNode->data->value->type){   // INAK SA ROBI TYPOVA KONTROLA
