@@ -248,6 +248,8 @@ void SEM_whileEnd();
  * @return: UKONCENIE CYKLU WHILE
  */ 
 
+void SEM_writeCall();
+void SEM_writePrologue(); 
  
 void SEM_prologue(); 
 /**

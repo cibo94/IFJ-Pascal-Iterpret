@@ -461,8 +461,15 @@ void SEM_fCallPrologue(PTStructLex functID){
 
 void SEM_functionCall(PTStructLex functID){
     TSbinstrom node = BS_Find(pointers->SYM_TABLE, functID);
-    SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU
+    SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
     
+    char * helpPointer = strstr(node->data->param,"x");
+    
+    if((helpPointer == NULL)&&(pointers->PARAMCOUNT != strlen(node->data->param)))
+        error(ERR_SEM_TYPE,"Nespravny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
+    else if(pointers->PARAMCOUNT != helpPointer - node->data->param)
+        error(ERR_SEM_TYPE,"Nespravny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
+        
     if((node->data->flags & LEX_FLAGS_TYPE_INT) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_INT); return; }
     if((node->data->flags & LEX_FLAGS_TYPE_REAL) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_REAL); return; }
     if((node->data->flags & LEX_FLAGS_TYPE_BOOL) != 0){ SEM_pushSS(pointers->EXPRSTACK, TERM_BOOL); return; }
@@ -486,7 +493,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         if ((pNode->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
            error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", functID->lex);    
         
-        printf("Func param: %s\n", fNode->data->param);
+        if(functID != NULL)
         switch(pNode->data->value->type){   // INAK SA ROBI TYPOVA KONTROLA
             case TERM_INT   : if((fNode->data->param)[pointers->PARAMCOUNT] != 'i') error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT, functID->lex);break;
             case TERM_REAL  : if((fNode->data->param)[pointers->PARAMCOUNT] != 'r') error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT, functID->lex);break;
@@ -514,6 +521,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
             default : break;
         }
         
+        if(functID != NULL)
         switch(term->type){   // INAK SA ROBI TYPOVA KONTROLA
             case TERM_INT   : if((fNode->data->param)[pointers->PARAMCOUNT] != 'i') error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT, functID->lex);break;
             case TERM_REAL  : if((fNode->data->param)[pointers->PARAMCOUNT] != 'r') error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT, functID->lex);break;
@@ -814,6 +822,21 @@ void SEM_insertEmbFunc(){
 
 
 // FUNKCIE KTORE NASTAVIA ZACIATOK PROGRAMU
+void SEM_writePrologue(){
+    pointers->PARAMCOUNT = 0;
+}
+
+
+void SEM_writeCall(){
+    TTerm * pCount = malloc(sizeof(struct STerm));
+    if(pCount == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate");
+    pCount->value.offset = pointers->PARAMCOUNT;
+    SEM_addCL(pointers->CONSTLIST,pCount);
+    SEM_generate(OP_PUSH, pCount, NULL, NULL);
+    SEM_generate(OP_CALL, &EMBwrite,NULL,NULL);
+}
+
+
 void SEM_prologue(){
     TTerm * startLabel = malloc(sizeof(struct STerm));
     if(startLabel == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
