@@ -145,7 +145,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0 ){                                            // AK SA JEDNA O UZ DEKLAROVANU FUNKCIU
         funcParam = BS_Find(pointers->SCOPE, dataID);
         if(funcParam == NULL) error(ERR_SEM_UNDEF,"Chybne parametre  pri deklaracii funkcie\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
-        if(funcParam->data->value->value.offset != pointers->PARAMCOUNT)
+        if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT)-1)
             error(ERR_SEM_UNDEF,"Chybne parametre pri deklaracii funkcie\n"); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) error(ERR_SEM_TYPE,"Chybne parametre pri deklaracii funkcie\n");       break;        
@@ -167,13 +167,15 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         funcParam->data->value = malloc(sizeof(struct STerm));
         if(funcParam->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
         
+        (pointers->PARAMCOUNT)--;
         switch(dataType->type){                                                         // NASTAVENIE DATOVEHO TYPU  A ROZSIRENIE STRINGU FUNKCIE
-            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT)-1);   break;        
-            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT)-1);   break;    
-            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT)-1);   break;    
-            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT)-1);   break;    
+            case KEY_INTEGER: funcParam->data->value->type = TERM_INT;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'i',&(pointers->PARAMCOUNT));   break;        
+            case KEY_STRING:  funcParam->data->value->type = TERM_STRING; LEX_string(&(pointers->CURRENTFUNCT->data->param),'s',&(pointers->PARAMCOUNT));   break;    
+            case KEY_REAL:    funcParam->data->value->type = TERM_REAL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'r',&(pointers->PARAMCOUNT));   break;    
+            case KEY_BOOLEAN: funcParam->data->value->type = TERM_BOOL;   LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
             default : break;
-        }    
+        } 
+        (pointers->PARAMCOUNT)++;
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
         funcParam->data->value->value.offset = (pointers->PARAMCOUNT)-1;                    // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->flags = LEX_FLAGS_INIT;
@@ -193,13 +195,15 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
     newNode->data->value = malloc(sizeof(struct STerm));
     if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     
+    (pointers->PARAMCOUNT)--;
     switch(dataType->type){
-        case KEY_INTEGER: newNode->data->value->type = TERM_INT;     LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;        
-        case KEY_STRING:  newNode->data->value->type = TERM_STRING;  LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;    
-        case KEY_REAL:    newNode->data->value->type = TERM_REAL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;    
-        case KEY_BOOLEAN: newNode->data->value->type = TERM_BOOL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT)-1);  break;    
+        case KEY_INTEGER: newNode->data->value->type = TERM_INT;     LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;        
+        case KEY_STRING:  newNode->data->value->type = TERM_STRING;  LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
+        case KEY_REAL:    newNode->data->value->type = TERM_REAL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
+        case KEY_BOOLEAN: newNode->data->value->type = TERM_BOOL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
         default : break;
     }
+    (pointers->PARAMCOUNT)++;
     
     newNode->data->value->index = true;
     newNode->data->value->value.offset = pointers->PARAMCOUNT;
@@ -228,7 +232,6 @@ void SEM_defineFunction(PTStructLex dataID){
         newNode->data->value = malloc(sizeof(struct STerm));            //  PRIPRAVA TERMU, VOLANEJ ADRESY PRI VOLANI FUNKCIE
         if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->value->type = TERM_EIP;                          //  NASTAVENIE TYPU ADRESY
-        
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;                 //  OZNACENIE ZE SA JEDNA O FUNKCIU
     }
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
@@ -479,7 +482,8 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         if(pNode == NULL) error(ERR_SEM_UNDEF,"Nedefinovany parameter funkcie '%s'.\n", paramID->lex);  //  AK SA NENAJDE TAK JE NEDEFINOVANY
     
         if((pNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0) error(ERR_SEM_UNDEF,"Parametrom funkcie je identifikator funkcie '%s'.\n", paramID->lex);    // AK SA NAJDE A JE TO IDENTIFIKATOR FUNKCIE TAK ERROR
-    
+        
+        printf("Func param: %s\n", fNode->data->param);
         switch(pNode->data->value->type){   // INAK SA ROBI TYPOVA KONTROLA
             case TERM_INT   : if((fNode->data->param)[pointers->PARAMCOUNT] != 'i') error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT, functID->lex);break;
             case TERM_REAL  : if((fNode->data->param)[pointers->PARAMCOUNT] != 'r') error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT, functID->lex);break;
@@ -846,6 +850,6 @@ void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
     newInstruction->ret = result;
     free (newInstruction);
     (pointers->PROGRAMINDEX)++;
-    SEM_addInstruction(newInstruction);
+    //SEM_addInstruction(newInstruction);
 }
 
