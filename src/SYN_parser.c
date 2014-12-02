@@ -101,9 +101,6 @@ void ChooseRule(TStackEnum top_terminal, int isfunc, int *relused,TRule *rule) {
 void SPush(TSynStack *S, TStructLex* D) {
     TItem* item = malloc(sizeof(TItem));
     item->data = D;
-	/*malloc(sizeof(TStructLex));
-    item->data->lex = "a"; //sample text
-    item->data->type = D->type;*/
     prevodnik(D->type, &item->type);
     item->next = S->top;
     S->top = item;
@@ -175,14 +172,15 @@ void prevodnik(TEnumLexem in, TStackEnum *out) {
 
 bool SYN_expression(FILE *f) {
     TRule *rule;
-    TSynStack stack1, stack2;
+    TSynStack stack1;
     int ind, /*index na prechadzanie pravidiel*/
 	relused = 0, /*bool - indikuje pouzitie relacneho operatora - akceptujeme 1 vo vyraze*/
 	isfunc = 0, /*bool na zistenie ci ide o volanie funkcie*/
 	popped, /*bool - popoval sa neterminal a treba ho vratit?*/
 	assigned = 1; /*ci ide o priradenie alebo nie - natvrdo true ako si vravel*/
     TItem *pom;
-    StackInit(&stack1); StackInit(&stack2);
+	TStructLex *funid;
+    StackInit(&stack1); 
     rule = malloc(sizeof(TRule)); /*premenna na vyber pravidla*/
     pom = malloc(sizeof(TItem)); /* premenna pre hodnotu na vrchole zasobniku */
 
@@ -192,10 +190,11 @@ bool SYN_expression(FILE *f) {
     if (lexema->type == IDENTIFICATOR && assigned) { /*kontrola, ci sa jedna o volanie funkcie*/
 	SPush_zarazka(&stack1);	/*jedine miesto, kde sa pracuje s premennou "assigned"  je tu*/
 	SPush(&stack1, lexema);
+	funid = lexema;
 	top_terminal = TERM;
 	LEX_getLexem(lexema,f);
 	prevodnik(lexema->type, &input_lex);
-	if (input_lex == LBRACK) {isfunc = 1;}
+	if (input_lex == LBRACK) {isfunc = 1; SEM_fCallPrologue(funid);}
 
     }
     if (top_terminal == input_lex && input_lex == TERMINATOR) return false;
@@ -212,7 +211,14 @@ bool SYN_expression(FILE *f) {
 		    if (pom->type != rule->RSide[ind]) {		/* pravou stranou vybraneho pravidla*/
 			
 			return false; /*pri kazdom volani printf("syntax error") treba dealokaciu vsetkeho */
-		    }
+		    } else {
+			    if (ind == 0 && rule->RSide[ind] == TERM) {
+				if (isfunc) SEM_functionParam(funid, pom->data);
+				else SEM_createLeaf(pom->data);
+				}
+				if (ind == 1 && rule->length == 3 && rule->RSide[1] != COMMA && rule->RSide[0] != NONTERMINAL) SEM_createTree(pom->data);
+				if (ind == 3) SEM_functionCall(pom->data);
+			}
 		    SPop(&stack1);
 		    pom = STop(&stack1); /*az kym nenarazi na zarazku alebo */
 		    ind++; /*az kym neporovna s celou pravou stranou pravidla */
