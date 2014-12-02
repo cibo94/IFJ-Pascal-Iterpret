@@ -22,7 +22,7 @@ int main () {
         .name = "c"
     }, label = {
         .value.address = 1,
-        .type = TERM_LABEL,
+        .type = TERM_EIP,
         .name = "func"
     }, zero  = {
         .value.integer = 0,
@@ -34,7 +34,7 @@ int main () {
         .name = "ARGC"
     }, start = {
         .value.offset  = 5,
-        .type = TERM_LABEL,
+        .type = TERM_EIP,
         .name = "__start"
     }, argv  = {
         .value.integer = 5,

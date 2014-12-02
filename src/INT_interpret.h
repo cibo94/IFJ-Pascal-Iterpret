@@ -42,15 +42,17 @@ typedef enum {
     TERM_INT,
     TERM_REAL,
     TERM_STRING,
-    TERM_LABEL,
     TERM_BOOL,
     TERM_EIP,
     TERM_POINTER,
     TERM_OFFSET,
-    TERM_EMB
+    TERM_EMB,
+    TERM_EBP,
+    TERM_ESP
 } ETermType;            //!< urcuje typ TERMu
 
 typedef struct S3AC *P3AC;  //!< pole 3adresnych kodov == samotne prikazy
+typedef struct SStack TSStack, *PTSStack;
 
 typedef struct STerm {
     union {
@@ -58,20 +60,22 @@ typedef struct STerm {
         float           real;            //!< Ak je term typ TERM_REAL operacie pracuju s realnym cislom
         char           *string;          //!< Ak je term tyo TERM_STRING operacie pracuju s ukazatelom na string
         bool            boolean;         //!< Ak je term typ TERM_BOOL operacie pouzivaju hodnotu ako boolean
-        uint32_t        address;         //!< Adresa do pola instrukcii TERM_EIP alebo TERM_LABEL
+        uint32_t        address;         //!< Adresa do pola instrukcii TERM_EIP
         struct STerm   *pointer;         //!< Ukazatel na iny Term -> koli readln, zo zadania nemame riesit TERM_POINTER
         uint32_t        offset;          //!< Offset do zasobnika TERM_OFFSET
         void          (*emb_function)(); //!< ukazatel na zabudovanu funkciu tyo TERM_EMB
+        PTSStack       *esp;
+        PTSStack        ebp;
     } value;                //!< hodnota termu
     ETermType type;         //!< typ termu
     char *name;             //!< meno termu ???treba???
     bool index;             //!< Pre lukasa -> poradie premennej/param vo funkcii/glob
 } TTerm;                    //!< Term -> struktura premennej
 
-typedef struct SStack {
+struct SStack {
     TTerm             *term;  //!< TERM
     struct SStack     *next;  //!< dalsi term v zasobniku
-} TSStack, *PTSStack;
+};
 
 struct S3AC {
     E_OP   op;              //!< Operacia medzi operatormi

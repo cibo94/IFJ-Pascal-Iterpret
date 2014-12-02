@@ -295,4 +295,5 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID);
 
  
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result);
+
 #endif

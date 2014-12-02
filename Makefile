@@ -24,6 +24,7 @@ DOXCONF=config.dox
 SOURCE=$(filter-out $(IGNORE),$(wildcard $(SRCDIR)/*.c))
 NSRC=$(shell echo "$(SOURCE)" | wc | sed -e 's/\ \ */,/g' | cut -d "," -f 3)
 NthSRC=0
+PERCENT=0
 HEADER=$(wildcard $(SRCDIR)/*.h)
 OBJECT=$(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SOURCE))
 CERR=$(CC).err
