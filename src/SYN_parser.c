@@ -176,33 +176,42 @@ void prevodnik(TEnumLexem in, TStackEnum *out) {
     } /* switch */
 } /*void prevodnik*/
 
-bool SYN_expression(FILE *f) {
+bool SYN_expression(FILE *f,bool assigned) {
     TRule *rule;
     TSynStack stack1;
     int ind, /*index na prechadzanie pravidiel*/
 	relused = 0, /*bool - indikuje pouzitie relacneho operatora - akceptujeme 1 vo vyraze*/
 	isfunc = 0, /*bool na zistenie ci ide o volanie funkcie*/
-	popped, /*bool - popoval sa neterminal a treba ho vratit?*/
-	assigned = 1; /*ci ide o priradenie alebo nie - natvrdo true ako si vravel*/
+	popped; /*bool - popoval sa neterminal a treba ho vratit?*/
+	//assigned = 1; /*ci ide o priradenie alebo nie - natvrdo true ako si vravel*/
     TItem *pom;
 	TStructLex *funid;
     StackInit(&stack1); 
     rule = malloc(sizeof(TRule)); /*premenna na vyber pravidla*/
     //pom = malloc(sizeof(TItem)); /* premenna pre hodnotu na vrchole zasobniku */
 
-    
+     
     TStackEnum input_lex, top_terminal = TERMINATOR; /*prazdny zasobnik - dno*/
     prevodnik(lexema->type, &input_lex);
     if (lexema->type == IDENTIFICATOR && assigned) { /*kontrola, ci sa jedna o volanie funkcie*/
-	SPush_zarazka(&stack1);	/*jedine miesto, kde sa pracuje s premennou "assigned"  je tu*/
-	SPush(&stack1, lexema);
-	funid = lexema;
-	top_terminal = TERM;
-	SYN_readLexem(f);
-	prevodnik(lexema->type, &input_lex);
-	if (input_lex == LBRACK) {
-	isfunc = 1; SEM_fCallPrologue(funid);}
-
+		SPush_zarazka(&stack1);	/*jedine miesto, kde sa pracuje s premennou "assigned"  je tu*/
+		SPush(&stack1, lexema);
+		funid = lexema;
+		top_terminal = TERM;
+		SYN_readLexem(f);
+		prevodnik(lexema->type, &input_lex);
+		if (input_lex == LBRACK) {
+			isfunc = 1; SEM_fCallPrologue(funid);
+			SPush(&stack1, lexema);
+			top_terminal = LBRACK;
+			SYN_readLexem(f);
+			prevodnik(lexema->type, &input_lex);
+			if (input_lex == RBRACK) {/* skusa ci je bez parametrov OK*/
+				SYN_readLexem(f);
+				SEM_functionCall(funid);
+				return true;
+			}	
+		}
     }
     if (top_terminal == input_lex && input_lex == TERMINATOR) return false;
 	/* osetrenie prazdneho vyrazu */
@@ -515,7 +524,7 @@ bool SYN_assignStatemnet(FILE *f){
   SYN_readLexem(f);
   //SEM_createLeaf(lexema);                               // tu bola zmena
   // SKUSKA KVOLI  TESTOVANIU
-  if (SYN_expression(f)) 
+  if (SYN_expression(f,true)) 
   return true;
   else 
   return false;
@@ -525,8 +534,9 @@ bool SYN_assignStatemnet(FILE *f){
 
 bool SYN_whileStatemnet(FILE *f){
   
-  if (!SYN_expression(f)) return false;
+  if (!SYN_expression(f,false)) return false;
   if (lexema->type!=KEY_DO) return false;
+  SEM_whileBegin();
   SYN_readLexem(f);
   if (SYN_comStatement(f)) return true;
   else return false;
@@ -536,15 +546,17 @@ bool SYN_elseStatemnet(FILE *f){
   
   if (lexema->type!=KEY_ELSE) return false;
   SYN_readLexem(f);
+  SEM_elseStat();
   if (SYN_comStatement(f)) return true;
   else return false;
 }
 
 bool SYN_ifStatemnet(FILE *f){
   
-  if (!SYN_expression(f)) return false;
+  if (!SYN_expression(f,false)) return false;
   if (lexema->type!=KEY_THEN) return false;
   SYN_readLexem(f);
+  SEM_thenStat();
   if (SYN_comStatement(f) && SYN_elseStatemnet(f)) return true;
   else return false;
   
@@ -556,12 +568,17 @@ bool SYN_statement(FILE *f){
   switch (lexema->type){
   	case KEY_IF:
   	  SYN_readLexem(f);
-  	  if (SYN_ifStatemnet(f)) return true;
-  	  else return false;
+  	  if (SYN_ifStatemnet(f)) {
+	    SEM_endIf();
+	    return true;
+	  } else return false;
   	case KEY_WHILE:
+  	  SEM_whileStat();
   	  SYN_readLexem(f);
-  	  if (SYN_whileStatemnet(f)) return true;
-  	  else return false;
+  	  if (SYN_whileStatemnet(f)) {
+		SEM_whileEnd();  
+		return true;
+	  } else return false;
   	case IDENTIFICATOR:
   	  SYN_readLexem(f);
   	  if (SYN_assignStatemnet(f)) {
