@@ -170,7 +170,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0 ){                    // AK SA JEDNA O UZ DEKLAROVANU FUNKCIU, TAK SA KONA LEN TYPOVA KONTROLA
         funcParam = BS_Find(pointers->SCOPE, dataID);                                              // TAK SA HLADA PRVOK V LOKALNEJ TABULKE 
         if(funcParam == NULL) error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
-        if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT) + 1)                       
+        if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT)+1)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) 
@@ -208,7 +208,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
             default : break;
         } 
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
-        funcParam->data->value->value.offset = (pointers->PARAMCOUNT) + 1;                    // UKAZUJE TAM KAM PARAMCOUNT  
+        funcParam->data->value->value.offset = pointers->PARAMCOUNT;                    // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
         return;       
     }
@@ -264,7 +264,7 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
     }
     
     newNode->data->value->index = true;                                                 
-    newNode->data->value->value.offset = (pointers->PARAMCOUNT) + 2;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
+    newNode->data->value->value.offset = (pointers->PARAMCOUNT) + 1;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
     newNode->data->value->init = false;
     
     SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);                 //  PUSH LOKALNEJ NA MIROV ZASOBNIK
@@ -306,7 +306,7 @@ void SEM_endFunctionDef(PTStructLex lexema){
         //    error(ERR_SEM_OTHERS,"Funkcii '%s' nebol priradeny vystup.\n", pointers->CURRENTFUNCT->data->lex);
     }
     
-    if ((strcmp(data->lex, "find")==0)&&(strcmp(data->lex, "sort")==0))
+    if ((strcmp(data->lex, "find")==0)||(strcmp(data->lex, "sort")==0))
         data->flags = (data->flags | LEX_FLAGS_TYPE_FUNC_DEF);
         
     pointers->SCOPE = pointers->SYM_TABLE;  // SCOPE SA VRACIA NA SYMTABLE
@@ -478,7 +478,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         //if ((pNode->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
          //  error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", paramID->lex);    
         
-        if(functID == NULL)      // AK NIE JE WRITE, TAK SA ROBI TYPOVA KONTROLA
+        if(functID != NULL)      // AK NIE JE WRITE, TAK SA ROBI TYPOVA KONTROLA
         switch(pNode->data->value->type){   // INAK SA ROBI TYPOVA KONTROLA
             case TERM_INT   : if((fNode->data->param)[pointers->PARAMCOUNT] != 'i') 
                                 error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT + 1, functID->lex);break;
