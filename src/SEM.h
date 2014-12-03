@@ -248,7 +248,14 @@ void SEM_whileEnd();
  * @return: UKONCENIE CYKLU WHILE
  */ 
  
-
+void SEM_readln(PTStructLex paramID);
+/**
+ * SEM_whileBegin
+ * --------------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX NAD PARAMETROM FUNKCIE READLN
+ * @return: 3AK
+ */  
+ 
 void SEM_writeCall();
 /**
  * SEM_whileBegin

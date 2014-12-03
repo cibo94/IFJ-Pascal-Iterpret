@@ -365,7 +365,12 @@ void SEM_createLeaf(PTStructLex lexema){
            error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", lexema->lex);        
         
         SEM_pushSS(pointers->EXPRSTACK, node->data->value->type);        // ULOZENIE TYPU
-        SEM_generate(OP_PUSH, node->data->value, NULL, NULL);
+        
+        if(node->data->value->index){
+            SEM_generate(OP_LOAD, node->data->value, NULL, pointers->SREG1);
+            SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);
+        }
+        else SEM_generate(OP_PUSH, node->data->value, NULL, NULL);
     }
     else{                                                            // V PRIPADE KONSTANTY JU POTREBUJEM ULOZIT DO STROMU AKO GENEROVANU PREMENNU   
         struct STerm * term = malloc(sizeof(struct STerm));          // PRE KONSTANTY SA VYTVARA NOVE UMIESTNENIE, A UKLADA SA DO ZOZNAMU KONSTANT
@@ -408,32 +413,22 @@ void SEM_createTree(PTStructLex lexema){
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
     
     switch(lexema->type){
-        case OPERATOR_PLUS     :
-            SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);         
-        break;                                                                          
-        
-        case OPERATOR_MINUS    :
-            if(typeRight != TERM_STRING)
-                SEM_generate(OP_MINUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-            else 
-                error(ERR_SEM_TYPE, "Retazce nie je mozne odcitat");
-
-        break;
-        
-        case OPERATOR_TIMES    :
-            if(typeRight != TERM_STRING)
-                SEM_generate(OP_MUL, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-            else 
-                error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
-        break;
-        
-        case OPERATOR_DIV      :
-            if(typeRight != TERM_STRING)
-                SEM_generate(OP_DIV, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-            else 
-                error(ERR_SEM_TYPE, "Retazec nie je mozne delit retazcom");
-        break;
-        
+        case OPERATOR_PLUS     : SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);   break;                                                                                 
+        case OPERATOR_MINUS    : if(typeRight != TERM_STRING)
+                                    SEM_generate(OP_MINUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
+                                 else 
+                                    error(ERR_SEM_TYPE, "Retazce nie je mozne odcitat");
+                                 break;       
+        case OPERATOR_TIMES    : if(typeRight != TERM_STRING)
+                                    SEM_generate(OP_MUL, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
+                                 else 
+                                    error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
+                                 break;
+        case OPERATOR_DIV      : if(typeRight != TERM_STRING)
+                                    SEM_generate(OP_DIV, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
+                                 else 
+                                    error(ERR_SEM_TYPE, "Retazec nie je mozne delit retazcom");
+                                 break;
         case OPERATOR_GREATER  : relOperator = OP_GREAT;   break;
         case OPERATOR_SMALLER  : relOperator = OP_LESS;    break;
         case OPERATOR_GREATEQ  : relOperator = OP_GREATEQ; break;
@@ -456,8 +451,13 @@ void SEM_createTree(PTStructLex lexema){
 //!< VOLANIE FUNKCII
 void SEM_fCallPrologue(PTStructLex functID){
     TSbinstrom fNode = BS_Find(pointers->SYM_TABLE, functID);
-    if(fNode == NULL) error(ERR_SEM_UNDEF,"Volanie nedefinovanej funkcie '%s'.\n", functID->lex);
+    if(fNode == NULL) error(ERR_SEM_UNDEF,"Volanie nedeklarovanej funkcie '%s'.\n", functID->lex);
     
+    if(((fNode->data->flags | LEX_FLAGS_TYPE_FUNC_DEF) == 0)&&(strcmp(functID->lex,"length") != 0)&&(strcmp(functID->lex,"copy") != 0))
+        error(ERR_SEM_UNDEF, "Volanie nedefinovanej funkcie '%s'.\n", functID->lex);
+    
+    SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);  // PRIPRAVA HODNOTY VYSLEDKU
+    //!< ULOZENIE HODNOTY EBP ABY UKAZOVAL NA TOTO?
     pointers->PARAMCOUNT = 0;            //  VYNULOVANIE POCITADLA PARAMETROV
 }
 
@@ -541,20 +541,21 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
 
 void SEM_functionCall(PTStructLex functID){
     TSbinstrom node = BS_Find(pointers->SYM_TABLE, functID);
-    SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
+    if(((node->data->flags | LEX_FLAGS_TYPE_FUNC_DEF) == 0)&&(strcmp(functID->lex, "length") == 0))
+        SEM_generate(OP_CALL, &EMBlength, NULL, NULL);
+    else if(((node->data->flags | LEX_FLAGS_TYPE_FUNC_DEF) == 0)&&(strcmp(functID->lex, "copy") == 0))
+        SEM_generate(OP_CALL, &EMBcopy, NULL, NULL);
+    else
+        SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
     
     if ( ((node->data->param)[pointers->PARAMCOUNT]=='i')||
          ((node->data->param)[pointers->PARAMCOUNT]=='r')||
          ((node->data->param)[pointers->PARAMCOUNT]=='s')||
          ((node->data->param)[pointers->PARAMCOUNT]=='b') )
         error(ERR_SEM_TYPE,"Nedostatocny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
-    /*
-    char * helpPtr = strstr(node->data->param, "x");                                    //<< ALTERNATIVA
-    if((helpPtr != NULL)&&(helpPtr - node->data->param != pointers->PARAMCOUNT))
-        error(ERR_SEM_TYPE,"Nespravny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
-    else if ((helpPtr == NULL)&&(pointers->PARAMCOUNT != strlen(node->data->param)))
-        error(ERR_SEM_TYPE,"Nespravny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
-    */
+    
+    
+    
     if((node->data->flags & LEX_FLAGS_TYPE_INT) != 0)   { SEM_pushSS(pointers->EXPRSTACK, TERM_INT);  return; }
     if((node->data->flags & LEX_FLAGS_TYPE_REAL) != 0)  { SEM_pushSS(pointers->EXPRSTACK, TERM_REAL); return; }
     if((node->data->flags & LEX_FLAGS_TYPE_BOOL) != 0)  { SEM_pushSS(pointers->EXPRSTACK, TERM_BOOL); return; }
@@ -566,7 +567,7 @@ void SEM_functionCall(PTStructLex functID){
 void SEM_assignValue(PTStructLex lexema){
     
     TSbinstrom node = BS_Find(pointers->SCOPE, lexema);                             // V TABULKE SYMBOLOV NAJDE LAVU STRANU VYRAZU 
-    if((pointers->SCOPE != pointers->SYM_TABLE)&&(node == NULL))                 
+    if((node == NULL)&&(pointers->SCOPE != pointers->SYM_TABLE))                 
         node = BS_Find(pointers->SYM_TABLE, lexema);      
     
     if (node == NULL)                                                               // AK SA NENASLO, CHYBA
@@ -592,11 +593,12 @@ void SEM_assignValue(PTStructLex lexema){
     }
     node->data->flags = (LEX_FLAGS_INIT | node->data->flags);                       // LAVA STRANA JE V KAZDOM PRIPADE INICIALIZOVANA
     
-    if(node != pointers->CURRENTFUNCT){                                             //  AK NIE JE NA LAVEJ STRANE SUCASNA FUNKCIA TAK SA JEDNA O PRIRADENIE PRIAMO DO STROMU
-        SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
+    SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
+    if(node != pointers->CURRENTFUNCT)                                             //  AK NIE JE NA LAVEJ STRANE SUCASNA FUNKCIA TAK SA JEDNA O PRIRADENIE PRIAMO DO STROMU
         SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, node->data->value);
-    }                                                                               // INAK OSTAVA VYSLEDOK FUNKCIE NA VRCHOLE ZASOBNIKA
-
+    else
+        SEM_generate(OP_STORE, pointers->SREG1, NULL, NULL);//!< INAK SA VYSLEDOK FUNKCIE UKLADA NA PRVOK S INDEXOM 0, DOPLNIT
+   
     return;
 }
 
@@ -845,6 +847,33 @@ void SEM_insertEmbFunc(){
 
 
 // FUNKCIE KTORE NASTAVIA ZACIATOK PROGRAMU
+void SEM_readln(PTStructLex paramID){
+    TSbinstrom pNode = BS_Find(pointers->SCOPE, paramID);                       //  PARAMETER SA HLADA V SCOPE
+    if((pNode == NULL)&&(pointers->SYM_TABLE != pointers->SCOPE))               //  AK NIE JE V SCOPE TAK V TABULKE SYMBOLOV
+        pNode = BS_Find(pointers->SYM_TABLE, paramID);
+    
+    if(pNode == NULL)
+        error(ERR_SEM_UNDEF,"Nedefinovana premenna v parametri funkcie READLN.\n");
+        
+    if((pNode->data->flags | LEX_FLAGS_TYPE_FUNCTION) != 0)
+        error(ERR_SEM_TYPE,"READLN nemoze nacitat hodnotu do funkcie");
+    
+    if(pNode->data->value->type == TERM_BOOL)
+        error(ERR_SEM_TYPE,"READLN nemoze nacitat boolean.\n");
+    
+    
+    if(pNode->data->value->index){
+        SEM_generate(OP_LOAD, pNode->data->value, NULL, pointers->ACCREG);
+        SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
+    }
+    else SEM_generate(OP_PUSH, pNode->data->value, NULL, NULL);
+    
+    SEM_generate(OP_CALL, &EMBreadln,NULL,NULL);
+    
+    pNode->data->flags = (pNode->data->flags | LEX_FLAGS_INIT);
+    
+}
+
 void SEM_writePrologue(){
     pointers->PARAMCOUNT = 0;
 }
@@ -857,6 +886,7 @@ void SEM_writeCall(){
     SEM_addCL(pointers->CONSTLIST,pCount);
     SEM_generate(OP_PUSH, pCount, NULL, NULL);
     SEM_generate(OP_CALL, &EMBwrite,NULL,NULL);
+    pointers->PARAMCOUNT = 0;
 }
 
 
