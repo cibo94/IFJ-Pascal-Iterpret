@@ -765,8 +765,8 @@ void SEM_insertEmbFunc(){
         pCopy3->value = NULL;        
         pType3->lex = "string";
         pType3->type = KEY_INTEGER;        
-        fType->lex = "integer";
-        fType->type = KEY_INTEGER;
+        fType->lex = "string";
+        fType->type = KEY_STRING;
     
     SEM_defineFunction(fCopy); 
     SEM_defineParam(pCopy1, pType1);
