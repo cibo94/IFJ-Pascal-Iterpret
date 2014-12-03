@@ -6,20 +6,23 @@ unsigned int LINE_NUM = 1;
 void LEX_string(char **s, int ch, unsigned *poz) {
     unsigned nasobok;
     char *tmp;
-    if (((*poz)&(STD_LNGTH-1))==(STD_LNGTH-1)) {
-        nasobok = (*poz)>>5;                        // sme retardovany a toto znamena (*poz)/32
-        tmp = (char *)realloc(*s,(nasobok+2)<<5);
+
+    log("Realokaciu velkosti: \n\
+        pozicia %d, char %c", *poz, ch);
+    if ((((*poz)+1)%STD_LNGTH)==0) {
+        nasobok = *poz+STD_LNGTH;                 // sme retardovany a toto znamena (*poz)/32
+        tmp = (char *)realloc(*s,nasobok);
         if (tmp == NULL) {
-            log("Realokaciu velkosti: %d realoc nedokazal spravit\n\
-    pozicia %d, char %c", (nasobok+2)<<5, *poz, ch);
-            if ((tmp = malloc((nasobok+2)<<5)) == NULL)
+
+            if ((tmp = malloc(nasobok)) == NULL)
                 error(ERR_INTERNAL, "Chyba alokacie pamete");
             memcpy(tmp, *s, *poz);
             free(*s);
-            *s = tmp;
         }
+        *s = tmp;
     }
-    (*s)[(*poz)++] = (char)ch;
+    (*s)[*poz] = (char)ch;
+    *poz += 1;
     (*s)[*poz] = '\0';
 }
 

@@ -64,7 +64,7 @@ typedef struct STerm {
         struct STerm   *pointer;         //!< Ukazatel na iny Term -> koli readln, zo zadania nemame riesit TERM_POINTER
         uint32_t        offset;          //!< Offset do zasobnika TERM_OFFSET
         void          (*emb_function)(); //!< ukazatel na zabudovanu funkciu tyo TERM_EMB
-        PTSStack       *esp;
+        PTSStack        esp;
         PTSStack        ebp;
     } value;                //!< hodnota termu
     ETermType type;         //!< typ termu
@@ -74,8 +74,9 @@ typedef struct STerm {
 } TTerm;                    //!< Term -> struktura premennej
 
 struct SStack {
-    TTerm             *term;  //!< TERM
-    struct SStack     *next;  //!< dalsi term v zasobniku
+    TTerm     **term;       //!< TERM
+    TTerm     **top;        //!< Top term na zasobniku
+    size_t      size;       //!< size of stack
 };
 
 struct S3AC {

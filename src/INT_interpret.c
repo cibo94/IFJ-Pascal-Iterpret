@@ -8,7 +8,6 @@
 #include "init.h"
 
 extern PGLOB_DEST pointers;
-static PTSStack *STACK;
 TTerm  __ebp = {
         .type = TERM_EBP
     }, __esp = {
@@ -19,49 +18,68 @@ TTerm  __ebp = {
 __attribute__ ((unused))
 P3AC *EIP, *PEIP;
 
+/******************************
+ *      ESP->value.esp -> funkcie      *
+ *****************************/
+
 static PTSStack SInit () {
-    return NULL;
-}
-
-static bool SEmpty () {
-    return *STACK == NULL;
-}
-
-static void SPush (TTerm *add) {
-    PTSStack el = malloc (sizeof(TSStack));
-    el->next = *STACK;
-    el->term = add;
-    *STACK = el;
-}
-
-__attribute__((unused))
-static TTerm *STop () {
-    return (*STACK)->term;
-}
-
-static TTerm *SPop () {
-    TTerm *ret = (*STACK)->term;
-    PTSStack pom = (*STACK)->next;
-    free(*STACK);
-    *STACK = pom;
+    PTSStack ret;
+    if ((ret       = malloc(sizeof(TSStack)))   == NULL ||
+        (ret->term = malloc(sizeof(TTerm*)*32)) == NULL)
+        error (ERR_INTERNAL, "Chyba alokacie zasobnika\n");
+    ret->top = ret->term;
+    *ret->top = NULL;
+    ret->size = 0;
     return ret;
 }
 
-static TTerm *SPick (uint32_t pos) {
-    PTSStack s = *STACK;
-    for (; pos != 0; pos--)
-        s = s->next;
-    return s->term;
+static bool SEmpty (PTSStack S) {
+    return S->top == NULL;
 }
 
-static void SFree () {
-    while (*STACK != NULL) {
-        PTSStack toDel = *STACK;
-        *STACK = (*STACK)->next;
-        free(toDel);
+static void SPush (PTSStack S, TTerm *add) {
+    uint32_t size = S->size;       //!< velkost pola
+    if ((size+1)%32 == 0) {
+        if ((S->term = realloc(S->term, sizeof(TTerm*)*(size+32))) == NULL)
+            error(ERR_INTERNAL, "Chyba realokacie\n");
+        S->top  = S->term + size;           //!< posunutie na spravnu poziciu
+                                            //!< realloc moze hodit inu adresu
     }
-    free(STACK);
+    *(++S->top) = malloc (sizeof(TTerm));
+    memcpy(*(S->top), add, sizeof(TTerm));
+    *(S->top+1) = NULL;
+    S->size++;
 }
+
+__attribute__((unused))
+static TTerm *STop (PTSStack S) {
+    return *S->top;
+}
+
+static TTerm *SPop (PTSStack S) {
+    TTerm *ret = *S->top;
+    *(S->top) = NULL;
+    S->top--;
+    S->size--;
+    return ret;
+}
+
+static TTerm *SPick (PTSStack S, uint32_t offset) {
+    TTerm **s = S->top-offset;
+    return *s;
+}
+
+static void SFree (PTSStack S) {
+    while (*S->term) {
+        free(*S->term);
+    }
+    free(S->term);
+    free(S);
+}
+
+/************************************
+ *        Instrukcne funkcie        *
+ ***********************************/
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
     switch (ret->type) {
@@ -237,9 +255,9 @@ static void ret (        TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     // Local variable cleaning
     for (int i = 0; i < op1->value.integer; i++)
-        free(SPop(&STACK));
+        free(SPop(ESP->value.esp));
     
-    TTerm *add = SPop(&STACK);
+    TTerm *add = SPop(ESP->value.esp);
     P3AC *pom = &EIP[add->value.address];
     free(add);
     //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
@@ -247,7 +265,7 @@ __attribute__ ((unused)) TTerm *ret) {
 
     // Arguments cleaning
     for (int i = 0; i < op2->value.integer; i++)
-        free(SPop(&STACK));
+        free(SPop(ESP->value.esp));
 }
 
 static void push (       TTerm *op1,
@@ -257,19 +275,19 @@ __attribute__ ((unused)) TTerm *ret) {
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
     //log("PUSH: op1:%u on stack:%u\n", op1->value.address, s->value.address);
-    SPush(s);
+    SPush(ESP->value.esp, s);
 }
 
 static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret != NULL) {
-        if (!SEmpty(STACK)) {
-            ret->value = SPop(&STACK)->value;
+        if (!SEmpty(ESP->value.esp)) {
+            ret->value = SPop(ESP->value.esp)->value;
         } else 
             error (ERR_INTERNAL, "Stack is empty");
     } else {
-        SPop(&STACK);
+        SPop(ESP->value.esp);
     }
     //log ("POP\n");
 }
@@ -326,18 +344,18 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 static void load (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     /// nacita zo zasobnika nti prvok
-    ret->value = SPick(op1->value.address)->value;
+    ret->value = SPick(ESP->value.esp,op1->value.offset)->value;
     //log ("LOAD: value: %d\n", ret->value.integer);
 }
 
 static void store (      TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     /// ulozi na zasobnik na presne miesto data do termu
-    SPick(ret->value.address)->value = op1->value;
+    SPick(ESP->value.esp,ret->value.offset)->value = op1->value;
 }
 
 static void __sort () {
-    TTerm *str = SPick(1),
+    TTerm *str = SPick(ESP->value.esp,1),
            zero = {
                .value.integer = 0,
                .type = TERM_INT
@@ -347,9 +365,9 @@ static void __sort () {
 }
 
 static void __copy () {
-    TTerm *str  = SPick(1),
-          *from = SPick(2),
-          *size = SPick(3),
+    TTerm *str  = SPick(ESP->value.esp, 1),
+          *from = SPick(ESP->value.esp, 2),
+          *size = SPick(ESP->value.esp, 3),
            zero = {
                .value.integer = 0,
                .type = TERM_INT
@@ -362,7 +380,7 @@ static void __copy () {
 }
 
 static void __length () {
-    TTerm *str = SPick(1),
+    TTerm *str = SPick(ESP->value.esp, 1),
            zero = {
                .value.integer = 0
            };
@@ -371,8 +389,8 @@ static void __length () {
 }
 
 static void __find () {
-    TTerm *str = SPick(1),
-          *fstr= SPick(2),
+    TTerm *str = SPick(ESP->value.esp, 1),
+          *fstr= SPick(ESP->value.esp, 2),
            zero = {
                .value.integer = 0
            },
@@ -385,9 +403,9 @@ static void __find () {
 
 static void __write () {
     TTerm *n, k;
-    int pocet = SPick (1)->value.integer; 
+    int pocet = SPick(ESP->value.esp, 1)->value.integer;
     for (int i = 0; i < pocet; i++) {
-        n = SPick(2+i);
+        n = SPick(ESP->value.esp, 2+i);
         switch (n->type) {
             case TERM_INT : 
                 printf ("%d", n->value.integer);
@@ -415,7 +433,7 @@ static void __write () {
 }
 
 static void ____readln () {
-    TTerm *id = SPick(1),
+    TTerm *id = SPick(ESP->value.esp, 1),
            one = {
                .value.integer = 1
            },
@@ -497,19 +515,18 @@ TTerm embededFunc[] = {
 void INT_interpret () {
     /// Instruction pointer
     PEIP = EIP;
+
     /// Stack pointer
-    ESP->value.esp = STACK;
+    pointers->ebp = ESP->value.esp = SInit ();
+
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
-    pointers->ebp = STACK = malloc (sizeof (TSStack*));
-    *STACK = SInit();
-
-    for (int i = 0; *PEIP != NULL; i++) {
+        for (int i = 0; *PEIP != NULL; i++) {
         //log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
         PEIP++;
     }
-    SFree();
+    SFree(ESP->value.esp);
     return;
 }
