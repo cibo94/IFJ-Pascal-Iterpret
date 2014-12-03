@@ -6,9 +6,6 @@ unsigned int LINE_NUM = 1;
 void LEX_string(char **s, int ch, unsigned *poz) {
     unsigned nasobok;
     char *tmp;
-
-    log("Realokaciu velkosti: \n\
-        pozicia %d, char %c", *poz, ch);
     if ((((*poz)+1)%STD_LNGTH)==0) {
         nasobok = *poz+STD_LNGTH;                 // sme retardovany a toto znamena (*poz)/32
         tmp = (char *)realloc(*s,nasobok);

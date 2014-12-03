@@ -22,7 +22,7 @@ typedef struct {
     struct SlabelStack* LABELSTACK;   //!<  (Label stack)       Zasobnik vyuzivany pri skokoch a navestiach
     unsigned int       PARAMCOUNT;    //!<  (Parameter counter) Pocitadlo parametrov funkcie (pouzivane pri deklaracii funkcii a volani funkcii)
     unsigned int       PROGRAMINDEX;
-    PTSStack          *ebp;
+    PTSStack           ebp;
     
 } GLOB_DEST, *PGLOB_DEST;
 
