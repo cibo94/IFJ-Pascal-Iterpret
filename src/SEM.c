@@ -854,7 +854,7 @@ void SEM_readln(PTStructLex paramID){
     if(pNode == NULL)
         error(ERR_SEM_UNDEF,"Nedefinovana premenna v parametri funkcie READLN.\n");
         
-    if((pNode->data->flags | LEX_FLAGS_TYPE_FUNCTION) != 0)
+    if((pNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0)
         error(ERR_SEM_TYPE,"READLN nemoze nacitat hodnotu do funkcie");
     
     if(pNode->data->value->type == TERM_BOOL)
