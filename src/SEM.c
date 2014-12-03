@@ -151,6 +151,7 @@ void SEM_defineFunction(PTStructLex dataID){
     else {                                                              //  INAK SA VKLADA NOVA FUNKCIA
         newNode = BS_Add(pointers->SYM_TABLE,dataID);                   //  PRIDAVA SA NA GLOBALNU UROVEN      
         newNode->data->param = malloc(32);                              //  PRIPRAVA STRINGU PARAMETROV
+        //newNode->data->param = ""; ??????
         if(newNode->data->param == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");   
         newNode->data->value = malloc(sizeof(struct STerm));            //  PRIPRAVA TERMU, VOLANEJ ADRESY PRI VOLANI FUNKCIE
         if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
@@ -463,9 +464,11 @@ void SEM_fCallPrologue(PTStructLex functID){
 
 void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
     TSbinstrom fNode;
-    if(functID->type != KEY_WRITE) // V PRIPADE VOLANIA WRITE SA NEHLADA NIC V TABULKE SYMBOLOV
+    if(functID->type != KEY_WRITE){ // V PRIPADE VOLANIA WRITE SA NEHLADA NIC V TABULKE SYMBOLOV
         fNode = BS_Find(pointers->SYM_TABLE, functID);                   //  FUNKCIA SA NAJDE V TABULKE SYMBOLOV
-    
+        if( ((fNode->data->param)[pointers->PARAMCOUNT] == 'x') || (strlen(fNode->data->param)<pointers->PARAMCOUNT+1) )
+            error(ERR_SEM_TYPE,"Prilis vela parametrov pri volani funkcie '%s'.\n", functID->lex);
+    }
     if(paramID->type == IDENTIFICATOR){                                         //  AK SA NASIEL IDENTIFIKATOR
         TSbinstrom pNode = BS_Find(pointers->SCOPE, paramID);                       //  PARAMETER SA HLADA V SCOPE
         if((pNode == NULL)&&(pointers->SYM_TABLE != pointers->SCOPE))               //  AK NIE JE V SCOPE TAK V TABULKE SYMBOLOV
@@ -540,11 +543,18 @@ void SEM_functionCall(PTStructLex functID){
     TSbinstrom node = BS_Find(pointers->SYM_TABLE, functID);
     SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
     
-    if((node->data->param != NULL)&&(strlen(node->data->param) != pointers->PARAMCOUNT))
+    if ( ((node->data->param)[pointers->PARAMCOUNT]=='i')||
+         ((node->data->param)[pointers->PARAMCOUNT]=='r')||
+         ((node->data->param)[pointers->PARAMCOUNT]=='s')||
+         ((node->data->param)[pointers->PARAMCOUNT]=='b') )
+        error(ERR_SEM_TYPE,"Nedostatocny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
+    /*
+    char * helpPtr = strstr(node->data->param, "x");                                    //<< ALTERNATIVA
+    if((helpPtr != NULL)&&(helpPtr - node->data->param != pointers->PARAMCOUNT))
         error(ERR_SEM_TYPE,"Nespravny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
-    else if ((node->data->param == NULL)&&(pointers->PARAMCOUNT != 0))
+    else if ((helpPtr == NULL)&&(pointers->PARAMCOUNT != strlen(node->data->param)))
         error(ERR_SEM_TYPE,"Nespravny pocet parametrov pri volani funkcie '%s'.\n", functID->lex);
-
+    */
     if((node->data->flags & LEX_FLAGS_TYPE_INT) != 0)   { SEM_pushSS(pointers->EXPRSTACK, TERM_INT);  return; }
     if((node->data->flags & LEX_FLAGS_TYPE_REAL) != 0)  { SEM_pushSS(pointers->EXPRSTACK, TERM_REAL); return; }
     if((node->data->flags & LEX_FLAGS_TYPE_BOOL) != 0)  { SEM_pushSS(pointers->EXPRSTACK, TERM_BOOL); return; }
