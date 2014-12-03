@@ -70,6 +70,7 @@ typedef struct STerm {
     ETermType type;         //!< typ termu
     char *name;             //!< meno termu ???treba???
     bool index;             //!< Pre lukasa -> poradie premennej/param vo funkcii/glob
+    bool init;              //!< DEFINUJE CI JE PREMENNA INICIALIZOVANA
 } TTerm;                    //!< Term -> struktura premennej
 
 struct SStack {
