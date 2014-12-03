@@ -489,6 +489,7 @@ bool SYN_term(FILE *f){
 	case INT_CONST:
 	case REAL_CONST:
 	case STRING_CONST:
+	  SEM_functionParam(NULL,lexema);
 	  SYN_readLexem(f);
           return true;
 	default:
@@ -498,10 +499,12 @@ bool SYN_term(FILE *f){
 
 bool SYN_writeStatemnet(FILE *f){
   
+  
   if (lexema->type!=LBRACKET) return false;
   SYN_readLexem(f);
   if (SYN_term(f) && SYN_nextTerm(f)) {
   	if (lexema->type!=RBRACKET) return false;
+	SEM_writeCall();
   	SYN_readLexem(f);
   	return true;
   }
@@ -513,6 +516,7 @@ bool SYN_readlnStatemnet(FILE *f){
   if (lexema->type!=LBRACKET) return false;
   SYN_readLexem(f);
   if (lexema->type!=IDENTIFICATOR) return false;
+  SEM_readln(lexema);
   SYN_readLexem(f);
   if (lexema->type!=RBRACKET) return false;
   SYN_readLexem(f);
@@ -591,6 +595,7 @@ bool SYN_statement(FILE *f){
   	  if (SYN_readlnStatemnet(f)) return true;
   	  else return false;
   	case KEY_WRITE:
+	  SEM_writePrologue();
   	  SYN_readLexem(f);
   	  if (SYN_writeStatemnet(f)) return true;
   	  else return false;
