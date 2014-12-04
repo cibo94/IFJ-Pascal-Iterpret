@@ -37,7 +37,7 @@ for i in "$@"; do
 #!/usr/bin/env bash
 export dir="${fname}"
 export name="${fname}"
-export file="../src/LEX_lexem.c"
+export file="../src/LEX_lexem.c ../src/SYN_parser.c"
 export src='$(cat ${src} | sed "s/#include\s*\"/#include\ \"..\/src\//g")'
 export input="
 ${in}

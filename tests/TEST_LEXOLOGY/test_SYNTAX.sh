@@ -32,8 +32,10 @@ export input="{Program 2: Vypocet faktorialu ( rekurzivne ) }
 var
 a :integer;
 vysl :integer;
+
+function factorial(n :integer; i :integer) :integer; forward;
 {Definice funkce pro vypocet hodnoty  faktorialu}
-function factorial(n :integer) :integer;
+function factorial(n :integer; i :real) :integer;
 var
 temp_result :integer;
 decremented_n :integer;

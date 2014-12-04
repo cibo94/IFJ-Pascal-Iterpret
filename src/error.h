@@ -253,14 +253,17 @@ __log(const int   line,
 #ifdef h_INT_PAR
 static inline void print_EIP (P3AC *__EIP) {
     for (P3AC *POS=__EIP;*__EIP!=NULL;__EIP++) {
-        printf("#%08u:\t%s\t%s%s%s%s%s\n",
+        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
           (unsigned int)(__EIP-POS+1),
           OPERATIONS[(*__EIP)->op],
           (*__EIP)->op1 != NULL ? (*__EIP)->op1->name            : "",
-          (*__EIP)->op2 != NULL &&(*__EIP)->op1 != NULL ?  ", "   : "",
+          (*__EIP)->op2 != NULL &&(*__EIP)->op1 != NULL ?  ", "  : "",
           (*__EIP)->op2 != NULL ? (*__EIP)->op2->name            : "", 
           (*__EIP)->ret != NULL &&((*__EIP)->op2 != NULL || (*__EIP)->op1 != NULL) ?  ", "   : "",
-          (*__EIP)->ret != NULL ? (*__EIP)->ret->name            : "");
+          (*__EIP)->ret != NULL ? (*__EIP)->ret->name            : "",
+          (*__EIP)->op1 != NULL ? (*__EIP)->op1->value.integer   : 0, 
+          (*__EIP)->op2 != NULL ? (*__EIP)->op2->value.integer   : 0,
+          (*__EIP)->ret != NULL ? (*__EIP)->ret->value.integer   : 0);
     }
 }
 #else  /*if defined(h_INT_PAR)*/
