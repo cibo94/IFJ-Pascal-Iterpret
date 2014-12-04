@@ -897,7 +897,7 @@ void SEM_prologue(){
     startLabel->type = TERM_EIP;
     SEM_pushLS(pointers->LABELSTACK, startLabel);
     SEM_addCL(pointers->CONSTLIST, startLabel);
-    if ((PEIP = EIP = malloc (sizeof(P3AC))) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
+    if ((PEIP = EIP = malloc (sizeof(P3AC)*42)) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     SEM_generate(OP_JMP, startLabel, NULL,NULL);
 }
 
@@ -916,7 +916,8 @@ static inline void SEM_addInstruction (P3AC inst) {
          */
         if ((PEIP = size + (EIP=realloc(EIP, size+42))) - size == NULL)
             error(ERR_INTERNAL, "Chyba realokacie!\n");
-    *(PEIP++) = inst;
+    *PEIP = inst;
+    PEIP++;
 }
 
 void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
@@ -930,6 +931,6 @@ void SEM_generate(E_OP operation, TTerm *op1, TTerm *op2, TTerm *result){
     newInstruction->ret = result;
     free (newInstruction);
     (pointers->PROGRAMINDEX)++;
-    //SEM_addInstruction(newInstruction);
+    SEM_addInstruction(newInstruction);
 }
 

@@ -35,7 +35,9 @@ typedef enum {
     OP_NOP, 
     OP_LOAD,
     OP_NOT,
-    OP_STORE 
+    OP_STORE,
+    OP_EBPPUSH,
+    OP_EBPPOP
 } E_OP;                 //!< urcuje typ operatora
 
 typedef enum {

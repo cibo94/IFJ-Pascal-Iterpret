@@ -7,80 +7,58 @@ export src='#include "../src/inc.h"
 extern P3AC *EIP;
 
 int main () {
-    TTerm op1 = { 
-        .value.integer = 0,
-        .type = TERM_INT,
-        .name = "a"
-    }, op2 = {
-        .value.integer = 2,
-        .type = TERM_INT,
-        .name = "b"
-    }, ret = {
-        .value.integer = 2,
-        .type = TERM_INT,
-        .name = "c"
-    }, label = {
-        .value.address = 1,
-        .type = TERM_EIP,
-        .name = "func"
-    }, zero  = {
-        .value.integer = 0,
-        .type = TERM_INT,
-        .name = "Zero"
-    }, start = {
-        .value.offset = 4,
-        .type = TERM_EIP,
-        .name = "__start"
-    };
-
-
-    EIP = malloc (sizeof (P3AC)*11);
-    
-    struct S3AC s1 = (struct S3AC) {
-        .op  = OP_JMP,
-        .op1 = &start,
-        .op2 = NULL,
-        .ret = NULL
-    },s2 = (struct S3AC) {      /// func
-        .op  = OP_PLUS,
-        .op1 = &op1,
-        .op2 = &ret,
-        .ret = &op2             /// op2 by malo byt 4
-    },s3 = (struct S3AC) {
-        .op  = OP_MUL,
-        .op1 = &op1,
-        .op2 = &op2,
-        .ret = &ret             /// AK prebehne skok tak ret bude 8 inak bude ???
-    },s4 = (struct S3AC) {
-        .op  = OP_RET,
-        .op1 = &zero,
-        .op2 = &zero,
-        .ret = NULL
-    },s5 = (struct S3AC) {      /// __start:
-        .op  = OP_ASSIGN,
-        .op1 = &op2,
-        .op2 = NULL,
-        .ret = &op1             /// 2
-    },s6 = (struct S3AC) {
-        .op  = OP_CALL,
-        .op1 = &label,
-        .op2 = NULL,
-        .ret = NULL
-    };
-    EIP[0] = &s1;
-    EIP[1] = &s2;
-    EIP[2] = &s3;
-    EIP[3] = &s4;
-    EIP[4] = &s5;
-    EIP[5] = &s6;
-    EIP[6] = NULL;
-
-    INT_interpret ();
-
-    printf("Prebehol call? %d == 8?\n", ret.value.integer);
-
+    PEIP = EIP = malloc (sizeof(P3AC)*42);
+    TTerm EAX = {
+              .value.address = 7,
+              .type  = TERM_EIP,
+              .index = false
+          },
+          EBX = {
+              .value.offset  = 1,
+              .type  = TERM_OFFSET,
+              .index = true
+          },
+          ECX = {
+              .value.offset = 3,
+              .type  = TERM_OFFSET,
+              .index = true
+          },
+          EDX = {
+              .value.offset = 4,
+              .type = TERM_OFFSET,
+              .index = true
+          },
+          ALL = {
+              .value.integer = 1,
+              .type = TERM_INT,
+              .index = false,
+              .init = false
+          },
+          FUN = {
+              .value.address = 1,
+              .type = TERM_EIP,
+              .index = false
+          },
+          VAR = {
+              .value.integer = 10,
+              .type = TERM_INT,
+              .index = false
+          };
+    SEM_generate(OP_JMP,     &EAX,  NULL, NULL); //         jmp  __START;
+    SEM_generate(OP_PUSH,    &ALL,  NULL, NULL); // __FUN:  push A;
+    SEM_generate(OP_EBPPUSH, NULL,  NULL, NULL); //         push EBP; mov EBP, ESP;
+    SEM_generate(OP_ASSIGN,  &ECX,  NULL, &EBX); //         mov EBX, ECX;
+    SEM_generate(OP_MUL,     &ECX,  &EBX, &EDX); //         mul ECX, EBX; mov EDX, ECX;
+    SEM_generate(OP_EBPPOP,  NULL,  NULL, NULL); //         mov ESP, EBP; pop EBP;
+    SEM_generate(OP_RET,     &ALL,  &ALL, NULL); //         ret;
+    SEM_generate(OP_PUSH,    &ALL,  NULL, NULL); // __START:push FUN;
+    SEM_generate(OP_PUSH,    &VAR,  NULL, NULL); //         push VAR;
+    SEM_generate(OP_CALL,    &FUN,  NULL, NULL); //         call FUN;
+    SEM_generate(OP_POP,     NULL,  NULL, &VAR); //         pop VAR;
+    print_EIP(EIP);
+    INT_interpret();
+    printf("%d\n", VAR.value.integer);
     free(EIP);
-
     return 0;
 }'
 export input=""
