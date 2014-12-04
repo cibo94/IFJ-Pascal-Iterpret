@@ -19,7 +19,8 @@ int main () {
         .type = TERM_INT
     }, COPY = {
         .value.integer = 1,
-        .type = TERM_STRING
+        .type = TERM_STRING,
+        .index = false
     }, STRING  = {
         .value.integer = 0,
         .type = TERM_STRING
@@ -28,7 +29,8 @@ int main () {
         .type = TERM_STRING
     }, NL = {
         .value.string = "\n",
-        .type = TERM_STRING
+        .type = TERM_STRING,
+        .index = false
     };
    /*************************************
     *           INSTRUCTIONS            *

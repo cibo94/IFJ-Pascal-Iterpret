@@ -18,9 +18,9 @@ TTerm  __ebp = {
 __attribute__ ((unused))
 P3AC *EIP, *PEIP;
 
-/******************************
+/***************************************
  *      ESP->value.esp -> funkcie      *
- *****************************/
+ **************************************/
 
 static PTSStack SInit () {
     PTSStack ret;
@@ -82,6 +82,9 @@ static void SFree (PTSStack S) {
  ***********************************/
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer + op2->value.integer;
@@ -100,7 +103,10 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
-     switch (ret->type) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer - op2->value.integer;
         break;
@@ -114,6 +120,9 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             //log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
@@ -127,6 +136,9 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer / op2->value.integer;
@@ -140,10 +152,15 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
 
 static void assign (TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    ret->value = op1->value;
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+   ret->value = op1->value;
 }
 
 static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer < op2->value.integer;
@@ -162,6 +179,9 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer > op2->value.integer;
@@ -180,6 +200,9 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer <= op2->value.integer;
@@ -198,6 +221,9 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer >= op2->value.integer;
@@ -216,6 +242,9 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer == op2->value.integer;
@@ -234,6 +263,9 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
     switch (ret->type) {
         case TERM_INT    :
             ret->value.boolean = !(op1->value.integer == op2->value.integer);
@@ -253,6 +285,8 @@ static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
 
 static void ret (        TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     // Local variable cleaning
     for (int i = 0; i < op1->value.integer; i++)
         free(SPop(ESP->value.esp));
@@ -271,6 +305,8 @@ __attribute__ ((unused)) TTerm *ret) {
 static void push (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+ 
     TTerm *s = malloc (sizeof(TTerm));
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
@@ -281,6 +317,8 @@ __attribute__ ((unused)) TTerm *ret) {
 static void pop (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
+ 
     if (ret != NULL) {
         if (!SEmpty(ESP->value.esp)) {
             ret->value = SPop(ESP->value.esp)->value;
@@ -295,12 +333,17 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+ 
     PEIP = &EIP[op1->value.address-1];
     //log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
 static void jtrue (      TTerm *op1, TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
+ 
     if (op1->value.boolean == true) {
         jmp(op2, NULL, NULL);
     }
@@ -310,6 +353,8 @@ __attribute__ ((unused)) TTerm *ret) {
 static void call (       TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, 
 __attribute__ ((unused)) TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+ 
     // Jump address
     TTerm Address = {
         .value.address = PEIP-EIP,
@@ -337,12 +382,18 @@ __attribute__ ((unused)) TTerm *ret) {
 
 static void not (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
+ 
     /// Neguje vstup op1 ulozi negaciu do ret
     ret->value.boolean = !(op1->value.boolean);
 }
 
 static void load (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
+ 
     /// nacita zo zasobnika nti prvok
     ret->value = SPick(ESP->value.esp,op1->value.offset)->value;
     //log ("LOAD: value: %d\n", ret->value.integer);
@@ -350,6 +401,8 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 
 static void store (      TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
     /// ulozi na zasobnik na presne miesto data do termu
     SPick(ESP->value.esp,ret->value.offset)->value = op1->value;
 }
@@ -425,9 +478,11 @@ static void __write () {
         }
     }
     k.value.offset = pocet+1;
+    k.index = false;
     TTerm zero = (TTerm) { 
         .value.offset = 0,
-        .type = TERM_OFFSET
+        .type = TERM_OFFSET,
+        .index = false
     };
     ret(&zero, &k, NULL);
 }
@@ -468,13 +523,30 @@ static void ____readln () {
     ret(&zero, &one, NULL);
 }
 
+static void pushesp (
+__attribute__ ((unused)) TTerm *op1,
+__attribute__ ((unused)) TTerm *op2,
+__attribute__ ((unused)) TTerm *ret) {
+    SPush(ESP->value.esp, EBP);
+    memcpy(EBP->value.ebp, ESP->value.esp, sizeof(TSStack));
+}
+
+static void popesp (
+__attribute__ ((unused)) TTerm *op1,
+__attribute__ ((unused)) TTerm *op2,
+__attribute__ ((unused)) TTerm *ret) { 
+    memcpy(ESP->value.esp, EBP->value.ebp, sizeof(TSStack));
+    EBP = SPop(ESP->value.esp);
+}
+
 __attribute__ ((unused))
 static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     &plus, &minus, &mul, &division, 
     &assign, &less, &greater, &lesseq, 
     &greateq, &equal, &nequal,  &call, &ret, 
     &push, &pop, &jtrue, &jmp, 
-    &nop, &load, &not, &store
+    &nop, &load, &not, &store, 
+    &pushesp, &popesp
     // TODO: Pridat dalsie funkcie!
 };
 
@@ -517,8 +589,8 @@ void INT_interpret () {
     PEIP = EIP;
 
     /// Stack pointer
-    pointers->ebp = ESP->value.esp = SInit ();
-
+    ESP->value.esp = SInit ();
+    EBP->value.ebp = malloc (sizeof(TSStack));
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE

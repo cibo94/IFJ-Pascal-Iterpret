@@ -1,0 +1,10 @@
+a - true: TRUE
+b - false: FALSE
+a < b:  FALSE
+a > b:  TRUE
+a <= b: FALSE
+a >= b: TRUE
+a = b:  FALSE
+a <> b: TRUE
+a > b:  TRUE
+Bool v ifu...
