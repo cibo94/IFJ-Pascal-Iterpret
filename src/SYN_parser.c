@@ -489,6 +489,8 @@ bool SYN_term(FILE *f){
 	case INT_CONST:
 	case REAL_CONST:
 	case STRING_CONST:
+    case KEY_TRUE:
+    case KEY_FALSE:
 	  SEM_functionParam(NULL,lexema);
 	  SYN_readLexem(f);
           return true;

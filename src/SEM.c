@@ -124,7 +124,7 @@ void SEM_defineGlobal(PTStructLex dataID, PTStructLex dataType){
     newNode->data->param = NULL;
     newNode->data->value = malloc(sizeof(struct STerm));                                    //  ALOKACIA TERMU GLOBALNEJ PREMENNEJ
     if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
-    
+    newNode->data->value->name = dataID->lex;
     switch(dataType->type){                                                                 //  PODLA DATOVEHO TYPU NASTAVUJE TYP GLOBALNEJ PREMENNEJ
         case KEY_INTEGER: newNode->data->value->type = TERM_INT;       break;        
         case KEY_STRING:  newNode->data->value->type = TERM_STRING;    break;    
@@ -154,6 +154,8 @@ void SEM_defineFunction(PTStructLex dataID){
         if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->value->type = TERM_EIP;                          //  NASTAVENIE TYPU ADRESY
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;                 //  OZNACENIE ZE SA JEDNA O FUNKCIU
+        newNode->data->value->name = dataID->lex;
+        newNode->data->value->index = false;
     }
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
     pointers->SCOPE = newNode->loc_table;           //  NASTAVENIE JEJ PODSTROMU
@@ -170,6 +172,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         if(funcParam == NULL) error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
         if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT)+2)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
+        funcParam->data->value->name = dataID->lex;
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) 
                                 error(ERR_SEM_TYPE,"Chybne parametre pri deklaracii funkcie (chybny typ parametra '%s')\n", dataID->lex);    break;        
@@ -264,7 +267,7 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
     newNode->data->value->index = true;                                                 
     newNode->data->value->value.offset = (pointers->PARAMCOUNT) + 2;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
     newNode->data->value->init = false;
-    
+    newNode->data->value->name = dataID->lex;
     SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);                 //  PUSH LOKALNEJ NA MIROV ZASOBNIK
     return;
 }
@@ -372,6 +375,7 @@ void SEM_createLeaf(PTStructLex lexema){
         term->init = true;
         term->index = false;
         SEM_pushSS(pointers->EXPRSTACK, term->type);     // ULOZENIE TYPU NA SEMANTICKY ZASOBNIK
+        term->name = lexema->lex;
         SEM_generate(OP_PUSH, term, NULL, NULL);
         SEM_addCL(pointers->CONSTLIST,term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
         return;
@@ -390,11 +394,12 @@ void SEM_createTree(PTStructLex lexema){
         error(ERR_SEM_TYPE,"Nekompatibilne datove typy vo vyraze.");
     
     pointers->ACCREG->type = typeRight;
+    pointers->ACCREG->index = false;
     pointers->ACCREG->init = true;
-    
-    SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
+    pointers->SREG1->index = false;
+    pointers->SREG2->index = false;
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
-    
+    SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
     switch(lexema->type){
         case OPERATOR_PLUS     : SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);   break;                                                                                 
         case OPERATOR_MINUS    : if(typeRight != TERM_STRING)
@@ -480,6 +485,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
             default : break;
         }
         
+        pNode->data->value->name = paramID->lex;
         if(pNode->data->value->index){
             SEM_generate(OP_LOAD, pNode->data->value, NULL, pointers->SREG1);
             SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);
@@ -519,6 +525,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
             default : break;
         }
         
+        term->name = paramID->lex;
         SEM_generate(OP_PUSH, term, NULL, NULL);                             // PUSH PARAMETRA
         SEM_addCL(pointers->CONSTLIST,term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
     }
@@ -607,6 +614,8 @@ void SEM_thenStat(){
     
     labelElse->type = TERM_EIP;
     labelEnd->type = TERM_EIP;
+    labelElse->index = false;
+    labelEnd->index = false;
     
     SEM_pushLS(pointers->LABELSTACK, labelElse);                            //  NA VRCHOLE LABEL KONCA A POD NIM LABEL ELSE
     SEM_addCL(pointers->CONSTLIST, labelElse);
@@ -637,7 +646,7 @@ void SEM_whileStat(){
     if(labelWhile == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     labelWhile->type = TERM_EIP;
     labelWhile->value.address = pointers->PROGRAMINDEX;                     //  NASTAVENIE ADRESY
-   
+    labelWhile->index = false;
     
     SEM_addCL(pointers->CONSTLIST, labelWhile);                             //  PRIDANIE NA VRCHOL ZASOBNIKA A DO ZOZNAMU KONSTANT
     SEM_pushLS(pointers->LABELSTACK, labelWhile);
@@ -655,6 +664,7 @@ void SEM_whileBegin(){
     TTerm * labelEnd = malloc(sizeof(struct STerm));                        //  VYTVORENIE LABELU SKOKU AK JE PODMIENKA FALSE
     if(labelEnd == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     labelEnd->type = TERM_EIP;
+    labelEnd->index = false;
     
     SEM_pushLS(pointers->LABELSTACK, labelEnd);
     SEM_addCL(pointers->CONSTLIST, labelEnd);
@@ -849,12 +859,17 @@ void SEM_readln(PTStructLex paramID){
     if(pNode->data->value->type == TERM_BOOL)
         error(ERR_SEM_TYPE,"READLN nemoze nacitat boolean.\n");
     
-    
     if(pNode->data->value->index){
         SEM_generate(OP_LOAD, pNode->data->value, NULL, pointers->ACCREG);
         SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
     }
-    else SEM_generate(OP_PUSH, pNode->data->value, NULL, NULL);
+    else {
+        TTerm *PomNode = malloc (sizeof(TTerm));
+        SEM_addCL(pointers->CONSTLIST, PomNode);
+        PomNode->value.pointer = pNode->data->value;
+        PomNode->type = TERM_POINTER;
+        SEM_generate(OP_PUSH, PomNode, NULL, NULL);
+    }
     
     SEM_generate(OP_CALL, &EMBreadln,NULL,NULL);
     
@@ -893,6 +908,7 @@ void SEM_prologue(){
 void SEM_mainBegin(){
     TTerm * startLabel = SEM_popLS(pointers->LABELSTACK);
     startLabel->value.address = pointers->PROGRAMINDEX;
+    startLabel->index = false;
 }
 
 static inline void SEM_addInstruction (P3AC inst) {
@@ -902,7 +918,7 @@ static inline void SEM_addInstruction (P3AC inst) {
          * Realokuje EIP o 42 adresu ulozi do EIP a pricita k nej velkost a ulozi do PEIP
          * nasledne od toho cele odcita velkost aby sme vedeli ci nenastal NULL
          */
-        PEIP = size + (EIP = realloc(EIP, size+42));
+        PEIP = size + (EIP = realloc(EIP, sizeof(P3AC)*(size+42)));
         if (EIP == NULL)
             error(ERR_INTERNAL, "Chyba realokacie!\n");
     }

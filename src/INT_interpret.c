@@ -68,7 +68,7 @@ static TTerm *SPop (PTSStack S) {
     return ret;
 }
 
-static TTerm *SPick (PTSStack S, uint32_t offset) {
+static TTerm *SPick (PTSStack S, int offset) {
     TTerm **s = S->top+offset;
     return *s;
 }
@@ -89,7 +89,7 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer + op2->value.integer;
         break;
@@ -110,7 +110,7 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer - op2->value.integer;
         break;
@@ -127,7 +127,7 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             //log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
             ret->value.integer = op1->value.integer * op2->value.integer;
@@ -143,12 +143,18 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
+            if (op2->value.integer == 0)
+                error(ERR_RNTM_ZERO, "Delenie 0 %d/%d\n", op1->value.integer, op2->value.integer);
             ret->value.integer = op1->value.integer / op2->value.integer;
+            ret->type = op1->type;
         break;
         case TERM_REAL   :
+            if (op2->value.real == 0)
+                 error(ERR_RNTM_ZERO, "Delenie 0 %f/%f\n", op1->value.real, op2->value.real);
             ret->value.real = op1->value.real / op2->value.real;
+            ret->type = op1->type;
         break;
         default          : break;
     }
@@ -168,7 +174,7 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer < op2->value.integer;
         break;
@@ -189,7 +195,7 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer > op2->value.integer;
         break;
@@ -210,7 +216,7 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer <= op2->value.integer;
         break;
@@ -231,7 +237,7 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer >= op2->value.integer;
         break;
@@ -252,7 +258,7 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-    switch (ret->type) {
+    switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer == op2->value.integer;
         break;
@@ -326,7 +332,9 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
  
     if (ret != NULL) {
         if (!SEmpty(ESP->value.esp)) {
-            ret->value = SPop(ESP->value.esp)->value;
+            TTerm *pom = SPop(ESP->value.esp);
+            memcpy(ret, pom, sizeof(TTerm));
+            free(pom); 
         } else 
             error (ERR_INTERNAL, "Stack is empty");
     } else {
@@ -339,7 +347,6 @@ static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
- 
     PEIP = &EIP[op1->value.address-1];
     //log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
@@ -363,7 +370,8 @@ __attribute__ ((unused)) TTerm *ret) {
     // Jump address
     TTerm Address = {
         .value.address = PEIP-EIP,
-        .type = TERM_OFFSET
+        .type = TERM_OFFSET,
+        .index = false
     };
     push(&Address, NULL, NULL);
     for (int i = 0; i < 6; i++) {
@@ -400,7 +408,8 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
  
     /// nacita zo zasobnika nti prvok
-    ret->value = SPick(ESP->value.esp,op1->value.offset)->value;
+    TTerm *pom = SPick(ESP->value.esp,op1->value.offset);
+    memcpy(ret, pom, sizeof(TTerm));
     //log ("LOAD: value: %d\n", ret->value.integer);
 }
 
@@ -409,7 +418,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
     /// ulozi na zasobnik na presne miesto data do termu
-    SPick(ESP->value.esp,ret->value.offset)->value = op1->value;
+    memcpy(SPick(ESP->value.esp,ret->value.offset), op1, sizeof(TTerm));
 }
 
 static void __sort () {
@@ -461,9 +470,9 @@ static void __find () {
 
 static void __write () {
     TTerm *n, k;
-    int pocet = SPick(ESP->value.esp, 1)->value.integer;
-    for (int i = 0; i < pocet; i++) {
-        n = SPick(ESP->value.esp, 2+i);
+    int pocet = SPick(ESP->value.esp,-1)->value.integer;
+    for (int i = pocet; i > 0; i--) {
+        n = SPick(ESP->value.esp, -(1+i));
         switch (n->type) {
             case TERM_INT : 
                 printf ("%d", n->value.integer);
@@ -482,7 +491,7 @@ static void __write () {
             break;
         }
     }
-    k.value.offset = pocet+1;
+    k.value.integer = pocet+1;
     k.index = false;
     TTerm zero = (TTerm) { 
         .value.offset = 0,
@@ -493,7 +502,7 @@ static void __write () {
 }
 
 static void ____readln () {
-    TTerm *id = SPick(ESP->value.esp, 1),
+    TTerm *id = SPick(ESP->value.esp, -1),
            one = {
                .value.integer = 1
            },
@@ -502,14 +511,14 @@ static void ____readln () {
            };
     char *pom, *beg;
     int c, size;
-    switch (id->type) {
+    switch (id->value.pointer->type) {
         case TERM_INT :
             if (scanf("%d", &id->value.pointer->value.integer) != 1)
-                error(ERR_RNTM_NUMREAD, "Nekompatabilny typ\n");
+                error(ERR_RNTM_NUMREAD, "Zle nacitany integer\n");
         break;
         case TERM_REAL :
             if (scanf("%f", &id->value.pointer->value.real) != 1)
-                error(ERR_RNTM_NUMREAD, "Nekompatabilny typ\n");
+                error(ERR_RNTM_NUMREAD, "Zle nacitany real\n");
         break;
         case TERM_STRING :
             beg=pom=malloc (sizeof(char)*32);
@@ -601,9 +610,22 @@ void INT_interpret () {
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
-        for (int i = 0; *PEIP != NULL; i++) {
-        //log("INST %u %d\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+    log("Runtime disasembly\n");
+    for (int i = 0; *PEIP != NULL; i++) {
+        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
+          (unsigned int)(PEIP-EIP),
+          OPERATIONS[(*PEIP)->op],
+          (*PEIP)->op1 != NULL ? (*PEIP)->op1->name            : "",
+          (*PEIP)->op2 != NULL &&(*PEIP)->op1 != NULL ?  ", "  : "",
+          (*PEIP)->op2 != NULL ? (*PEIP)->op2->name            : "", 
+          (*PEIP)->ret != NULL &&((*PEIP)->op2 != NULL || (*PEIP)->op1 != NULL) ?  ", "   : "",
+          (*PEIP)->ret != NULL ? (*PEIP)->ret->name            : "",
+          (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.integer   : 0, 
+          (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.integer   : 0,
+          (*PEIP)->ret != NULL ? (*PEIP)->ret->value.integer   : 0);
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
+
+
         PEIP++;
     }
     SFree(ESP->value.esp);
