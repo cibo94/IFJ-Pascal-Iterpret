@@ -100,27 +100,29 @@ static const char *ERROR_MSG[] = {
 
 __attribute__((unused))
 static const char *OPERATIONS[] = {
-    "OP_PLUS", 
-    "OP_MINUS", 
-    "OP_MUL", 
-    "OP_DIV", 
-    "OP_ASSIGN", 
-    "OP_LESS",
-    "OP_GREAT",
-    "OP_LESSEQ",
-    "OP_GREATEQ", 
-    "OP_EQUAL",
-    "OP_NEQUAL",
-    "OP_CALL", 
-    "OP_RET", 
-    "OP_PUSH", 
-    "OP_POP", 
-    "OP_JTRUE", 
-    "OP_JMP", 
-    "OP_NOP", 
-    "OP_LOAD",
-    "OP_NOT",
-    "OP_STORE" 
+    "PLUS", 
+    "MINUS", 
+    "MUL", 
+    "DIV", 
+    "ASSIGN", 
+    "LESS",
+    "GREAT",
+    "LESSEQ",
+    "GREATEQ", 
+    "EQUAL",
+    "NEQUAL",
+    "CALL", 
+    "RET", 
+    "PUSH", 
+    "POP", 
+    "JTRUE", 
+    "JMP", 
+    "NOP", 
+    "LOAD",
+    "NOT",
+    "STORE",
+    "EBPPUSH",
+    "EBPPOP"
 };
 
 __attribute__ ((unused))
@@ -251,15 +253,14 @@ __log(const int   line,
 #ifdef h_INT_PAR
 static inline void print_EIP (P3AC *__EIP) {
     for (P3AC *POS=__EIP;*__EIP!=NULL;__EIP++) {
-        printf("#%03u (%15s, %15s[%12s], %15s[%12s], %15s[%12s])\n",
+        printf("#%08u:\t%s\t%s%s%s%s%s\n",
           (unsigned int)(__EIP-POS+1),
           OPERATIONS[(*__EIP)->op],
-          (*__EIP)->op1 != NULL ? (*__EIP)->op1->name            : "NULL", 
-          (*__EIP)->op1 != NULL ? TERM_TYPE[(*__EIP)->op1->type] : "NULL",
-          (*__EIP)->op2 != NULL ? (*__EIP)->op2->name            : "NULL", 
-          (*__EIP)->op2 != NULL ? TERM_TYPE[(*__EIP)->op2->type] : "NULL",
-          (*__EIP)->ret != NULL ? (*__EIP)->ret->name            : "NULL", 
-          (*__EIP)->ret != NULL ? TERM_TYPE[(*__EIP)->ret->type] : "NULL");
+          (*__EIP)->op1 != NULL ? (*__EIP)->op1->name            : "",
+          (*__EIP)->op2 != NULL &&(*__EIP)->op1 != NULL ?  ", "   : "",
+          (*__EIP)->op2 != NULL ? (*__EIP)->op2->name            : "", 
+          (*__EIP)->ret != NULL &&((*__EIP)->op2 != NULL || (*__EIP)->op1 != NULL) ?  ", "   : "",
+          (*__EIP)->ret != NULL ? (*__EIP)->ret->name            : "");
     }
 }
 #else  /*if defined(h_INT_PAR)*/

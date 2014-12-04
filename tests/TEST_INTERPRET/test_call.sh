@@ -11,38 +11,45 @@ int main () {
     TTerm EAX = {
               .value.address = 7,
               .type  = TERM_EIP,
-              .index = false
+              .index = false,
+              .name  = "EAX"
           },
           EBX = {
               .value.offset  = 1,
               .type  = TERM_OFFSET,
-              .index = true
+              .index = true,
+              .name  = "EBX"
           },
           ECX = {
               .value.offset = 3,
               .type  = TERM_OFFSET,
-              .index = true
+              .index = true,
+              .name  = "ECX"
           },
           EDX = {
               .value.offset = 4,
               .type = TERM_OFFSET,
-              .index = true
+              .index = true,
+              .name =  "EDX"
           },
           ALL = {
               .value.integer = 1,
               .type = TERM_INT,
               .index = false,
-              .init = false
+              .init = false,
+              .name = "ALL"
           },
           FUN = {
               .value.address = 1,
               .type = TERM_EIP,
-              .index = false
+              .index = false,
+              .name = "FUNC"
           },
           VAR = {
               .value.integer = 10,
               .type = TERM_INT,
-              .index = false
+              .index = false,
+              .name = "VAR"
           };
     SEM_generate(OP_JMP,     &EAX,  NULL, NULL); //         jmp  __START;
     SEM_generate(OP_PUSH,    &ALL,  NULL, NULL); // __FUN:  push A;

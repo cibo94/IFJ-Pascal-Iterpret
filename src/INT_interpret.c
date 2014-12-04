@@ -536,7 +536,6 @@ __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) { 
     memcpy(ESP->value.esp, EBP->value.ebp, sizeof(TSStack));
-    free(EBP);
     EBP = SPop(ESP->value.esp);
 }
 
