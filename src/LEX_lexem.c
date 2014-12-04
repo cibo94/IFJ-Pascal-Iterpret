@@ -285,7 +285,7 @@ int LEX_base (FILE *f, TStructNumStat NumStatus, TEnumStatus *state, TStructLex 
     } else {
         if(z>='0' && z<='9') {
             *state = TERM_NUM;
-            LEX_num(z, Ret->lex, i, NumStatus, f);
+            LEX_num(z, &Ret->lex, i, NumStatus, f);
             return -1;
         } else {
             if(z=='\'') {

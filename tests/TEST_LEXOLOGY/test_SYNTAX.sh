@@ -7,45 +7,61 @@ int main(int argc, char **argv) {
 	FILE *f;
     if((f = fopen(argv[argc-1], "r")) == NULL) return -1;
 
-    PTStructLex lex = malloc (sizeof (TStructLex));
-
-   lex->lex = "f1";
-   TSbinstrom pom;
+    //PTStructLex lex = malloc (sizeof (TStructLex));
+    //lex->lex = "f1";
+    //TSbinstrom pom;
 
 
     	SYN_parser(f);
-
      BS_Print(pointers->SYM_TABLE);
-     //printf("%s\n",pointers->SCOPE->data->lex);
-     pom=BS_Find(pointers->SYM_TABLE,lex);
-     BS_Print(pom->loc_table);
-    // BS_Free(pointers->SYM_TABLE);
-     //BS_Print(pointers->SYM_TABLE);
-    	fclose(f);
 
+
+    //printf("%s\n",pointers->SCOPE->data->lex);
+    //pom=BS_Find(pointers->SYM_TABLE,lex);
+    //BS_Print(pom->loc_table);
+    //BS_Free(pointers->SYM_TABLE);
+    //BS_Print(pointers->SYM_TABLE);
+    
+    	fclose(f);
     }'
 
 
 
 
-export input="var
-a:integer;
-b:real;
-c:string;
-d:boolean;
-function f1(f1_p1: boolean; f1_p2:string):integer;
-var f1_v:string;
-xxx: integer;
-a:boolean;
+export input="{Program 2: Vypocet faktorialu ( rekurzivne ) }
+var
+a :integer;
+vysl :integer;
+{Definice funkce pro vypocet hodnoty  faktorialu}
+function factorial(n :integer) :integer;
+var
+temp_result :integer;
+decremented_n :integer;
 begin
-f1:=5
+if n < 2 then begin
+factorial := 1
+end
+else
+begin
+decremented_n := n - 1;
+temp_result := factorial(decremented_n);
+factorial := n * temp_result
+end
 end;
+{Hlavni telo programu }
 begin
-a:=1;
-if b then begin
-    end
-else begin
-    end
+write('Zadejte cislo  pro vypocet faktorialu : ');
+readln(a);
+if a < 0 then
+{Pokracovani hlavniho tela programu }
+begin
+write('Faktorial nelze spocitat '#10'')
+end
+else
+begin
+vysl := factorial(a);
+write('Vysledek je :', vysl, ''#10'')
+end
 end.
  "
   
