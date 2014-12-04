@@ -1,0 +1,9 @@
+{------------------- Detekcia semantickych chyb ------------------------------}
+{-------------------------- EXIT_CODE 4 --------------------------------------}
+{ Vyraz v cykle while nie je typu boolean                                     }
+
+begin
+	while 3.14 do
+		begin
+		end
+end
