@@ -44,14 +44,14 @@ typedef enum {
     KEY_ELSE,
     KEY_END,
     KEY_FALSE,
-    KEY_FIND,
+//    KEY_FIND,
     KEY_FORWARD,
     KEY_FUNCTION,
     KEY_IF,
     KEY_INTEGER,
     KEY_READLN,
     KEY_REAL,
-    KEY_SORT,
+//    KEY_SORT,
     KEY_STRING,
     KEY_THEN,
     KEY_TRUE,
@@ -111,10 +111,10 @@ typedef struct {
 
 __attribute__ ((unused))
 static char *KEY_WORDS[] = {
-    "begin", "boolean", "do", "else", "end", "false", "find", "forward",
-    "function", "if", "integer", "readln", "real", "sort", "string",
+    "begin", "boolean", "do", "else", "end", "false", "forward",
+    "function", "if", "integer", "readln", "real", "string",
     "then", "true", "var", "while", "write", 
-//    "array", "repeat", "until", 
+//    "array", "repeat", "until", "sort", "find"
     NULL
 };
 
@@ -144,7 +144,7 @@ LEX_string(char     **s,
  */
 bool
 LEX_num(int              c,
-        char            *s, 
+        char            **s, 
         unsigned        *poz, 
         TStructNumStat   NumStatus, 
         FILE            *f);
@@ -161,7 +161,7 @@ LEX_num(int              c,
  */
 bool
 LEX_str(FILE        *f,
-        char        *s,
+        char        **s,
         int          ch,
         unsigned    *poz,
         TEnumLexStr *stav);
@@ -183,7 +183,7 @@ LEX_operators(FILE          *f,
 /** LEX_ident
  * \brief Nacita identifikatorov do struktury
  * \param f File handle
- * \param Ret Vracana struktura
+ * \param s String do ktoreho tlaci znaky
  * \param z pismenko
  * \param i pozicia v stringu
  * \return TRUE ak skoncil ak nie tak FALSE
@@ -191,7 +191,7 @@ LEX_operators(FILE          *f,
  */
 int
 LEX_ident(FILE          *f, 
-          TStructLex    *Ret, 
+          char         **s, 
           int            z, 
           unsigned      *i);
 /** LEX_base

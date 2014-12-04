@@ -7,7 +7,7 @@ void LEX_string(char **s, int ch, unsigned *poz) {
     unsigned nasobok;
     char *tmp;
     if ((((*poz)+1)%STD_LNGTH)==0) {
-        nasobok = *poz+STD_LNGTH;                 // sme retardovany a toto znamena (*poz)/32
+        nasobok = *poz+STD_LNGTH+1;                 // sme retardovany a toto znamena (*poz)/32
         tmp = (char *)realloc(*s,nasobok);
         if (tmp == NULL) {
 
@@ -23,7 +23,7 @@ void LEX_string(char **s, int ch, unsigned *poz) {
     (*s)[*poz] = '\0';
 }
 
-bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
+bool LEX_str(FILE *f,char **s,int ch,unsigned *poz,TEnumLexStr *stav) {
     static unsigned p=0;
     char *kon;
     int cis;
@@ -31,12 +31,12 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
     switch (*stav) {
     case START:
         *poz=0;
-        s[*poz]='\0';
+        (*s)[*poz]='\0';
         if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
         else { 
             if (ch=='\'') *stav=MEDZI;
             else {
-                LEX_string(&s,ch,poz);
+                LEX_string(s,ch,poz);
                 *stav=RETAZEC;
             }
         } 
@@ -45,13 +45,13 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
         if (ch==EOF) error(ERR_LEX,"Neukonceny retazcovy literal.");
         else {
             if (ch=='\'') *stav=MEDZI; 
-            else LEX_string(&s,ch,poz);
+            else LEX_string(s,ch,poz);
         } 
     break;
     case MEDZI:
         p=*poz;
         if (ch=='\'') {
-            LEX_string(&s,ch,poz);
+            LEX_string(s,ch,poz);
             *stav=RETAZEC;
         } else {
             if (ch=='#') 
@@ -67,22 +67,22 @@ bool LEX_str(FILE *f,char *s,int ch,unsigned *poz,TEnumLexStr *stav) {
         if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
         else {
             if (ch=='\'') {
-                LEX_string(&s,ch,poz);
-                cis=(int)strtol(s+p,&kon,10);
+                LEX_string(s,ch,poz);
+                cis=(int)strtol(*s+p,&kon,10);
                 if (*kon=='\'') {
                     if (cis>=1 && cis<=255) {
                         *poz=p;
-                        LEX_string(&s,cis,poz);
+                        LEX_string(s,cis,poz);
                         *stav=RETAZEC;
                     } else error(ERR_LEX,"Cislo za znakom # je v zlom intervale.");
                 } else error(ERR_LEX,"Neocakavany znak za '#'");
-            } else LEX_string(&s,ch,poz);
+            } else LEX_string(s,ch,poz);
         }
     }
     return true;  
 }
 
-bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) {
+bool LEX_num(int c, char **s, unsigned *poz, TStructNumStat NumStatus, FILE * f) {
 
     if (isdigit(c)) {                               // Ak je znak cislo  
         if (*poz == 0) {                            // Ak sa jedna o prvu cifru, automaticky sa stava 
@@ -96,25 +96,25 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
         if (NumStatus->expPart) {                             // Ak je cislo za e/E/+/- tak sa inicializuje exponent 
                                                     // pri prvom cisle za tymito znakmi. Nuly na zaciatku sa ignoruju
             NumStatus->partInit = true;
-            if (((s[*poz-1] == 'e') || 
-                 (s[*poz-1] == '+') || 
-                 (s[*poz-1] == '-'))&& 
+            if ((((*s)[*poz-1] == 'e') || 
+                 ((*s)[*poz-1] == '+') || 
+                 ((*s)[*poz-1] == '-'))&& 
                  (c == '0'))
                 return true;
         }
-        LEX_string(&s,c,poz);                        // V kazdom pripade sa cislo pripaja do lexemy. 
+        LEX_string(s,c,poz);                        // V kazdom pripade sa cislo pripaja do lexemy. 
         return true;
     }
     else if (c == '.') {                            // Ak je znak bodka
         if ( NumStatus->expPart || NumStatus->realPart )                // Error nastava ak cislo obsahuje e/E alebo dalsiu bodku
-            error(ERR_LEX, "Znak '%c' nemoze nasledovat za '%s'\n", c, s);
+            error(ERR_LEX, "Znak '%c' nemoze nasledovat za '%s'\n", c, *s);
         else {                                      // Inak
             if (NumStatus->partInit && *poz == 0)             // Ak je cela cast cisla inicializovana a 
                                                     // pozicia znaku je 0 (Nastava ak je cela cast cisla tvorena odignorovanymi nulami)
-                LEX_string(&s,'0',poz);              // Nahodi nulu na zaciatok
+                LEX_string(s,'0',poz);              // Nahodi nulu na zaciatok
             NumStatus->realPart = true;                       // Aktivuje realnu cast a nahodi bodku do stringu
             NumStatus->partInit = false;
-            LEX_string(&s,c,poz);
+            LEX_string(s,c,poz);
             return true;
         }
     }
@@ -122,13 +122,13 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
         if (NumStatus->expPart || 
            (NumStatus->realPart && !NumStatus->partInit))               // Chyba nastava ak lexema obsahuje e/E 
                                                     // alebo ma neinicializovanu realnu cast (kombinacia .E/.e)
-            error(ERR_LEX, "Medzi '%s' a '%c' bolo ocakavane cislo\n", s, c);
+            error(ERR_LEX, "Medzi '%s' a '%c' bolo ocakavane cislo\n", *s, c);
         else {                                      // Inak
             if (NumStatus->partInit && *poz == 0)             // Kontroluje nuly na zaciatku (napr 0000E), tak ako pri bodke
-                LEX_string(&s,'0',poz);
+                LEX_string(s,'0',poz);
             NumStatus->expPart = true;                        // Aktivuje exponent, nahodi e (lowercase) do stringu
             NumStatus->partInit = false;
-            LEX_string(&s,'e',poz);
+            LEX_string(s,'e',poz);
             return true;
         }
     }   
@@ -136,24 +136,24 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
         if (NumStatus->partInit){                             // Ak je hociaka cast inicializovana, tak je +/- urcite operator, 
                                                     // nahodi ho spat do stringu a ukonci lexemu
             if (*poz == 0 || (NumStatus->expPart &&
-                (s[*poz-1] == 'e' || s[*poz-1] == '+' || s[*poz-1] == '-')))
+                ((*s)[*poz-1] == 'e' || (*s)[*poz-1] == '+' || (*s)[*poz-1] == '-')))
                                                     // Ak je poz stale 0 tak sa jedna o same nuly -> vrati nulu
-                LEX_string(&s,'0',poz);
+                LEX_string(s,'0',poz);
             ungetc(c, f);
             return false;
         }
         else {                                      // Inak
-            if(s[*poz-1] == 'e') {                  // Kontroluje ci je posledny znak e, ak ano tak nenastane chyba
-                LEX_string(&s,c,poz);
+            if((*s)[*poz-1] == 'e') {                  // Kontroluje ci je posledny znak e, ak ano tak nenastane chyba
+                LEX_string(s,c,poz);
                 return true;
             }
             else                                    // inak je chyba (napr E--)
-                error(ERR_LEX, "Neocakavany znak v '%s' '%c'\n", s, c);
+                error(ERR_LEX, "Neocakavany znak v '%s' '%c'\n", *s, c);
         }
     }
     else {                                          // ak je znak nieco ine
         if (!NumStatus->partInit)                             // v pripade neinicializovanej casti bude vzdy error, pretoze urcite ocakava cislo
-            error(ERR_LEX, "Za '%s' bola ocakavana cislica!\n", s);
+            error(ERR_LEX, "Za '%s' bola ocakavana cislica!\n", *s);
         else if (c == EOF)
             error(ERR_SYN, "Neocakavany koniec suboru");
         else if (((c == '*') ||
@@ -166,14 +166,14 @@ bool LEX_num(int c, char *s, unsigned *poz, TStructNumStat NumStatus, FILE * f) 
                   (c == ',') ||
                   (isspace(c))) {                   // ak je to nejaky znak ktory moze byt bezprostredne za cislom, tak ho uspesne ukonci
             if (*poz == 0 || (NumStatus->expPart &&
-                (s[*poz-1] == 'e' || s[*poz-1] == '+' || s[*poz-1] == '-')))
+                ((*s)[*poz-1] == 'e' || (*s)[*poz-1] == '+' || (*s)[*poz-1] == '-')))
                                                     // Ak je poz stale 0 tak sa jedna o same nuly -> vrati nulu
-                LEX_string(&s,'0',poz);
+                LEX_string(s,'0',poz);
             ungetc(c, f);
             return false;           
         }
         else                                        // inak je to error
-            error(ERR_LEX, "Za '%s' sa vyskytol neocakavany znak %c\n", s, c);
+            error(ERR_LEX, "Za '%s' sa vyskytol neocakavany znak %c\n", *s, c);
     }
     return false;
     /**
@@ -264,16 +264,16 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
     return false;
 }
 
-int LEX_ident(FILE *f, TStructLex *Ret, int z, unsigned *i) {
+int LEX_ident(FILE *f, char **s, int z, unsigned *i) {
     if((z>='a' && z<= 'z') || (z>='A' && z<= 'Z') || z == '_' || (z>='0' && z<='9')) {
         if (z>='A' && z<= 'Z') z = z + ('a' - 'A');
     } else if((z>=40 && z<=47) || (z>=58 && z<=62) || isspace(z) || z == '{') { //oddelovac alebo operator, bodka je 46 - mozno nebude vhod
         if(ungetc(z,f)==EOF) error(ERR_INTERNAL, "Nastala chyba pri praci so suborom"); //printf("%s, %d\n", Ret->lex, state);
         return false;
     } else if (z == EOF) error(ERR_SYN, "Neocakavany koniec suboru");
-    else error(ERR_LEX, "Neocakavany znak '%c' v identifikatore '%s'", z, Ret->lex);
+    else error(ERR_LEX, "Neocakavany znak '%c' v identifikatore '%s'", z, *s);
                             //vrati -1 ak je v slove nepoveoleny znak; ako nepovoleny beriem aj zlozenu zatvorku"}"
-    LEX_string(&Ret->lex, z, i);
+    LEX_string(s, z, i);
     return -1;
 }
 
@@ -339,7 +339,7 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
             break;
 
             case SLOVO: //!< IDENTIFIKATOR
-                iden_ret = LEX_ident(f, Ret, z, &i);
+                iden_ret = LEX_ident(f, &Ret->lex, z, &i);
                 if (iden_ret == false) {
                     isKeyWord(Ret);
                     return;
@@ -349,7 +349,7 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
             break;
 
             case TERM_NUM: //cisla, Lukas
-                if (!LEX_num(z, Ret->lex, &i, NumStatus, f)) {
+                if (!LEX_num(z, &Ret->lex, &i, NumStatus, f)) {
                     if (state == TERM_NUM) {
                         if (NumStatus->realPart || NumStatus->expPart) Ret->type = REAL_CONST;
                         else Ret->type = INT_CONST;
@@ -362,7 +362,7 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
             break;
 
             case TERM_STR:
-                if (!LEX_str(f,Ret->lex,z,&i,&stav)) {
+                if (!LEX_str(f,&Ret->lex,z,&i,&stav)) {
                     Ret->type=STRING_CONST;
                     if (z == EOF) {
                         error(ERR_SYN, "Neocakavany koniec suboru");
