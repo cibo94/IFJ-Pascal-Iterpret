@@ -31,6 +31,8 @@ constructor static void __init__ (void) {
     pointers->CONSTLIST = SEM_initCL();
     pointers->PARAMCOUNT = 0;
     pointers->PROGRAMINDEX = 0;
+    if ((PEIP = EIP = malloc (sizeof(P3AC)*42)) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
+    *PEIP = NULL;
    // log("Initialization");
 }
 destructor static void __free__ (void) {
@@ -42,7 +44,9 @@ destructor static void __free__ (void) {
     free(pointers->ACCREG);
     free(pointers->SREG1);
     free(pointers->SREG2);
-    
+    for (PEIP = EIP; *PEIP != NULL; PEIP++)
+        free(*PEIP);
+    free(EIP);
     free(pointers);
     free(FILE_NAME);
     FILE_NAME = NULL;

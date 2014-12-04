@@ -652,6 +652,7 @@ bool SYN_program(FILE *f){
 	case KEY_BEGIN:
   	  if (!SYN_decPrem(f,GLOBAL) || !SYN_decFunc(f)) return false; 
       BS_checkFunction(pointers->SYM_TABLE);
+      SEM_mainBegin();
       if (!SYN_comStatement(f)) return false;
       if (lexema->type!=BODKA) return false;
       SYN_readLexem(f);
@@ -668,6 +669,7 @@ void SYN_parser(FILE *f){
   if (lexema==NULL) error(ERR_INTERNAL, "Chyba alokacie pamete");
   LEX_getLexem(lexema,f);
   SEM_insertEmbFunc();
+  SEM_prologue();
   if (!SYN_program(f)) {
     free(lexema->lex);
     free(lexema);

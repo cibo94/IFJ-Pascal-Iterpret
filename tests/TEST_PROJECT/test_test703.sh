@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 export dir="test703"
 export name="test703"
-export file="../src/LEX_lexem.c"
+export file="../src/LEX_lexem.c ../src/SYN_parser.c"
 export src='#include "../src/../src/inc.h"
 
 int main () {
+    SYN_parser(stdin);
+    print_EIP(EIP);
     return 0;
 }'
 export input="

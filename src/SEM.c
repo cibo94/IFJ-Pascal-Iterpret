@@ -3,9 +3,7 @@
 //!<  GLOBALNE PREMENNE
      
      extern PGLOB_DEST pointers;
-     //extern TTerm embededFunc[];
-     TTerm * EBP;
-     TTerm * ESP;
+
    
 //!<  FUNKCIE NAD ZASOBNIKOM LABELOV
 TSlabelStack SEM_initLS(){
@@ -170,7 +168,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0 ){                    // AK SA JEDNA O UZ DEKLAROVANU FUNKCIU, TAK SA KONA LEN TYPOVA KONTROLA
         funcParam = BS_Find(pointers->SCOPE, dataID);                                              // TAK SA HLADA PRVOK V LOKALNEJ TABULKE 
         if(funcParam == NULL) error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
-        if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT)+1)                       
+        if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT)+2)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) 
@@ -208,7 +206,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
             default : break;
         } 
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
-        funcParam->data->value->value.offset = pointers->PARAMCOUNT;                    // UKAZUJE TAM KAM PARAMCOUNT  
+        funcParam->data->value->value.offset = pointers->PARAMCOUNT+1;                  // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
         return;       
     }
@@ -264,7 +262,7 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
     }
     
     newNode->data->value->index = true;                                                 
-    newNode->data->value->value.offset = (pointers->PARAMCOUNT) + 1;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
+    newNode->data->value->value.offset = (pointers->PARAMCOUNT) + 2;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
     newNode->data->value->init = false;
     
     SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);                 //  PUSH LOKALNEJ NA MIROV ZASOBNIK
@@ -298,7 +296,7 @@ void SEM_endFunctionDef(PTStructLex lexema){
         
         SEM_addCL(pointers->CONSTLIST, pocetLokalnych);
         SEM_addCL(pointers->CONSTLIST, pocetParametrov);
-        SEM_generate(OP_POP, NULL,NULL, EBP);
+        SEM_generate(OP_EBPPOP, NULL,NULL, NULL);
         SEM_generate(OP_RET, pocetLokalnych, pocetParametrov, NULL);
         
         data->flags = (data->flags | LEX_FLAGS_TYPE_FUNC_DEF);  // OZNACENIE FUNKCIE AKO DEFINOVANEJ
@@ -312,15 +310,6 @@ void SEM_endFunctionDef(PTStructLex lexema){
     pointers->SCOPE = pointers->SYM_TABLE;  // SCOPE SA VRACIA NA SYMTABLE
     pointers->CURRENTFUNCT = NULL;          // NENACHADZA SA V ZIADNEJ FUNKCII
 }
-
-
-void SEM_functBegin(){
-    pointers->ACCREG->index = false;
-    pointers->ACCREG->init = false;
-    SEM_generate(OP_PUSH, pointers->ACCREG, NULL,NULL);  //  PRIPRAVA MIESTA PRE VYSLEDOK
-}
-
-
 
 void SEM_checkFunction(PTStructLex lexema){
     if((lexema->flags & LEX_FLAGS_TYPE_FUNCTION)!=0)
@@ -453,7 +442,7 @@ void SEM_fCallPrologue(PTStructLex functID){
     pointers->ACCREG->init = false;
     pointers->ACCREG->index = false;
     SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);  // PRIPRAVA HODNOTY VYSLEDKU
-    //!< ULOZENIE HODNOTY EBP ABY UKAZOVAL NA TOTO?
+    SEM_generate(OP_EBPPUSH, NULL, NULL, NULL);
     pointers->PARAMCOUNT = 0;            //  VYNULOVANIE POCITADLA PARAMETROV
 }
 
@@ -596,7 +585,7 @@ void SEM_assignValue(PTStructLex lexema){
     if(node != pointers->CURRENTFUNCT)                                             //  AK NIE JE NA LAVEJ STRANE SUCASNA FUNKCIA TAK SA JEDNA O PRIRADENIE PRIAMO DO STROMU
         SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, node->data->value);
     else
-        SEM_generate(OP_STORE, pointers->SREG1, NULL, NULL);//!< INAK SA VYSLEDOK FUNKCIE UKLADA NA PRVOK S INDEXOM 0, DOPLNIT
+        SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, NULL);
    
     return;
 }
@@ -897,7 +886,6 @@ void SEM_prologue(){
     startLabel->type = TERM_EIP;
     SEM_pushLS(pointers->LABELSTACK, startLabel);
     SEM_addCL(pointers->CONSTLIST, startLabel);
-    if ((PEIP = EIP = malloc (sizeof(P3AC)*42)) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     SEM_generate(OP_JMP, startLabel, NULL,NULL);
 }
 

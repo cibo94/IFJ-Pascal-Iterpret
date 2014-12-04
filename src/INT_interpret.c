@@ -39,15 +39,19 @@ static bool SEmpty (PTSStack S) {
 
 static void SPush (PTSStack S, TTerm *add) {
     uint32_t size = S->size;       //!< velkost pola
-    if ((size+1)%32 == 0) {
+    if ((size+2)%32 == 0) {
         if ((S->term = realloc(S->term, sizeof(TTerm*)*(size+32))) == NULL)
             error(ERR_INTERNAL, "Chyba realokacie\n");
         S->top  = S->term + size;           //!< posunutie na spravnu poziciu
                                             //!< realloc moze hodit inu adresu
+        EBP->value.ebp->top  = (EBP->value.ebp->top - EBP->value.ebp->term) + S->term;
+        EBP->value.ebp->term = S->term;
     }
-    *(++S->top) = malloc (sizeof(TTerm));
-    memcpy(*(S->top), add, sizeof(TTerm));
-    *(S->top+1) = NULL;
+    S->top++;
+    *S->top = malloc (sizeof(TTerm));
+    if (*S->top == NULL) error(ERR_INTERNAL, "Chyba realokacie!\n");
+    memcpy(*S->top, add, sizeof(TTerm));
+    S->top[1] = NULL;
     S->size++;
 }
 
@@ -65,7 +69,7 @@ static TTerm *SPop (PTSStack S) {
 }
 
 static TTerm *SPick (PTSStack S, uint32_t offset) {
-    TTerm **s = S->top-offset;
+    TTerm **s = S->top+offset;
     return *s;
 }
 
@@ -153,8 +157,11 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
 static void assign (TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
-   ret->value = op1->value;
+    if (ret == NULL) 
+        ret = STop(EBP->value.ebp);
+    else
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    ret->value = op1->value;
 }
 
 static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -296,7 +303,6 @@ __attribute__ ((unused)) TTerm *ret) {
     free(add);
     //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
     PEIP = pom;
-
     // Arguments cleaning
     for (int i = 0; i < op2->value.integer; i++)
         free(SPop(ESP->value.esp));
@@ -306,7 +312,6 @@ static void push (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
- 
     TTerm *s = malloc (sizeof(TTerm));
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
@@ -499,10 +504,12 @@ static void ____readln () {
     int c, size;
     switch (id->type) {
         case TERM_INT :
-            scanf("%d", &id->value.pointer->value.integer);
+            if (scanf("%d", &id->value.pointer->value.integer) != 1)
+                error(ERR_RNTM_NUMREAD, "Nekompatabilny typ\n");
         break;
         case TERM_REAL :
-            scanf("%f", &id->value.pointer->value.real);
+            if (scanf("%f", &id->value.pointer->value.real) != 1)
+                error(ERR_RNTM_NUMREAD, "Nekompatabilny typ\n");
         break;
         case TERM_STRING :
             beg=pom=malloc (sizeof(char)*32);
@@ -517,13 +524,13 @@ static void ____readln () {
             id->value.pointer->value.string = beg;
         break;
         default :
-            error(ERR_SEM_TYPE, "Nekompatabilny typ\n");
+            error(ERR_RNTM_NUMREAD, "Nekompatabilny typ\n");
         break;
     }
     ret(&zero, &one, NULL);
 }
 
-static void pushesp (
+static void pushebp (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
@@ -531,7 +538,7 @@ __attribute__ ((unused)) TTerm *ret) {
     memcpy(EBP->value.ebp, ESP->value.esp, sizeof(TSStack));
 }
 
-static void popesp (
+static void popebp (
 __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) { 
@@ -546,7 +553,7 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     &greateq, &equal, &nequal,  &call, &ret, 
     &push, &pop, &jtrue, &jmp, 
     &nop, &load, &not, &store, 
-    &pushesp, &popesp
+    &pushebp, &popebp
     // TODO: Pridat dalsie funkcie!
 };
 
@@ -600,5 +607,6 @@ void INT_interpret () {
         PEIP++;
     }
     SFree(ESP->value.esp);
+    free(EBP->value.ebp);
     return;
 }
