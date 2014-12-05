@@ -170,7 +170,11 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0 ){                    // AK SA JEDNA O UZ DEKLAROVANU FUNKCIU, TAK SA KONA LEN TYPOVA KONTROLA
         funcParam = BS_Find(pointers->SCOPE, dataID);                                              // TAK SA HLADA PRVOK V LOKALNEJ TABULKE 
         if(funcParam == NULL) error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
-        if(funcParam->data->value->value.offset != ((pointers->PARAMCOUNT)+2)*-1)                       
+        int i = 0;
+        for (char *s = pointers->CURRENTFUNCT->data->param; *s != 'x' && *s != 0; s++)
+            i++;
+
+        if(funcParam->data->value->value.offset != pointers->PARAMCOUNT-i-2)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         funcParam->data->value->name = dataID->lex;
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
@@ -240,7 +244,7 @@ void SEM_defFuntionType(PTStructLex dataType){
     }
     
     TTerm * param;
-    int i = -2;
+    int i = -3;
     int k = strlen(pointers->CURRENTFUNCT->data->param);
     while(k != 0){
         param = SEM_popLS(pointers->LABELSTACK);
