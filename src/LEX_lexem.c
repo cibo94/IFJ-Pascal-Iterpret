@@ -3,7 +3,7 @@
 
 unsigned int LINE_NUM = 1;
 
-void LEX_string(char **s, int ch, unsigned *poz) {
+void LEX_string(char **s, int ch, int *poz) {
     unsigned nasobok;
     char *tmp;
     if ((((*poz)+1)%STD_LNGTH)==0) {
@@ -23,7 +23,7 @@ void LEX_string(char **s, int ch, unsigned *poz) {
     (*s)[*poz] = '\0';
 }
 
-bool LEX_str(FILE *f,char **s,int ch,unsigned *poz,TEnumLexStr *stav) {
+bool LEX_str(FILE *f,char **s,int ch,int *poz,TEnumLexStr *stav) {
     static unsigned p=0;
     char *kon;
     int cis;
@@ -82,7 +82,7 @@ bool LEX_str(FILE *f,char **s,int ch,unsigned *poz,TEnumLexStr *stav) {
     return true;  
 }
 
-bool LEX_num(int c, char **s, unsigned *poz, TStructNumStat NumStatus, FILE * f) {
+bool LEX_num(int c, char **s, int *poz, TStructNumStat NumStatus, FILE * f) {
 
     if (isdigit(c)) {                               // Ak je znak cislo  
         if (*poz == 0) {                            // Ak sa jedna o prvu cifru, automaticky sa stava 
@@ -185,7 +185,7 @@ bool LEX_num(int c, char **s, unsigned *poz, TStructNumStat NumStatus, FILE * f)
      */
 }
 
-bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
+bool LEX_operators(FILE *f, TStructLex *Ret, int z, int *i) {
     switch(Ret->lex[0]) {
     case '<':   //skusam <= a <> inak sa vratim na predosly znak a ukoncim
             if(z=='=') {
@@ -264,7 +264,7 @@ bool LEX_operators(FILE *f, TStructLex *Ret, int z, unsigned *i) {
     return false;
 }
 
-int LEX_ident(FILE *f, char **s, int z, unsigned *i) {
+int LEX_ident(FILE *f, char **s, int z, int *i) {
     if((z>='a' && z<= 'z') || (z>='A' && z<= 'Z') || z == '_' || (z>='0' && z<='9')) {
         if (z>='A' && z<= 'Z') z = z + ('a' - 'A');
     } else if((z>=40 && z<=47) || (z>=58 && z<=62) || isspace(z) || z == '{') { //oddelovac alebo operator, bodka je 46 - mozno nebude vhod
@@ -277,7 +277,7 @@ int LEX_ident(FILE *f, char **s, int z, unsigned *i) {
     return -1;
 }
 
-int LEX_base (FILE *f, TStructNumStat NumStatus, TEnumStatus *state, TStructLex *Ret, int z, unsigned *i) {
+int LEX_base (FILE *f, TStructNumStat NumStatus, TEnumStatus *state, TStructLex *Ret, int z, int *i) {
     if((z>='a' && z<= 'z') || (z>='A' && z<= 'Z') || z == '_') {
         if (z>='A' && z<= 'Z') z = z + ('a' - 'A');
         Ret->type = IDENTIFICATOR;
@@ -310,7 +310,7 @@ int LEX_base (FILE *f, TStructNumStat NumStatus, TEnumStatus *state, TStructLex 
 }
 
 void LEX_getLexem(PTStructLex Ret, FILE* f) {
-    unsigned i = 0;
+    int i = 0;
     int z = 0, base_ret, iden_ret;
     SNumStat _NumStatus = { 
         .realPart = false,

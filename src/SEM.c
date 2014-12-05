@@ -208,7 +208,6 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
                               LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
             default : break;
         } 
-        int i = 0;
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
         funcParam->data->value->value.offset = (pointers->PARAMCOUNT+1)*(-1);                  // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
@@ -292,7 +291,7 @@ void SEM_endFunctionDef(PTStructLex lexema){
   
         TTerm * pocetParametrov = malloc(sizeof(struct STerm));
         if (pocetParametrov == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-        pocetParametrov->value.integer = (x == NULL)?(dlzka):(int)(x - data->param);      
+        pocetParametrov->value.integer = (x == NULL)?((int)dlzka):(int)(x - data->param);      
         // POCET PARAMETROV, JE DLZKA STRINGU PARAM AK NEOBSAHUJE ZIADNE X, INAK JE TO ADRESA PRVEHO X MINUS ADRESA PRVEHO PRVKU
         pocetParametrov->index = false;
         TTerm * pocetLokalnych = malloc(sizeof(struct STerm));
@@ -458,7 +457,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
     TSbinstrom fNode;
     if(functID != NULL){ // V PRIPADE VOLANIA WRITE SA NEHLADA NIC V TABULKE SYMBOLOV
         fNode = BS_Find(pointers->SYM_TABLE, functID);                   //  FUNKCIA SA NAJDE V TABULKE SYMBOLOV
-        if( ((fNode->data->param)[pointers->PARAMCOUNT] == 'x') || (strlen(fNode->data->param)<pointers->PARAMCOUNT+1) )
+        if( ((fNode->data->param)[pointers->PARAMCOUNT] == 'x') || ((int)strlen(fNode->data->param)<pointers->PARAMCOUNT+1) )
             error(ERR_SEM_TYPE,"Prilis vela parametrov pri volani funkcie '%s'.\n", functID->lex);
     }
     if(paramID->type == IDENTIFICATOR){                                         //  AK SA NASIEL IDENTIFIKATOR
