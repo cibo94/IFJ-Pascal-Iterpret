@@ -25,10 +25,10 @@ char *EMB_sort(char *in, int size) {
 }
 
 char *EMB_copy(char *in, int from, int size) {
-    char *out = malloc(size*sizeof(char) +1);                  // Alokovanie navratoveho pola
+    char *out = malloc((size-from+1)*sizeof(char) +1);                  // Alokovanie navratoveho pola
     if (out == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!");
-    memcpy(out, &in[from-1], (size_t)size);                 // Kopirovanie z pozicie from do from+size do out
-    out[size]=0;
+    memcpy(out, in + from-1, (size_t)size-from+1);                 // Kopirovanie z pozicie from do from+size do out
+    out[size-from+1]=0;
     return out;
 }
 

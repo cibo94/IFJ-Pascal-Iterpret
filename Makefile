@@ -9,7 +9,7 @@ IGNORE=
 # C compiler #
 CC=gcc
 # C compiler flags #
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -DDEBUG
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -DDEBUG -g
 # Linker #
 LD=$(CC)
 # Linker flags #

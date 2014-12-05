@@ -7,7 +7,7 @@ export src='#include "../src/inc.h"
 int main(int argc, char **argv) {
     FILE *f = init(argv[argc-1]);
     SYN_parser(f);
-//   print_EIP(EIP);
+   print_EIP(EIP);
     INT_interpret();
     return 0;
 }'

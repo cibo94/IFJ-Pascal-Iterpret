@@ -379,7 +379,7 @@ void LEX_getLexem(PTStructLex Ret, FILE* f) {
                 if (z == '}') {
                     state = BASE;
                 } else if (z == EOF) 
-                    error(ERR_SYN, "Neocakavany koniec suboru");
+                    error(ERR_LEX, "Neocakavany koniec suboru");
             break;
 
             case SPACE:

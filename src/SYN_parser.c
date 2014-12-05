@@ -679,6 +679,6 @@ void SYN_parser(FILE *f){
   } else {
     free(lexema->lex);
     free(lexema);
-    printf("SYNTAX OK.\n"); 
+  //  printf("SYNTAX OK.\n"); 
   } 
 }

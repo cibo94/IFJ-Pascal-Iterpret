@@ -40,11 +40,17 @@ static PTSStack SInit () {
 static bool SEmpty (PTSStack S) {
     return S->top == NULL;
 }
+/*
+static void *s_realloc (TTerm ** arr, size_t s) {
+    TTerm ** swap = malloc (sizeof(TTerm*)*(s+2+32));
+    memcpy(swap, arr, s+2);
+    free(arr);
+}*/
 
 static void SPush (PTSStack S, TTerm *add) {
     uint32_t size = S->size;       //!< velkost pola
     if ((size+2)%32 == 0) {
-        if ((S->term = realloc(S->term, sizeof(TTerm*)*(size+32))) == NULL)
+        if ((S->term = realloc(S->term, sizeof(TTerm*)*(size+2+32))) == NULL)
             error(ERR_INTERNAL, "Chyba realokacie\n");
         S->top  = S->term + size;           //!< posunutie na spravnu poziciu
                                             //!< realloc moze hodit inu adresu
@@ -354,7 +360,7 @@ __attribute__ ((unused)) TTerm *ret) {
     TTerm *s = malloc (sizeof(TTerm));
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
-    //log("PUSH: op1:%u on stack:%u\n", op1->value.address, s->value.address);
+    //log("PUSH: ESP: %u EBP:%u\n", ESP->value.esp->size, EBP->value.ebp->size);
     SPush(ESP->value.esp, s);
 }
 
@@ -366,7 +372,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     if (ret != NULL) {
         if (!SEmpty(ESP->value.esp)) {
             TTerm *pom = SPop(ESP->value.esp);
-            if (pom == NULL) error(ERR_INTERNAL, "WTF");
+            if (pom == NULL) error(ERR_INTERNAL, "Pop vratil NULL, ??????");
             memcpy(ret, pom, sizeof(TTerm));
             ret->index = false;
             free(pom); 
@@ -410,7 +416,7 @@ __attribute__ ((unused)) TTerm *ret) {
     };
     push(&Address, NULL, NULL);
     for (int i = 0; i < 6; i++) {
-        if (&embededFunc[i] == op1) {
+        if (strcmp(embededFunc[i].name, op1->name) == 0) {
             pushebp(NULL, NULL, NULL);
             op1->value.emb_function();
             return;
@@ -473,49 +479,61 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 }
 
 static void __sort () {
-    TTerm *str = SPick(ESP->value.esp,-1),
+    TTerm *str = SPick(EBP->value.ebp,-2),
+          *out = SPick(EBP->value.ebp,-3),
            zero = {
                .value.integer = 0,
                .type = TERM_INT
+           },
+           one  = {
+               .value.integer = 1,
+               .type = TERM_INT
            };
-    str->value.string = EMB_sort (str->value.string, EMB_length(str->value.string));
-    ret(&zero, &zero, NULL);
+    out->value.string = EMB_sort (str->value.string, EMB_length(str->value.string));
+    ret(&zero, &one, NULL);
 }
 
 static void __copy () {
-    TTerm *str  = SPick(ESP->value.esp, -1),
-          *from = SPick(ESP->value.esp, -2),
-          *size = SPick(ESP->value.esp, -3),
+    TTerm *str  = SPick(EBP->value.ebp, -4),
+          *from = SPick(EBP->value.ebp, -3),
+          *size = SPick(EBP->value.ebp, -2),
+          *out  = SPick(EBP->value.ebp, -5),
            zero = {
                .value.integer = 0,
                .type = TERM_INT
-           }, two = {
-               .value.integer = 2,
+           }, three = {
+               .value.integer = 3,
                .type = TERM_INT
            };
-    size->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
-    ret(&zero, &two, NULL);
+    out->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
+   // log ("%s", out->value.string);
+    ret(&zero, &three, NULL);
 }
 
 static void __length () {
-    TTerm *str = SPick(ESP->value.esp, -1),
-           zero = {
+    TTerm *str = SPick(EBP->value.ebp, -2),
+          *out = SPick(EBP->value.ebp, -3),
+           zero= {
                .value.integer = 0
+           }, 
+           one = {
+               .value.integer = 1
            };
-    str->value.integer = EMB_length(str->value.string);
-    ret(&zero, &zero, NULL);
+    out->value.integer = EMB_length(str->value.string);
+    ret(&zero, &one, NULL);
 }
 
 static void __find () {
-    TTerm *str = SPick(ESP->value.esp, -1),
-          *fstr= SPick(ESP->value.esp, -2),
+    TTerm *str = SPick(EBP->value.ebp, -3),
+          *fstr= SPick(EBP->value.ebp, -2),
+          *out = SPick(EBP->value.ebp, -4),
            zero = {
                .value.integer = 0
            },
            one = {
-               .value.integer = 1
+               .value.integer = 2
            };
-    fstr->value.integer = EMB_find(str->value.string, fstr->value.string);
+    out->value.integer = EMB_find(str->value.string, fstr->value.string);
     ret(&zero, &one, NULL);
 }
 
@@ -567,14 +585,18 @@ static void ____readln () {
         case TERM_INT :
             if (scanf("%d", &id->value.pointer->value.integer) != 1)
                 error(ERR_RNTM_NUMREAD, "Zle nacitany integer\n");
+            if (!isspace(fgetc(stdin)))
+                error(ERR_RNTM_NUMREAD, "Zle nacitany integer\n");
         break;
         case TERM_REAL :
             if (scanf("%f", &id->value.pointer->value.real) != 1)
                 error(ERR_RNTM_NUMREAD, "Zle nacitany real\n");
+            if (!isspace(fgetc(stdin)))
+                error(ERR_RNTM_NUMREAD, "Zle nacitany real\n");
         break;
         case TERM_STRING :
             beg=pom=malloc (sizeof(char)*32);
-            while ((c=getchar())!=EOF&&(c!='\n')) {
+            while ((c=fgetc(stdin))!=EOF&&(c!='\n')) {
                 *(pom++)=c;
                 *pom='\0';
                 size=pom-beg;
@@ -604,7 +626,7 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     // TODO: Pridat dalsie funkcie!
 };
 
-TTerm embededFunc[] = {
+TTerm embededFunc[6] = {
     {
         .value.emb_function = &__sort,
         .type = TERM_EMB,
@@ -651,7 +673,7 @@ void INT_interpret () {
     //      * pridat dealokacie: snad DONE
     //log("Runtime disasembly\n");
     for (int i = 0; *PEIP != NULL; i++) {
-   /*     printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
+        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
           (unsigned int)(PEIP-EIP)+1,
           OPERATIONS[(*PEIP)->op],
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->name            : "",
@@ -662,12 +684,13 @@ void INT_interpret () {
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.integer   : 0, 
           (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.integer   : 0,
           (*PEIP)->ret != NULL ? (*PEIP)->ret->value.integer   : 0);
-   */
+
+
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
 
 
         PEIP++;
     }
-  //  SFree(ESP->value.esp);
+    SFree(ESP->value.esp);
     return;
 }

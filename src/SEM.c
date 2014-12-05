@@ -155,6 +155,7 @@ void SEM_defineFunction(PTStructLex dataID){
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;                 //  OZNACENIE ZE SA JEDNA O FUNKCIU
         newNode->data->value->name = dataID->lex;
         newNode->data->value->index = false;
+        newNode->data->value->value = dataID->value->value;
     }
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
     pointers->SCOPE = newNode->loc_table;           //  NASTAVENIE JEJ PODSTROMU
@@ -207,6 +208,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
                               LEX_string(&(pointers->CURRENTFUNCT->data->param),'b',&(pointers->PARAMCOUNT));   break;    
             default : break;
         } 
+        int i = 0;
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
         funcParam->data->value->value.offset = (pointers->PARAMCOUNT+1)*(-1);                  // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
@@ -484,7 +486,6 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
                                 error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT + 1, functID->lex);break;
             default : break;
         }
-        
         pNode->data->value->name = paramID->lex;
         pointers->SREG1->index = false;
         pointers->SREG1->value.integer = -1;
@@ -528,7 +529,6 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
                                 error(ERR_SEM_TYPE,"Typ parametra (const) na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT + 1, functID->lex);break;
             default : break;
         }
-        
         term->name = paramID->lex;
         SEM_generate(OP_PUSH, term, NULL, NULL);                             // PUSH PARAMETRA
         SEM_addCL(pointers->CONSTLIST,term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
@@ -540,12 +540,17 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
 
 void SEM_functionCall(PTStructLex functID){
     TSbinstrom node = BS_Find(pointers->SYM_TABLE, functID);
-    if(((node->data->flags | LEX_FLAGS_TYPE_FUNC_DEF) == 0)&&(strcmp(functID->lex, "length") == 0))
+    if     ((strcmp(functID->lex, "length") == 0))
         SEM_generate(OP_CALL, &EMBlength, NULL, NULL);
-    else if(((node->data->flags | LEX_FLAGS_TYPE_FUNC_DEF) == 0)&&(strcmp(functID->lex, "copy") == 0))
+    else if((strcmp(functID->lex, "copy") == 0))
         SEM_generate(OP_CALL, &EMBcopy, NULL, NULL);
+    else if((strcmp(functID->lex, "sort") == 0))
+        SEM_generate(OP_CALL, &EMBsort, NULL, NULL);
+    else if((strcmp(functID->lex, "find") == 0))
+        SEM_generate(OP_CALL, &EMBfind, NULL, NULL);
     else
         SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
+                       //  SKOK NA FUNKCIU 
     if ( ((node->data->param)[pointers->PARAMCOUNT]=='i')||
          ((node->data->param)[pointers->PARAMCOUNT]=='r')||
          ((node->data->param)[pointers->PARAMCOUNT]=='s')||
@@ -725,7 +730,6 @@ void SEM_insertEmbFunc(){
         fLength->value = &EMBlength;
         fLength->lex = "length";    
         fLength->param = NULL;
-        fLength->value = NULL;
         //fLength->flags = LEX_FLAGS_INIT;
         pLength1->lex = "s";        
         pLength1->type = IDENTIFICATOR;
@@ -756,7 +760,6 @@ void SEM_insertEmbFunc(){
         fCopy->value = &EMBcopy;
         fCopy->lex = "copy";      
         fCopy->param = NULL;
-        fCopy->value = NULL;   
         //fCopy->flags = LEX_FLAGS_INIT;        
         pCopy1->lex = "s";     
         pCopy1->type = IDENTIFICATOR; 
@@ -798,7 +801,6 @@ void SEM_insertEmbFunc(){
         fFind->value = &EMBfind;
         fFind->lex = "find";  
         fFind->param = NULL;
-        fFind->value = NULL;  
         //fFind->flags = LEX_FLAGS_INIT;         
         pFind1->lex = "s";        
         pFind1->type = IDENTIFICATOR;  
@@ -830,7 +832,6 @@ void SEM_insertEmbFunc(){
         fSort->value = &EMBsort;
         fSort->lex = "sort";
         fSort->param = NULL;
-        fSort->value = NULL;
         //fSort->flags = LEX_FLAGS_INIT;        
         pSort1->lex = "s";        
         pSort1->type = IDENTIFICATOR;
@@ -930,7 +931,7 @@ static inline void SEM_addInstruction (P3AC inst) {
          * Realokuje EIP o 42 adresu ulozi do EIP a pricita k nej velkost a ulozi do PEIP
          * nasledne od toho cele odcita velkost aby sme vedeli ci nenastal NULL
          */
-        PEIP = size + (EIP = realloc(EIP, sizeof(P3AC)*(size+42)));
+        PEIP = size + (EIP = realloc(EIP, sizeof(P3AC)*(size+1+42)));
         if (EIP == NULL)
             error(ERR_INTERNAL, "Chyba realokacie!\n");
     }
