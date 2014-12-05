@@ -244,7 +244,7 @@ void SEM_defFuntionType(PTStructLex dataType){
     }
     
     TTerm * param;
-    int i = -3;
+    int i = -2;
     int k = strlen(pointers->CURRENTFUNCT->data->param);
     while(k != 0){
         param = SEM_popLS(pointers->LABELSTACK);
