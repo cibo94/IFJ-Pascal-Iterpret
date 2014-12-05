@@ -16,10 +16,9 @@
 
 /** Our includes 		*/
 #include "error.h"			    //!< Error handling
-#include "LEX_lexem.h"			//!< Praca s lexemami
-#include "binary_tree.h"		//!< Binarny strom
-#include "emb_func.h"
-#include "SYN_parser.h"
-#include "INT_interpret.h"
+#include "lex_lexem.h"			//!< Praca s lexemami
+#include "ial.h"		//!< Binarny strom
+#include "syn_parser.h"
+#include "int_interpret.h"
 #include "init.h"               //!< Inicializacne funkcie
-#include "SEM.h"
+#include "sem.h"

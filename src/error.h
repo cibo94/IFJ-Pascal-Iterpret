@@ -10,8 +10,8 @@
 
 #ifndef h_ERROR
 #define h_ERROR
-#include "LEX_lexem.h"
-#include "INT_interpret.h"
+#include "lex_lexem.h"
+#include "int_interpret.h"
 /**
  * \brief Error function
  * \param retCode navratova hodnota
