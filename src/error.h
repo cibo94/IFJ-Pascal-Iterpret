@@ -119,6 +119,7 @@ static const char *OPERATIONS[] = {
     "JMP", 
     "NOP", 
     "LOAD",
+    "LOAD_PARAM",
     "NOT",
     "STORE",
     "EBPPUSH",

@@ -20,7 +20,7 @@ typedef struct {
     struct SemStack   * EXPRSTACK;    //!<  (Expression stack)  Zasobnik vyuzivany pri typovej kontrole nad vyrazmi
     struct SconstList * CONSTLIST;    //!<  (Constant list)     Zoznam ukazatelov na vsetky konstanty v programe
     struct SlabelStack* LABELSTACK;   //!<  (Label stack)       Zasobnik vyuzivany pri skokoch a navestiach
-    unsigned int       PARAMCOUNT;    //!<  (Parameter counter) Pocitadlo parametrov funkcie (pouzivane pri deklaracii funkcii a volani funkcii)
+    int                 PARAMCOUNT;    //!<  (Parameter counter) Pocitadlo parametrov funkcie (pouzivane pri deklaracii funkcii a volani funkcii)
     unsigned int       PROGRAMINDEX;
 } GLOB_DEST, *PGLOB_DEST;
 

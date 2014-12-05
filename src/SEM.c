@@ -2,8 +2,7 @@
 
 //!<  GLOBALNE PREMENNE
      
-     extern PGLOB_DEST pointers;
-
+extern PGLOB_DEST pointers;
    
 //!<  FUNKCIE NAD ZASOBNIKOM LABELOV
 TSlabelStack SEM_initLS(){
@@ -170,7 +169,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
     if( (pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_TYPE_FUNC_DEK) != 0 ){                    // AK SA JEDNA O UZ DEKLAROVANU FUNKCIU, TAK SA KONA LEN TYPOVA KONTROLA
         funcParam = BS_Find(pointers->SCOPE, dataID);                                              // TAK SA HLADA PRVOK V LOKALNEJ TABULKE 
         if(funcParam == NULL) error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju\n");   //  AK SA PARAMETER S DANYM ID NENASIEL = CHYBA
-        if(funcParam->data->value->value.offset != (pointers->PARAMCOUNT)+2)                       
+        if(funcParam->data->value->value.offset != ((pointers->PARAMCOUNT)+2)*-1)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         funcParam->data->value->name = dataID->lex;
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
@@ -209,7 +208,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
             default : break;
         } 
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
-        funcParam->data->value->value.offset = pointers->PARAMCOUNT+1;                  // UKAZUJE TAM KAM PARAMCOUNT  
+        funcParam->data->value->value.offset = (pointers->PARAMCOUNT+1)*(-1);                  // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
         return;       
     }
@@ -263,9 +262,11 @@ void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
         case KEY_BOOLEAN: newNode->data->value->type = TERM_BOOL;    LEX_string(&(pointers->CURRENTFUNCT->data->param),'x',&(pointers->PARAMCOUNT));  break;    
         default : break;
     }
-    
+    int i = 0;
+    for (char *pom = pointers->CURRENTFUNCT->data->param; *pom != 'x'; pom++)
+        i++;
     newNode->data->value->index = true;                                                 
-    newNode->data->value->value.offset = (pointers->PARAMCOUNT) + 2;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
+    newNode->data->value->value.offset = (pointers->PARAMCOUNT) - i;    // LOKALNE PREMENNE MAJU INDEX VYSSI O 2, PRETOZE SA MEDZI NIMY A LOKALNYMI BUDE NACHADZAT ADRESA SPATNEHO SKOKU
     newNode->data->value->init = false;
     newNode->data->value->name = dataID->lex;
     SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);                 //  PUSH LOKALNEJ NA MIROV ZASOBNIK
@@ -289,17 +290,17 @@ void SEM_endFunctionDef(PTStructLex lexema){
   
         TTerm * pocetParametrov = malloc(sizeof(struct STerm));
         if (pocetParametrov == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-        pocetParametrov->value.integer = (x == NULL)?(dlzka):(unsigned)(x - data->param);      
-        // POCET PARAMETROV, JE DLZKA STRINGU PARAM AK NEOBSAHUJE ZIADNE X, INAK JE TO ADRESA PRVEHO X MINUS ADRESA PRVEHO PRVKU                                                                        
-        
+        pocetParametrov->value.integer = (x == NULL)?(dlzka):(int)(x - data->param);      
+        // POCET PARAMETROV, JE DLZKA STRINGU PARAM AK NEOBSAHUJE ZIADNE X, INAK JE TO ADRESA PRVEHO X MINUS ADRESA PRVEHO PRVKU
+        pocetParametrov->index = false;
         TTerm * pocetLokalnych = malloc(sizeof(struct STerm));
         if (pocetLokalnych == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
         pocetLokalnych->value.integer = ((x == NULL)?(0):(dlzka - pocetParametrov->value.integer));
+        pocetLokalnych->index = false;
         //  POCET LOKALNYCH, JE 0 AK NENASLO X, INAK JE TO DLZKA STRINGU MINUS POCET PARAMETROV
         
         SEM_addCL(pointers->CONSTLIST, pocetLokalnych);
         SEM_addCL(pointers->CONSTLIST, pocetParametrov);
-        SEM_generate(OP_EBPPOP, NULL,NULL, NULL);
         SEM_generate(OP_RET, pocetLokalnych, pocetParametrov, NULL);
         
         data->flags = (data->flags | LEX_FLAGS_TYPE_FUNC_DEF);  // OZNACENIE FUNKCIE AKO DEFINOVANEJ
@@ -447,7 +448,6 @@ void SEM_fCallPrologue(PTStructLex functID){
     pointers->ACCREG->init = false;
     pointers->ACCREG->index = false;
     SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);  // PRIPRAVA HODNOTY VYSLEDKU
-    SEM_generate(OP_EBPPUSH, NULL, NULL, NULL);
     pointers->PARAMCOUNT = 0;            //  VYNULOVANIE POCITADLA PARAMETROV
 }
 
@@ -486,11 +486,15 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         }
         
         pNode->data->value->name = paramID->lex;
+        pointers->SREG1->index = false;
+        pointers->SREG1->value.integer = -1;
         if(pNode->data->value->index){
             SEM_generate(OP_LOAD, pNode->data->value, NULL, pointers->SREG1);
             SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);
         }
-        else SEM_generate(OP_PUSH, pNode->data->value, NULL, NULL);  // PUSH PARAMETRA NA ZASOBNIK
+        else {
+            SEM_generate(OP_PUSH, pNode->data->value, NULL, NULL);  // PUSH PARAMETRA NA ZASOBNIK
+        }
     }
     else{                                                            // V PRIPADE KONSTANTY JU POTREBUJEM ULOZIT DO STROMU AKO GENEROVANU PREMENNU   
         struct STerm * term = malloc(sizeof(struct STerm));          // PRE KONSTANTY SA VYTVARA NOVE UMIESTNENIE, A UKLADA SA DO ZOZNAMU KONSTANT
@@ -542,7 +546,6 @@ void SEM_functionCall(PTStructLex functID){
         SEM_generate(OP_CALL, &EMBcopy, NULL, NULL);
     else
         SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
-    
     if ( ((node->data->param)[pointers->PARAMCOUNT]=='i')||
          ((node->data->param)[pointers->PARAMCOUNT]=='r')||
          ((node->data->param)[pointers->PARAMCOUNT]=='s')||
@@ -591,8 +594,17 @@ void SEM_assignValue(PTStructLex lexema){
     SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
     if(node != pointers->CURRENTFUNCT)                                             //  AK NIE JE NA LAVEJ STRANE SUCASNA FUNKCIA TAK SA JEDNA O PRIRADENIE PRIAMO DO STROMU
         SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, node->data->value);
-    else
-        SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, NULL);
+    else {
+        TTerm *pom = malloc (sizeof(TTerm));
+        if (pom == NULL) error(ERR_INTERNAL, "Malloc hodil NULL");
+        int i = 0;
+        for (char *str = pointers->CURRENTFUNCT->data->param; *str != '\0' && *str != 'x'; str++)
+            i++;
+        pom->index = true;
+        pom->value.offset = (i+2)*(-1);
+        SEM_addCL(pointers->CONSTLIST, pom);
+        SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, pom);
+    }
    
     return;
 }

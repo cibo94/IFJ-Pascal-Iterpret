@@ -34,6 +34,7 @@ typedef enum {
     OP_JMP, 
     OP_NOP, 
     OP_LOAD,
+    OP_LOAD_PARAM,
     OP_NOT,
     OP_STORE,
     OP_EBPPUSH,
@@ -64,7 +65,7 @@ typedef struct STerm {
         bool            boolean;         //!< Ak je term typ TERM_BOOL operacie pouzivaju hodnotu ako boolean
         uint32_t        address;         //!< Adresa do pola instrukcii TERM_EIP
         struct STerm   *pointer;         //!< Ukazatel na iny Term -> koli readln, zo zadania nemame riesit TERM_POINTER
-        uint32_t        offset;          //!< Offset do zasobnika TERM_OFFSET
+        int             offset;          //!< Offset do zasobnika TERM_OFFSET
         void          (*emb_function)(); //!< ukazatel na zabudovanu funkciu tyo TERM_EMB
         PTSStack        esp;
         PTSStack        ebp;
@@ -93,5 +94,6 @@ __attribute__ ((unused))
 void INT_interpret ();      //!< zakladna funkcia -> spusti interpret, musi byt vyplneny EIP a ukonceny NULLom
 extern P3AC *EIP,           //!< EIP -> globalne pole intrukcii
             *PEIP;          //!< PEIP -> ukazatel do pola instrukcii -> koli skokom a pod
+extern TTerm *EBP, *ESP;
 extern TTerm embededFunc[]; //!< zabudovane funkcie -> readln, write, sort, length, ...
 #endif
