@@ -209,7 +209,8 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
             default : break;
         } 
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
-        funcParam->data->value->value.offset = (pointers->PARAMCOUNT+1)*(-1);                  // UKAZUJE TAM KAM PARAMCOUNT  
+        SEM_pushLS(pointers->LABELSTACK, funcParam->data->value);
+        // funcParam->data->value->value.offset = (pointers->PARAMCOUNT+1)*(-1);                  // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
         return;       
     }
@@ -237,6 +238,16 @@ void SEM_defFuntionType(PTStructLex dataType){
         case KEY_BOOLEAN: pointers->CURRENTFUNCT->data->flags = (flagy | LEX_FLAGS_TYPE_BOOL);     break;   
         default : break;
     }
+    
+    TTerm * param;
+    int i = -2;
+    int k = strlen(pointers->CURRENTFUNCT->data->param);
+    while(k != 0){
+        param = SEM_popLS(pointers->LABELSTACK);
+        param->value.offset = i;
+        i--;
+        k--;
+    }    
     
     pointers->CURRENTFUNCT->data->value->value.address = pointers->PROGRAMINDEX;    //  NASTAVENIE ADRESY SKOKU NA NASLEDUJUCU INSTRUKCIU
     
