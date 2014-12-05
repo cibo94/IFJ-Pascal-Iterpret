@@ -475,8 +475,8 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     /// nacita zo zasobnika nti prvok
     TTerm *pom = SPick(EBP->value.ebp,op1->value.integer);
     if (pom == NULL) error(ERR_INTERNAL, "Load popol NULL, %d\n\
-    ESP size %u, EBP size %u\n", op1->value.offset, ESP->value.esp->size, 
-    EBP->value.ebp->size);
+    ESP size %u, EBP size %u\n", op1->value.offset, (unsigned)ESP->value.esp->size, 
+    (unsigned)EBP->value.ebp->size);
     memcpy(ret, pom, sizeof(TTerm));
 }
 
@@ -484,8 +484,8 @@ static void load_param ( TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     TTerm *pom = SPick(BEBP->value.ebp,op1->value.integer);
     if (pom == NULL) error(ERR_INTERNAL, "Load popol NULL, %d\n\
-    ESP size %u, EBP size %u\n", op1->value.offset, ESP->value.esp->size, 
-    BEBP->value.ebp->size);
+    ESP size %u, EBP size %u\n", op1->value.offset, (unsigned)ESP->value.esp->size, 
+    (unsigned)BEBP->value.ebp->size);
     memcpy(ret, pom, sizeof(TTerm));
 
 }
@@ -693,7 +693,7 @@ void INT_interpret () {
     //      * pridat dealokacie: snad DONE
     //log("Runtime disasembly\n");
     for (int i = 0; *PEIP != NULL; i++) {
-        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
+/*        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
           (unsigned int)(PEIP-EIP)+1,
           OPERATIONS[(*PEIP)->op],
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->name            : "",
@@ -704,7 +704,7 @@ void INT_interpret () {
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.integer   : 0, 
           (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.integer   : 0,
           (*PEIP)->ret != NULL ? (*PEIP)->ret->value.integer   : 0);
-
+*/
 
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
 

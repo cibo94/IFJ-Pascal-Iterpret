@@ -130,7 +130,7 @@ extern unsigned int LINE_NUM;     //!< pozicia v subore podla riadkov
 void 
 LEX_string(char     **s,
            int        ch,
-           unsigned  *poz);
+           int  *poz);
 
 /** LEX_num
  * \brief Postupne vytvara ciselnu lexemu. Funkcia je volana v pripade, ze prvy znak novej lexemy je cislo (0..9)
@@ -145,7 +145,7 @@ LEX_string(char     **s,
 bool
 LEX_num(int              c,
         char            **s, 
-        unsigned        *poz, 
+        int        *poz, 
         TStructNumStat   NumStatus, 
         FILE            *f);
 
@@ -163,7 +163,7 @@ bool
 LEX_str(FILE        *f,
         char        **s,
         int          ch,
-        unsigned    *poz,
+        int    *poz,
         TEnumLexStr *stav);
 
 /** LEX_operators
@@ -179,7 +179,7 @@ bool
 LEX_operators(FILE          *f, 
               TStructLex    *Ret, 
               int            z, 
-              unsigned      *i);
+              int      *i);
 /** LEX_ident
  * \brief Nacita identifikatorov do struktury
  * \param f File handle
@@ -193,7 +193,7 @@ int
 LEX_ident(FILE          *f, 
           char         **s, 
           int            z, 
-          unsigned      *i);
+          int      *i);
 /** LEX_base
  * \brief Base stav
  * \param f File handle
@@ -210,7 +210,7 @@ LEX_base(FILE               *f,
          TEnumStatus        *state, 
          TStructLex         *Ret, 
          int                 z, 
-         unsigned           *i);
+         int           *i);
 
 
 /** LEX_getLexem
