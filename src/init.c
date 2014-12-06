@@ -48,7 +48,7 @@ constructor static void __init__ (void) {
    // log("Initialization");
 }
 destructor static void __free__ (void) {
-   // BS_Free(pointers->SYM_TABLE);
+    BS_Free(pointers->SYM_TABLE);
     
     SEM_disposeCL(pointers->CONSTLIST);
     SEM_disposeSS(pointers->EXPRSTACK);

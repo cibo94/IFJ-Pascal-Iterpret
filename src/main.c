@@ -6,5 +6,6 @@ int main (int argc, char ** argv) {
     SYN_parser(f);
 //    print_EIP(EIP);
     INT_interpret();
+    fclose(f);
     return 0;
 }

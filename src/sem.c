@@ -108,6 +108,8 @@ void SEM_disposeCL(TSconstList list){
     while (list->first != NULL){
         toDelete = list->first;
         list->first = toDelete->next;
+        if (toDelete->constTerm != NULL && toDelete->constTerm->type == TERM_STRING)
+            free(toDelete->constTerm->value.string);
         free(toDelete->constTerm);
         free(toDelete);
     }
@@ -313,6 +315,8 @@ void SEM_endFunctionDef(PTStructLex lexema){
         if (pocetLokalnych == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
         pocetLokalnych->value.integer = ((x == NULL)?(0):(dlzka - pocetParametrov->value.integer));
         pocetLokalnych->index = false;
+        pocetLokalnych->type = TERM_INT;
+        pocetParametrov->type = TERM_INT;
         //  POCET LOKALNYCH, JE 0 AK NENASLO X, INAK JE TO DLZKA STRINGU MINUS POCET PARAMETROV
         
         SEM_addCL(pointers->CONSTLIST, pocetLokalnych);
@@ -502,7 +506,13 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
                                 error(ERR_SEM_TYPE,"Typ parametra na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT + 1, functID->lex);break;
             default : break;
         }
-        pNode->data->value->name = paramID->lex;
+#if 0
+        size_t lexSize = strlen(paramID->lex)+1;
+        pNode->data->value->name = malloc(lexSize);
+        memcpy(pNode->data->value->name, paramID->lex, lexSize);
+#else
+        pNode->data->value->name = NULL;
+#endif
         pointers->SREG1->index = false;
         pointers->SREG1->value.integer = -1;
         if(pNode->data->value->index){
@@ -518,13 +528,15 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         if (term == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         term->index = false;
         term->init = true;
-        
+        size_t size;
         switch(paramID->type){                                        // PODLA TYPU LEXEMY SA SKONVERTUJE STRING NA POZADOVANU HODNOTU
             case INT_CONST    :  term->value.integer = atoi(paramID->lex);
                                  term->type = TERM_INT; break;
             case REAL_CONST   :  term->value.real = atof(paramID->lex);
                                  term->type = TERM_REAL; break;  
-            case STRING_CONST :  term->value.string = paramID->lex;
+            case STRING_CONST :  size = strlen(paramID->lex)+1;
+                                 term->value.string = malloc(size);
+                                 memcpy(term->value.string, paramID->lex, size);
                                  term->type = TERM_STRING; break;           
             case KEY_TRUE   :    term->value.boolean = true;
                                  term->type = TERM_BOOL; break;           
@@ -545,7 +557,13 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
                                 error(ERR_SEM_TYPE,"Typ parametra (const) na pozicii %d pri volani funkcie '%s' je nespravny.\n", pointers->PARAMCOUNT + 1, functID->lex);break;
             default : break;
         }
-        term->name = paramID->lex;
+#if 0
+        size_t lexSize = strlen(paramID->lex)+1;
+        term->name = malloc(lexSize);
+        memcpy(term->name, paramID->lex, lexSize);
+#else
+        term->name = NULL;
+#endif
         SEM_generate(OP_PUSH, term, NULL, NULL);                             // PUSH PARAMETRA
         SEM_addCL(pointers->CONSTLIST,term);                                 // ULOZENIE KONSTANTY DO ZOZNAMU KONSTANT
     }
@@ -623,6 +641,7 @@ void SEM_assignValue(PTStructLex lexema){
             i++;
         pom->index = true;
         pom->value.offset = (i+2)*(-1);
+        pom->type = TERM_OFFSET;
         SEM_addCL(pointers->CONSTLIST, pom);
         SEM_generate(OP_ASSIGN, pointers->ACCREG, NULL, pom);
     }
@@ -744,10 +763,12 @@ void SEM_insertEmbFunc(){
 
         
         fLength->value = &EMBlength;
-        fLength->lex = "length";    
+        fLength->lex = malloc(7);
+        memcpy (fLength->lex, "length", 7);    
         fLength->param = NULL;
         //fLength->flags = LEX_FLAGS_INIT;
-        pLength1->lex = "s";        
+        pLength1->lex = malloc(2);
+        memcpy(pLength1->lex, "s", 2);
         pLength1->type = IDENTIFICATOR;
         pLength1->param = NULL;
         pLength1->value = NULL;
@@ -774,22 +795,26 @@ void SEM_insertEmbFunc(){
     
         
         fCopy->value = &EMBcopy;
-        fCopy->lex = "copy";      
+        fCopy->lex = malloc(5);
+        memcpy(fCopy->lex, "copy", 5);
         fCopy->param = NULL;
         //fCopy->flags = LEX_FLAGS_INIT;        
-        pCopy1->lex = "s";     
+        pCopy1->lex = malloc(2);
+        memcpy(pCopy1->lex, "s",2);
         pCopy1->type = IDENTIFICATOR; 
         pCopy1->param = NULL;
         pCopy1->value = NULL;        
         pType1->lex = "string";
         pType1->type = KEY_STRING;       
-        pCopy2->lex = "i";        
+        pCopy2->lex = malloc(2);
+        memcpy(pCopy2->lex,"i",2);
         pCopy2->type = IDENTIFICATOR;      
         pCopy2->param = NULL;
         pCopy2->value = NULL;        
         pType2->lex = "string";
         pType2->type = KEY_INTEGER;
-        pCopy3->lex = "n";        
+        pCopy3->lex = malloc(2);
+        memcpy(pCopy3->lex, "n", 2); 
         pCopy3->type = IDENTIFICATOR;
         pCopy3->param = NULL;
         pCopy3->value = NULL;        
@@ -815,16 +840,19 @@ void SEM_insertEmbFunc(){
 
  
         fFind->value = &EMBfind;
-        fFind->lex = "find";  
+        fFind->lex = malloc(5);
+        memcpy(fFind->lex, "find", 5);
         fFind->param = NULL;
         //fFind->flags = LEX_FLAGS_INIT;         
-        pFind1->lex = "s";        
+        pFind1->lex = malloc(2);
+        memcpy(pFind1->lex, "s", 2);   
         pFind1->type = IDENTIFICATOR;  
         pFind1->param = NULL;
         pFind1->value = NULL;        
         pType1->lex = "string";
         pType1->type = KEY_STRING;       
-        pFind2->lex = "search";        
+        pFind2->lex = malloc(7);
+        memcpy(pFind2->lex, "search", 7);   
         pFind2->type = IDENTIFICATOR; 
         pFind2->param = NULL;
         pFind2->value = NULL;        
@@ -846,10 +874,12 @@ void SEM_insertEmbFunc(){
         if(pSort1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");   
     
         fSort->value = &EMBsort;
-        fSort->lex = "sort";
+        fSort->lex = malloc(5);
+        memcpy(fSort->lex, "sort", 5);
         fSort->param = NULL;
         //fSort->flags = LEX_FLAGS_INIT;        
-        pSort1->lex = "s";        
+        pSort1->lex = malloc(2);
+        memcpy(pSort1->lex, "s", 2); 
         pSort1->type = IDENTIFICATOR;
         pSort1->param = NULL;
         pSort1->value = NULL;          
@@ -894,9 +924,9 @@ void SEM_readln(PTStructLex paramID){
     }
     else {
         TTerm *PomNode = malloc (sizeof(TTerm));
-        SEM_addCL(pointers->CONSTLIST, PomNode);
         PomNode->value.pointer = pNode->data->value;
         PomNode->type = TERM_POINTER;
+        SEM_addCL(pointers->CONSTLIST, PomNode);
         SEM_generate(OP_PUSH, PomNode, NULL, NULL);
     }
     
@@ -917,6 +947,7 @@ void SEM_writeCall(){
     pCount->value.offset = pointers->PARAMCOUNT;
     pCount->init = true;
     pCount->index = false;
+    pCount->type = TERM_OFFSET;
     SEM_addCL(pointers->CONSTLIST,pCount);
     SEM_generate(OP_PUSH, pCount, NULL, NULL);
     SEM_generate(OP_CALL, &EMBwrite,NULL,NULL);

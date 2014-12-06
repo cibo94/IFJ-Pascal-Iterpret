@@ -1,7 +1,7 @@
 /**
  * \file SYN_parser.h
  * \brief Kniznica pracujuca so syntaxom
- * \author Palo Vican
+ * \author Palo Vican a Filip Luptak
  */ 
 #ifndef h_SYN_parser
 #define h_SYN_parser
@@ -212,9 +212,10 @@ bool SYN_nextTerm(FILE *f);
 void SYN_parser(FILE *f);
 
 /** SYN_readLexem
- * \brief `Fukcia na alokovanie a nacitanie lexemy z lexykalnej analyzy
+ * \brief Fukcia na alokovanie a nacitanie lexemy z lexykalnej analyzy
  * \param f File handle
+ * \param erase Ci ma zmazat lexemu
  */
-void SYN_readLexem(FILE *f);
+void SYN_readLexem(FILE *f,bool erase);
 
 #endif

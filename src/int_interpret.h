@@ -34,7 +34,6 @@ typedef enum {
     OP_JMP, 
     OP_NOP, 
     OP_LOAD,
-    OP_LOAD_PARAM,
     OP_NOT,
     OP_STORE,
     OP_EBPPUSH,

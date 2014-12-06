@@ -12,11 +12,7 @@ TTerm  __ebp = {
         .type = TERM_EBP
     }, __esp = {
         .type = TERM_ESP
-    }, __bebp = {
-        .type = TERM_EBP
-    },
-      *BEBP= &__bebp,
-      *EBP = &__ebp,
+    },*EBP = &__ebp,
       *ESP = &__esp;
 
 __attribute__ ((unused))
@@ -104,10 +100,12 @@ static TTerm *SPick (PTSStack S, int offset) {
 }
 
 static void SFree (PTSStack S) {
+    void *ptr = S->term;
     while (*S->term != NULL) {
         free(*S->term);
         S->term++;
     }
+    free(ptr);
     free(S);
 }
 
@@ -138,6 +136,7 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -158,6 +157,7 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          :  break;
     }
+    ret->init = true;
 }
 
 static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -177,6 +177,7 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
         break;
         default          : break;
     }
+    ret->init = true;
 }
 
 static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -201,6 +202,7 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
         break;
         default          : break;
     }
+    ret->init = true;
 }
 
 static void assign (TTerm *op1, 
@@ -237,6 +239,7 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -261,6 +264,7 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -285,6 +289,7 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -309,6 +314,7 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -333,6 +339,7 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
@@ -357,6 +364,7 @@ static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->init = true;
 }
 
 static void pushebp (
@@ -366,8 +374,7 @@ __attribute__ ((unused)) TTerm *ret) {
     TTerm EBPCPY = {
         .value.ebp = NULL
     };
-    EBPCPY.value.ebp = malloc(sizeof(TTerm));
-    memcpy(EBPCPY.value.ebp, EBP->value.ebp, sizeof(TSStack));
+    EBPCPY.value.address = EBP->value.ebp->size;
     SPush(ESP->value.esp, &EBPCPY);
     memcpy(EBP->value.ebp, ESP->value.esp, sizeof(TSStack));
 }
@@ -377,7 +384,9 @@ __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) { 
     memcpy(ESP->value.esp, EBP->value.ebp, sizeof(TSStack));
-    size_t s = SPop(ESP->value.esp)->value.ebp->size;
+    TTerm *ptr = SPop(ESP->value.esp);
+    size_t s = ptr->value.address;
+    free(ptr);
     EBP->value.ebp->top  = s + ESP->value.esp->term;
     EBP->value.ebp->size = s;
     EBP->value.ebp->term = ESP->value.ebp->term;
@@ -389,9 +398,9 @@ __attribute__ ((unused)) TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     // Local variable cleaning
-    for (int i = 0; i < op1->value.integer; i++)
+    for (int i = 0; i < op1->value.integer; i++) {
         free(SPop(ESP->value.esp));
-   
+    }
     popebp(NULL, NULL, NULL);
     
     TTerm *add = SPop(ESP->value.esp);
@@ -407,11 +416,7 @@ __attribute__ ((unused)) TTerm *ret) {
 static void push (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
-    TTerm *s = malloc (sizeof(TTerm));
-    if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
-    memcpy(s, op1, sizeof(TTerm));
-    ////log("PUSH: ESP: %u EBP:%u\n", ESP->value.esp->size, EBP->value.ebp->size);
-    SPush(ESP->value.esp, s);
+    SPush(ESP->value.esp, op1);
 }
 
 static void pop (
@@ -510,22 +515,12 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     memcpy(ret, pom, sizeof(TTerm));
 }
 
-static void load_param ( TTerm *op1,
-__attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    TTerm *pom = SPick(BEBP->value.ebp,op1->value.integer);
-    if (pom == NULL) error(ERR_INTERNAL, "Load popol NULL, %d\n\
-    ESP size %u, EBP size %u\n", op1->value.offset, (unsigned)ESP->value.esp->size, 
-    (unsigned)BEBP->value.ebp->size);
-    memcpy(ret, pom, sizeof(TTerm));
-
-}
-
 static void store (      TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
     /// ulozi na zasobnik na presne miesto data do termu
-    memcpy(SPick(ESP->value.esp,ret->value.offset), op1, sizeof(TTerm));
+    memcpy(SPick(EBP->value.ebp,ret->value.offset), op1, sizeof(TTerm));
 }
 
 static void __sort () {
@@ -672,7 +667,7 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     &assign, &less, &greater, &lesseq, 
     &greateq, &equal, &nequal,  &call, &ret, 
     &push, &pop, &jtrue, &jmp, 
-    &nop, &load, &load_param, &not, &store, 
+    &nop, &load, &not, &store, 
     &pushebp, &popebp
     // TODO: Pridat dalsie funkcie!
 };
@@ -717,8 +712,7 @@ void INT_interpret () {
 
     /// Stack pointer
     ESP->value.esp  = SInit ();
-    EBP->value.ebp  = malloc (sizeof(TSStack));
-    BEBP->value.ebp = malloc (sizeof(TSStack));
+    void * ptr = EBP->value.ebp  = malloc (sizeof(TSStack));
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
@@ -743,5 +737,6 @@ void INT_interpret () {
         PEIP++;
     }
     SFree(ESP->value.esp);
+    free(ptr);
     return;
 }

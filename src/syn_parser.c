@@ -44,7 +44,10 @@ void SPop(TSynStack *S) {
     if (!SEmpty(S)) {    
 	TItem *pom = S->top;
 	S->top = S->top->next;
-	//free(pom->data);
+	if (pom->data!=NULL){
+        free(pom->data->lex);          //fuftak
+        free(pom->data); 
+    }                 //fuftak
 	free(pom);
     }
 }
@@ -123,7 +126,7 @@ void SPush_zarazka(TSynStack *S) {
 
 void SDispose(TSynStack *S) {
     while (!SEmpty(S)) SPop(S);
-    //SPop(S);
+
 }
 
 void prevodnik(TEnumLexem in, TStackEnum *out) {
@@ -198,17 +201,19 @@ bool SYN_expression(FILE *f,bool assigned) {
 		SPush(&stack1, lexema);
 		funid = lexema;
 		top_terminal = TERM;
-		SYN_readLexem(f);
+		SYN_readLexem(f,false);
 		prevodnik(lexema->type, &input_lex);
 		if (input_lex == LBRACK) {
 			isfunc = 1; SEM_fCallPrologue(funid);
 			SPush(&stack1, lexema);
 			top_terminal = LBRACK;
-			SYN_readLexem(f);
+			SYN_readLexem(f,false);
 			prevodnik(lexema->type, &input_lex);
 			if (input_lex == RBRACK) {/* skusa ci je bez parametrov OK*/
-				SYN_readLexem(f);
+				SYN_readLexem(f,false);
 				SEM_functionCall(funid);
+                free(STop(&stack1));
+                free(rule);
 				return true;
 			}	
 		}
@@ -243,8 +248,12 @@ bool SYN_expression(FILE *f,bool assigned) {
 		}
 		if (ind == rule->length && pom->type == ZARAZKA) {
 		    SPop(&stack1);
-		    if (rule->length == 4) return true; /*indikacia pouzitia 6.pravidla - funkcia, uspesny koniec*/
-		    top_terminal = stack1.top->type;
+		    if (rule->length == 4) {
+                 free(STop(&stack1));
+                 free(rule);
+                return true; /*indikacia pouzitia 6.pravidla - funkcia, uspesny koniec*/
+		    }
+            top_terminal = stack1.top->type;
 		    SPush_nonterminal(&stack1);
 		}
 		else {
@@ -264,14 +273,14 @@ bool SYN_expression(FILE *f,bool assigned) {
 		SPush(&stack1, lexema); /* vlozi novy neterminal, vezme dalsiu lexemu */
 		pom = STop(&stack1); 
 		top_terminal = pom->type;
-		SYN_readLexem(f);
+		SYN_readLexem(f,false);
 		prevodnik(lexema->type, &input_lex);
 		break;
 	    case '=':
 		SPush(&stack1, lexema);
 		pom = STop(&stack1); 
 		top_terminal = pom->type;
-		SYN_readLexem(f);
+		SYN_readLexem(f,false);
 		prevodnik(lexema->type, &input_lex);
 		break;
 	    case '0':
@@ -279,7 +288,7 @@ bool SYN_expression(FILE *f,bool assigned) {
 	}
     } /*while ValidLex */
     /*pomvypis(&stack1);*/
-    /*SDispose(&stack1);*/
+    SDispose(&stack1);
     //printf("krasne\n"); krasne!!!
 
 /* KONFLIKT s Palovou castou
@@ -288,11 +297,12 @@ bool SYN_expression(FILE *f,bool assigned) {
     free(pom);
     
 */
+    free(STop(&stack1));
     free(rule);
     return true;
 }
 
-void SYN_readLexem(FILE *f){
+void SYN_readLexem(FILE *f,bool erase){
   
   /*switch (lexema->type) {
     case IDENTIFICATOR:
@@ -306,6 +316,10 @@ void SYN_readLexem(FILE *f){
       free(lexema->lex);
       free(lexema);
   }*/
+  if (erase) {
+    free(lexema->lex);
+    free(lexema);
+  }
   lexema=(PTStructLex)malloc(sizeof(TStructLex));
   if (lexema==NULL) error(ERR_INTERNAL, "Chyba alokacie pamete");
   LEX_getLexem(lexema,f); 
@@ -316,7 +330,7 @@ bool SYN_funcBody(FILE *f){
   if (!SYN_comStatement(f)) return false;
   if (lexema->type!=STREDNIK) return false;
   SEM_endFunctionDef(lexema);  // Semanticka akcia
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   return true;
 }
 
@@ -329,9 +343,9 @@ bool SYN_onlyDecFunc(FILE *f,TTypeIdentEnum typ_ident){
       else return false;
     case KEY_FORWARD:
       SEM_endFunctionDef(lexema); // Semanticka akcia
-      SYN_readLexem(f);
+      SYN_readLexem(f,true);
       if (lexema->type!=STREDNIK) return false;
-      SYN_readLexem(f);
+      SYN_readLexem(f,true);
       if (SYN_decFunc(f)) return true;
       else return false;
     default:
@@ -343,7 +357,7 @@ bool SYN_endParam(FILE *f){
 
   switch (lexema->type){
     case STREDNIK:
-      SYN_readLexem(f);
+      SYN_readLexem(f,true);
       if (SYN_param(f)) return true;
       else return false;
     case RBRACKET:
@@ -357,9 +371,9 @@ bool SYN_param(FILE *f){
   PTStructLex temp_lex=lexema;
     
   if (lexema->type!=IDENTIFICATOR) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,false);
   if (lexema->type!=DDOT) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (!SYN_type(f,temp_lex,PARAM)) return false;
   if (SYN_endParam(f)) return true; 
   else return false;
@@ -383,21 +397,21 @@ bool SYN_decFunc(FILE *f){
 
   switch (lexema->type){
   	case KEY_FUNCTION:
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (lexema->type!=IDENTIFICATOR) return false;
   	  temp_lex=lexema;
           SEM_defineFunction(lexema); // Semanticka akcia
-          SYN_readLexem(f);
+          SYN_readLexem(f,false);
   	  if (lexema->type!=LBRACKET) return false;
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (!SYN_paramList(f)) return false;
   	  if (lexema->type!=RBRACKET) return false;
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (lexema->type!=DDOT) return false;
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (!SYN_type(f,temp_lex,FUNCTION)) return false;	
   	  if (lexema->type!=STREDNIK) return false;
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (SYN_onlyDecFunc(f,LOCAL)) return true;
   	  else return false;
     case KEY_BEGIN:
@@ -436,7 +450,7 @@ bool SYN_type(FILE *f,PTStructLex id,TTypeIdentEnum typ_id){
     default:
       return false;
   }
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   return true;
 }
 
@@ -445,12 +459,12 @@ bool SYN_prem(FILE *f,TTypeIdentEnum typ_id){
 
   if (lexema->type!=IDENTIFICATOR) return false;
   temp_lex=lexema;
-  SYN_readLexem(f);
+  SYN_readLexem(f,false);
   if (lexema->type!=DDOT) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (!SYN_type(f,temp_lex,typ_id)) return false;
   if (lexema->type!=STREDNIK) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   return true;
 }
 
@@ -461,7 +475,7 @@ bool SYN_decPrem(FILE *f,TTypeIdentEnum typ_ident){
     case KEY_FUNCTION:
 	  return true;
 	case KEY_VAR:
-	  SYN_readLexem(f);
+	  SYN_readLexem(f,true);
 	  if (SYN_prem(f,typ_ident) && SYN_nextPrem(f,typ_ident)) return true;
 	  else return false;
 	default: 
@@ -474,7 +488,7 @@ bool SYN_nextTerm(FILE *f){
   	case RBRACKET:
   	  return true;
   	case CIARKA:
-	  SYN_readLexem(f);
+	  SYN_readLexem(f,true);
 	  if (SYN_term(f) && SYN_nextTerm(f)) return true;
 	  else return false;
 	default:
@@ -488,12 +502,12 @@ bool SYN_term(FILE *f){
     case IDENTIFICATOR:
 	case INT_CONST:
 	case REAL_CONST:
-	case STRING_CONST:
     case KEY_TRUE:
     case KEY_FALSE:
-	  SEM_functionParam(NULL,lexema);
-	  SYN_readLexem(f);
-          return true;
+	case STRING_CONST:
+      SEM_functionParam(NULL,lexema);
+	  SYN_readLexem(f,true);
+      return true;
 	default:
 	  return false;
   }
@@ -503,11 +517,11 @@ bool SYN_writeStatemnet(FILE *f){
   
   
   if (lexema->type!=LBRACKET) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (SYN_term(f) && SYN_nextTerm(f)) {
   	if (lexema->type!=RBRACKET) return false;
 	SEM_writeCall();
-  	SYN_readLexem(f);
+  	SYN_readLexem(f,true);
   	return true;
   }
   else return false;
@@ -516,18 +530,18 @@ bool SYN_writeStatemnet(FILE *f){
 bool SYN_readlnStatemnet(FILE *f){
   
   if (lexema->type!=LBRACKET) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (lexema->type!=IDENTIFICATOR) return false;
   SEM_readln(lexema);
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (lexema->type!=RBRACKET) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   return true;
 }
 bool SYN_assignStatemnet(FILE *f){
   
   if (lexema->type!=OPERATOR_ASSIGN) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   //SEM_createLeaf(lexema);                               // tu bola zmena
   // SKUSKA KVOLI  TESTOVANIU
   if (SYN_expression(f,true)) 
@@ -543,7 +557,7 @@ bool SYN_whileStatemnet(FILE *f){
   if (!SYN_expression(f,false)) return false;
   if (lexema->type!=KEY_DO) return false;
   SEM_whileBegin();
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (SYN_comStatement(f)) return true;
   else return false;
 }
@@ -551,7 +565,7 @@ bool SYN_whileStatemnet(FILE *f){
 bool SYN_elseStatemnet(FILE *f){
   
   if (lexema->type!=KEY_ELSE) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   SEM_elseStat();
   if (SYN_comStatement(f)) return true;
   else return false;
@@ -561,7 +575,7 @@ bool SYN_ifStatemnet(FILE *f){
   
   if (!SYN_expression(f,false)) return false;
   if (lexema->type!=KEY_THEN) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   SEM_thenStat();
   if (SYN_comStatement(f) && SYN_elseStatemnet(f)) return true;
   else return false;
@@ -573,32 +587,34 @@ bool SYN_statement(FILE *f){
   
   switch (lexema->type){
   	case KEY_IF:
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (SYN_ifStatemnet(f)) {
 	    SEM_endIf();
 	    return true;
 	  } else return false;
   	case KEY_WHILE:
   	  SEM_whileStat();
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (SYN_whileStatemnet(f)) {
 		SEM_whileEnd();  
 		return true;
 	  } else return false;
   	case IDENTIFICATOR:
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,false);
   	  if (SYN_assignStatemnet(f)) {
 		SEM_assignValue(term_lex) ;
+        free(term_lex->lex);
+        free(term_lex);
 		return true;
 	  }    // tu bola zmena
   	  else return false;
   	case KEY_READLN:
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (SYN_readlnStatemnet(f)) return true;
   	  else return false;
   	case KEY_WRITE:
 	  SEM_writePrologue();
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  if (SYN_writeStatemnet(f)) return true;
   	  else return false;
   	default:
@@ -610,10 +626,10 @@ bool SYN_semicolons(FILE *f){
   
   switch(lexema->type){
   	case KEY_END:
-  	  SYN_readLexem(f);
+  	  SYN_readLexem(f,true);
   	  return true;
   	case STREDNIK:
-  	  SYN_readLexem(f);	
+  	  SYN_readLexem(f,true);	
   	  if (SYN_statement(f) && SYN_semicolons(f)) return true;
   	  else return false;
   	default:
@@ -642,7 +658,7 @@ bool SYN_statementList(FILE *f){
 
 bool SYN_comStatement(FILE *f){
   if (lexema->type!=KEY_BEGIN) return false;
-  SYN_readLexem(f);
+  SYN_readLexem(f,true);
   if (SYN_statementList(f)) return true;
   else return false;
 }
@@ -657,7 +673,7 @@ bool SYN_program(FILE *f){
       SEM_mainBegin();
       if (!SYN_comStatement(f)) return false;
       if (lexema->type!=BODKA) return false;
-      SYN_readLexem(f);
+      SYN_readLexem(f,true);
       if (lexema->type==TYPE_EOF) return true;
       else return false;
     default:
