@@ -693,7 +693,7 @@ void INT_interpret () {
     //      * pridat dealokacie: snad DONE
     //log("Runtime disasembly\n");
     for (int i = 0; *PEIP != NULL; i++) {
-/*        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
+        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
           (unsigned int)(PEIP-EIP)+1,
           OPERATIONS[(*PEIP)->op],
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->name            : "",
@@ -704,7 +704,7 @@ void INT_interpret () {
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.integer   : 0, 
           (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.integer   : 0,
           (*PEIP)->ret != NULL ? (*PEIP)->ret->value.integer   : 0);
-*/
+
 
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
 

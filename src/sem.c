@@ -174,7 +174,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         for (char *s = pointers->CURRENTFUNCT->data->param; *s != 'x' && *s != 0; s++)
             i++;
 
-        if(funcParam->data->value->value.offset != pointers->PARAMCOUNT-i-2)                       
+        if(funcParam->data->value->value.offset != pointers->PARAMCOUNT-i-1)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
         funcParam->data->value->name = dataID->lex;
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
@@ -414,7 +414,9 @@ void SEM_createTree(PTStructLex lexema){
     pointers->ACCREG->index = false;
     pointers->ACCREG->init = true;
     pointers->SREG1->index = false;
+    pointers->SREG1->type  = typeRight;
     pointers->SREG2->index = false;
+    pointers->SREG2->type  = typeRight;
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
     switch(lexema->type){
