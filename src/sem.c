@@ -366,7 +366,7 @@ void SEM_createLeaf(PTStructLex lexema){
         //   error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", lexema->lex);        
         
         SEM_pushSS(pointers->EXPRSTACK, node->data->value->type);        // ULOZENIE TYPU
-        
+        //log ("Type of %s is %d\n", node->data->lex, node->data->type);
         if(node->data->value->index){
             SEM_generate(OP_LOAD, node->data->value, NULL, pointers->SREG1);
             SEM_generate(OP_PUSH, pointers->SREG1, NULL, NULL);

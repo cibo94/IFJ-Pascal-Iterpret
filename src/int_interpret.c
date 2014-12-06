@@ -99,9 +99,7 @@ static TTerm *SPop (PTSStack S) {
 }
 
 static TTerm *SPick (PTSStack S, int offset) {
-    //log("Picking Term on %d offset from %d/%d long stack\n", offset, 
-
-//    EBP->value.ebp->size, ESP->value.esp->size);
+    //log("Picking Term on %d offset from %d/%d long stack\n", offset, EBP->value.ebp->size, ESP->value.esp->size);
     return S->term[S->size+offset];
 }
 
@@ -118,15 +116,19 @@ static void SFree (PTSStack S) {
  ***********************************/
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer + op2->value.integer;
         break;
             
         case TERM_REAL   :
+            //log ("op1 %d, op2 %d\n", op1->value.real, op2->value.real);
             ret->value.real = op1->value.real + op2->value.real;
         break;
 
@@ -139,9 +141,12 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.integer = op1->value.integer - op2->value.integer;
@@ -156,12 +161,15 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
-            //log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
+            ////log ("op1 %d, op2 %d\n", op1->value.integer, op2->value.integer);
             ret->value.integer = op1->value.integer * op2->value.integer;
         break;
         case TERM_REAL   :
@@ -172,9 +180,12 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             if (op2->value.integer == 0)
@@ -194,18 +205,23 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
 
 static void assign (TTerm *op1, 
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.integer) : op1;
     if (ret == NULL) 
         ret = STop(EBP->value.ebp);
     else
         ret = ret->index ? SPick(EBP->value.ebp, ret->value.integer) : ret;
     ret->value = op1->value;
+    ret->init = true;
 }
 
 static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer < op2->value.integer;
@@ -224,9 +240,12 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer > op2->value.integer;
@@ -245,9 +264,12 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer <= op2->value.integer;
@@ -266,9 +288,12 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer >= op2->value.integer;
@@ -287,9 +312,12 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;   
     switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = op1->value.integer == op2->value.integer;
@@ -308,9 +336,12 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
 }
 
 static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
+    if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
+    if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
+    if (ret->init)
+        ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
     switch (op1->type) {
         case TERM_INT    :
             ret->value.boolean = !(op1->value.integer == op2->value.integer);
@@ -366,7 +397,7 @@ __attribute__ ((unused)) TTerm *ret) {
     TTerm *add = SPop(ESP->value.esp);
     P3AC *pom = &EIP[add->value.address];
     free(add);
-   // log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
+   // //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
     PEIP = pom;
     // Arguments cleaning
     for (int i = 0; i < op2->value.integer; i++)
@@ -376,11 +407,10 @@ __attribute__ ((unused)) TTerm *ret) {
 static void push (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
-    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     TTerm *s = malloc (sizeof(TTerm));
     if (s == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     memcpy(s, op1, sizeof(TTerm));
-    //log("PUSH: ESP: %u EBP:%u\n", ESP->value.esp->size, EBP->value.ebp->size);
+    ////log("PUSH: ESP: %u EBP:%u\n", ESP->value.esp->size, EBP->value.ebp->size);
     SPush(ESP->value.esp, s);
 }
 
@@ -401,7 +431,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     } else {
         SPop(ESP->value.esp);
     }
-    //log ("POP\n");
+    ////log ("POP\n");
 }
 
 static void jmp (        TTerm *op1,
@@ -409,7 +439,7 @@ __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
     PEIP = &EIP[op1->value.address-1];
-    //log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+    ////log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
 static void jtrue (      TTerm *op1, TTerm *op2,
@@ -420,7 +450,7 @@ __attribute__ ((unused)) TTerm *ret) {
     if (op1->value.boolean == true) {
         jmp(op2, NULL, NULL);
     }
-        //log("Not jumping on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
+        ////log("Not jumping on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
 
 static void call (       TTerm *op1, 
@@ -446,7 +476,7 @@ __attribute__ ((unused)) TTerm *ret) {
 
 
     pushebp(NULL, NULL, NULL);
-    //log ("CALL: to address: %u\n", op1->value.address);
+    ////log ("CALL: to address: %u\n", op1->value.address);
 }
 
 static void nop (
@@ -454,7 +484,7 @@ __attribute__ ((unused)) TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     /// NOPE NOPE NOPE
-    //log("NOP");
+    ////log("NOP");
     return;
 }
 
@@ -526,7 +556,7 @@ static void __copy () {
                .type = TERM_INT
            };
     out->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
-   // log ("%s", out->value.string);
+   // //log ("%s", out->value.string);
     ret(&zero, &three, NULL);
 }
 
@@ -631,6 +661,7 @@ static void ____readln () {
             error(ERR_RNTM_NUMREAD, "Nekompatabilny typ\n");
         break;
     }
+    id->value.pointer->init = true;
     ret(&zero, &one, NULL);
 }
 
@@ -691,9 +722,9 @@ void INT_interpret () {
     // TODO: 
     //      * pridat volanie semantiky
     //      * pridat dealokacie: snad DONE
-    //log("Runtime disasembly\n");
+    ////log("Runtime disasembly\n");
     for (int i = 0; *PEIP != NULL; i++) {
-        printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
+ /*       printf("#%08u:\t%s\t%s%s%s%s%s\t{%f, %f, %f}\n",
           (unsigned int)(PEIP-EIP)+1,
           OPERATIONS[(*PEIP)->op],
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->name            : "",
@@ -701,10 +732,10 @@ void INT_interpret () {
           (*PEIP)->op2 != NULL ? (*PEIP)->op2->name            : "", 
           (*PEIP)->ret != NULL &&((*PEIP)->op2 != NULL || (*PEIP)->op1 != NULL) ?  ", "   : "",
           (*PEIP)->ret != NULL ? (*PEIP)->ret->name            : "",
-          (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.integer   : 0, 
-          (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.integer   : 0,
-          (*PEIP)->ret != NULL ? (*PEIP)->ret->value.integer   : 0);
-
+          (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.real   : 0, 
+          (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.real   : 0,
+          (*PEIP)->ret != NULL ? (*PEIP)->ret->value.real   : 0);
+*/
 
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
 
