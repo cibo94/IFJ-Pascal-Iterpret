@@ -10,7 +10,6 @@ TSlabelStack SEM_initLS(){
     if(stack == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     stack->top = NULL;
     return stack;
-}
 
 
 void SEM_pushLS(TSlabelStack stack, TTerm * elem){
@@ -234,6 +233,7 @@ void SEM_defFuntionType(PTStructLex dataType){
             case KEY_BOOLEAN: if((flagy & LEX_FLAGS_TYPE_BOOL) == 0)   error(ERR_SEM_TYPE,"Semanticka chyba! Nespravny navratovy typ funkcie pri definicii\n");  break;    
             default : break;
             }
+            pointers->CURRENTFUNCT->data->value->value.address = pointers->PROGRAMINDEX;
             return;
     }    
 
