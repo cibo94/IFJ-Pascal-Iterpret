@@ -8,8 +8,10 @@ BUILDDIR=build
 IGNORE=
 # C compiler #
 CC=gcc
+# Defines
+DEFINES=
 # C compiler flags #
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -DDEBUG -g
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -g $(DEFINES)
 # Linker #
 LD=$(CC)
 # Linker flags #
@@ -19,7 +21,7 @@ DOXCONF=config.dox
 
 
 #####################################
-# 			DO NOT TOUCH			#
+#           DO NOT TOUCH            #
 #####################################
 SOURCE=$(filter-out $(IGNORE),$(wildcard $(SRCDIR)/*.c))
 NSRC=$(shell echo "$(SOURCE)" | wc | sed -e 's/\ \ */,/g' | cut -d "," -f 3)
@@ -40,9 +42,9 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(eval PERCENT=$(shell echo 100\*$(NthSRC)/$(NSRC) | bc))
 	@bash -c "echo -e \"\e[39m\e[34mCC\e[39m \e[32m\e[1mBuilding\e[21m\e[39m ... \e[31m$(PERCENT)%\e[39m: 	$(CC) $(CFLAGS) -o $@ -c $<\""
 	@$(CC)	$(CFLAGS)	-o $@	-c $<
-	@$(CC) $^ -MM > $@.d
+	@$(CC) $< -MM | sed "s/^\(.*\.o\)/$(BUILDDIR)\/\1/g" > $@.d
 
--include  $(patsubst %.o,%.o.d,$(OBJECT))
+-include $(wildcard $(BUILDDIR)/*.d)
 
 clean:
 	@echo "Cleaning working directory ..."
@@ -52,3 +54,4 @@ clean:
 doc:
 	@bash -c "echo -e \"\e[34mDOXYGEN\e[39m \e[32m\e[1mBuilding documentation\e[21m\e[39m ...\""
 	@doxygen $(DOXCONF)
+
