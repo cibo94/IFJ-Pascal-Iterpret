@@ -10,7 +10,7 @@ TSlabelStack SEM_initLS(){
     if(stack == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
     stack->top = NULL;
     return stack;
-
+}
 
 void SEM_pushLS(TSlabelStack stack, TTerm * elem){
     TSlabel label = malloc(sizeof(struct Slabel));

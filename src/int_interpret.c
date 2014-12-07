@@ -136,6 +136,7 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -157,6 +158,7 @@ static void minus (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          :  break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -177,6 +179,7 @@ static void mul (TTerm *op1, TTerm *op2, TTerm *ret) {
         break;
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -202,6 +205,7 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
         break;
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -214,6 +218,7 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
     else
         ret = ret->index ? SPick(EBP->value.ebp, ret->value.integer) : ret;
     ret->value = op1->value;
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -239,6 +244,7 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -264,6 +270,7 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -289,6 +296,7 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -314,6 +322,7 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -339,6 +348,7 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -364,6 +374,7 @@ static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
 
         default          : break;
     }
+    ret->type = op1->type;
     ret->init = true;
 }
 
@@ -534,6 +545,10 @@ static void __sort () {
                .value.integer = 1,
                .type = TERM_INT
            };
+    if (!str->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
+    out->type = TERM_STRING;
+    out->init = true;
     out->value.string = EMB_sort (str->value.string, EMB_length(str->value.string));
     ret(&zero, &one, NULL);
 }
@@ -550,6 +565,14 @@ static void __copy () {
                .value.integer = 3,
                .type = TERM_INT
            };
+    if (!str->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
+    if (!from->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", from->name);
+    if (!size->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", size->name);
+    out->type = TERM_STRING;
+    out->init = true;
     out->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
    // //log ("%s", out->value.string);
     ret(&zero, &three, NULL);
@@ -564,6 +587,10 @@ static void __length () {
            one = {
                .value.integer = 1
            };
+    if (!str->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
+    out->type = TERM_STRING;
+    out->init = true;
     out->value.integer = EMB_length(str->value.string);
     ret(&zero, &one, NULL);
 }
@@ -578,6 +605,12 @@ static void __find () {
            one = {
                .value.integer = 2
            };
+    if (!str->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
+    if (!fstr->init) 
+        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", fstr->name);
+    out->type = TERM_STRING;
+    out->init = true;
     out->value.integer = EMB_find(str->value.string, fstr->value.string);
     ret(&zero, &one, NULL);
 }
@@ -587,6 +620,7 @@ static void __write () {
     int pocet = SPick(EBP->value.ebp,-2)->value.integer;
     for (int i = pocet; i > 0; i--) {
         n = SPick(EBP->value.ebp, -(2+i));
+        if (!n->init) error(ERR_SEM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", n->name);
         switch (n->type) {
             case TERM_INT : 
                 printf ("%d", n->value.integer);
@@ -718,7 +752,8 @@ void INT_interpret () {
     //      * pridat dealokacie: snad DONE
     ////log("Runtime disasembly\n");
     for (int i = 0; *PEIP != NULL; i++) {
- /*       printf("#%08u:\t%s\t%s%s%s%s%s\t{%f, %f, %f}\n",
+#ifdef RUN_EIP
+       printf("#%08u:\t%s\t%s%s%s%s%s\t{%f, %f, %f}\n",
           (unsigned int)(PEIP-EIP)+1,
           OPERATIONS[(*PEIP)->op],
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->name            : "",
@@ -729,7 +764,7 @@ void INT_interpret () {
           (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.real   : 0, 
           (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.real   : 0,
           (*PEIP)->ret != NULL ? (*PEIP)->ret->value.real   : 0);
-*/
+#endif
 
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
 
