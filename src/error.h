@@ -193,10 +193,6 @@ warning(const char *format,
       va_end(args);
 }
 
-/**
- * Ak je definovany DEBUG tak logovacie vystupy pojdu na stdout
- */
-#ifndef DEBUG
 
 static inline void
 __log(const int   line,
@@ -224,33 +220,6 @@ __log(const int   line,
     fclose(f);
 }
 
-/**
- * Ak nie tak vystupy pojdu do logovacieho suboru "log"
- */
-#else /*not defined(DEBUG)*/
-static inline void
-__log(const int   line,
-      const char *function,
-      const char *file,
-      const char *format,
-      ...) {
-    FORMAT_TIME;
-    va_list args;
-    va_start(args, format);
-    fprintf (stdout,
-            "[%s] LOG: Line %d: File %s: Function %s():\n\t",
-            cas,
-            line,
-            file,
-            function);
-    vfprintf(stdout,
-             format,
-             args);
-    fprintf (stdout, "\n");
-    va_end(args);
-}
-
-#endif /*not defined(DEBUG)*/
 #ifdef h_INT_PAR
 static inline void print_EIP (P3AC *__EIP) {
     for (P3AC *POS=__EIP;*__EIP!=NULL;__EIP++) {

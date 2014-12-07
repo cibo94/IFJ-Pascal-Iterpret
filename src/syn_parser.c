@@ -400,8 +400,8 @@ bool SYN_decFunc(FILE *f){
   	  SYN_readLexem(f,true);
   	  if (lexema->type!=IDENTIFICATOR) return false;
   	  temp_lex=lexema;
-          SEM_defineFunction(lexema); // Semanticka akcia
-          SYN_readLexem(f,false);
+      SEM_defineFunction(lexema); // Semanticka akcia
+      SYN_readLexem(f,false);
   	  if (lexema->type!=LBRACKET) return false;
   	  SYN_readLexem(f,true);
   	  if (!SYN_paramList(f)) return false;

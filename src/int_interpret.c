@@ -54,14 +54,9 @@ static PTSStack SInit () {
 }
 
 static bool SEmpty (PTSStack S) {
-    return S->top == NULL;
+    return S->top == S->term-1;
 }
-/*
-static void *s_realloc (TTerm ** arr, size_t s) {
-    TTerm ** swap = malloc (sizeof(TTerm*)*(s+2+32));
-    memcpy(swap, arr, s+2);
-    free(arr);
-}*/
+
 
 static void SPush (PTSStack S, TTerm *add) {
     uint32_t size = S->size;       //!< velkost pola
@@ -77,7 +72,6 @@ static void SPush (PTSStack S, TTerm *add) {
     *S->top = malloc (sizeof(TTerm));
     if (*S->top == NULL) error(ERR_INTERNAL, "Chyba realokacie!\n");
     memcpy(*S->top, add, sizeof(TTerm));
-    S->top[1] = NULL;
     S->size++;
 }
 
@@ -88,7 +82,6 @@ static TTerm *STop (PTSStack S) {
 
 static TTerm *SPop (PTSStack S) {
     TTerm *ret = *S->top;
-    *(S->top) = NULL;
     S->top--;
     S->size--;
     return ret;
@@ -101,9 +94,9 @@ static TTerm *SPick (PTSStack S, int offset) {
 
 static void SFree (PTSStack S) {
     void *ptr = S->term;
-    while (*S->term != NULL) {
-        free(*S->term);
-        S->term++;
+    while (SEmpty(S)) {
+        free(*S->top);
+        S->top--;
     }
     free(ptr);
     free(S);

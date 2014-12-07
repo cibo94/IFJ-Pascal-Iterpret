@@ -9,7 +9,6 @@ void LEX_string(char **s, int ch, int *poz) {
         nasobok = *poz+STD_LNGTH+1;                 // sme retardovany a toto znamena (*poz)/32
         tmp = (char *)realloc(*s,nasobok);
         if (tmp == NULL) {
-
             if ((tmp = malloc(nasobok)) == NULL)
                 error(ERR_INTERNAL, "Chyba alokacie pamete");
             memcpy(tmp, *s, *poz);
@@ -26,12 +25,12 @@ bool LEX_str(FILE *f,char **s,int ch,int *poz,TEnumLexStr *stav) {
     static int p=0;
     char *kon;
     int cis;
-
+    if (ch == '\n') error(ERR_LEX, "Neocakavany koniec riadku.");
     switch (*stav) {
     case START:
         *poz=0;
         (*s)[*poz]='\0';
-        if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
+        if (ch==EOF) error(ERR_LEX,"Neocakavany koniec suboru.");
         else { 
             if (ch=='\'') *stav=MEDZI;
             else {
@@ -49,6 +48,7 @@ bool LEX_str(FILE *f,char **s,int ch,int *poz,TEnumLexStr *stav) {
     break;
     case MEDZI:
         p=*poz;
+        if (ch==EOF) error(ERR_LEX,"Neocakavany koniec suboru v escape sekvencii.");
         if (ch=='\'') {
             LEX_string(s,ch,poz);
             *stav=RETAZEC;
@@ -63,7 +63,7 @@ bool LEX_str(FILE *f,char **s,int ch,int *poz,TEnumLexStr *stav) {
         }
     break;
     case CISLO:
-        if (ch==EOF) error(ERR_SYN,"Neocakavany koniec suboru.");
+        if (ch==EOF) error(ERR_LEX,"Neocakavany koniec suboru v escape sekvencii.");
         else {
             if (ch=='\'') {
                 LEX_string(s,ch,poz);

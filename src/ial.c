@@ -120,7 +120,7 @@ void BS_Free(TSbinstrom root){
     if (root->data!= NULL){
         if (root->data->lex != NULL)
             free(root->data->lex);
-        if (root->data->value != NULL)
+        if (root->data->value != NULL) 
             free(root->data->value);
         if (root->data->param != NULL)
             free(root->data->param);

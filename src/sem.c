@@ -145,6 +145,8 @@ void SEM_defineFunction(PTStructLex dataID){
             error(ERR_SEM_UNDEF,"Chyba pri definicii funkcie '%s'. Existuje premenna s rovnakym nazvom.\n", dataID->lex);
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0)       //  AK JE NAJDENY UZOL FUNKCIA, KTORA UZ BOLA DEKLAROVANA -> ERROR, REDEFINICIA FUNKCIE
             error(ERR_SEM_UNDEF,"Funkcia '%s' uz bola deklarovana.\n", dataID->lex);
+        free(dataID->lex);
+        free(dataID);
     }
     else {                                                              //  INAK SA VKLADA NOVA FUNKCIA
         newNode = BS_Add(pointers->SYM_TABLE,dataID);                   //  PRIDAVA SA NA GLOBALNU UROVEN      
@@ -177,7 +179,11 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 
         if(funcParam->data->value->value.offset != pointers->PARAMCOUNT-i-1)                       
             error(ERR_SEM_TYPE,"Parametre v deklaracii a definicii funkcie sa nezhoduju (chybna pozicia parametra '%s')\n", dataID->lex); // AK SA PARAMETER NASIEL, ALE NESEDI JEHO POZICIA = CHYBA
+#if 0
         funcParam->data->value->name = dataID->lex;
+#else
+        free(dataID->lex);
+#endif
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) 
                                 error(ERR_SEM_TYPE,"Chybne parametre pri deklaracii funkcie (chybny typ parametra '%s')\n", dataID->lex);    break;        
@@ -189,6 +195,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
                                 error(ERR_SEM_TYPE,"Chybne parametre pri deklaracii funkcie (chybny typ parametra '%s')\n", dataID->lex);    break;    
             default : break;
         }
+        free(dataID);
         (pointers->PARAMCOUNT)++;
         return; // INAK OK
     }
@@ -511,7 +518,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         pNode->data->value->name = malloc(lexSize);
         memcpy(pNode->data->value->name, paramID->lex, lexSize);
 #else
-        pNode->data->value->name = NULL;
+        pNode->data->value->name = pNode->data->lex;
 #endif
         pointers->SREG1->index = false;
         pointers->SREG1->value.integer = -1;
