@@ -145,8 +145,8 @@ void SEM_defineFunction(PTStructLex dataID){
             error(ERR_SEM_UNDEF,"Chyba pri definicii funkcie '%s'. Existuje premenna s rovnakym nazvom.\n", dataID->lex);
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0)       //  AK JE NAJDENY UZOL FUNKCIA, KTORA UZ BOLA DEKLAROVANA -> ERROR, REDEFINICIA FUNKCIE
             error(ERR_SEM_UNDEF,"Pokus o redefiniciu funkcie '%s'.\n", dataID->lex);
-        //free(dataID->lex);
-        //free(dataID);
+        free(dataID->lex);
+        free(dataID);
     }
     else {                                                              //  INAK SA VKLADA NOVA FUNKCIA
         newNode = BS_Add(pointers->SYM_TABLE,dataID);                   //  PRIDAVA SA NA GLOBALNU UROVEN      
@@ -182,7 +182,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 #if 0
         funcParam->data->value->name = dataID->lex;
 #else
-        //free(dataID->lex);
+        free(dataID->lex);
 #endif
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) 
@@ -195,7 +195,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
                                 error(ERR_SEM_TYPE,"Chybne parametre pri deklaracii funkcie (chybny typ parametra '%s')\n", dataID->lex);    break;    
             default : break;
         }
-        //free(dataID);
+        free(dataID);
         (pointers->PARAMCOUNT)++;
         return; // INAK OK
     }
@@ -268,7 +268,7 @@ void SEM_defFuntionType(PTStructLex dataType){
 
 void SEM_defineLocal(PTStructLex dataID, PTStructLex dataType){
     if(strcmp(dataID->lex,pointers->CURRENTFUNCT->data->lex) == 0)                  //  LOKALNA PREMENNA SA MOZE VOLAT HOCIAKO LEN NIE AKO FUNKCIA
-        error(ERR_SEM_TYPE,"Parameter funkcie nemoze mat rovnaky nazov ako funkcia sama\n");
+        error(ERR_SEM_UNDEF,"Lokalna premenna funkcie nemoze mat rovnaky nazov ako funkcia sama\n");
 
     TSbinstrom newNode = BS_Find(pointers->SCOPE, dataID);                          //  HLADA SA HODNOTA V SCOPE
     if(newNode != NULL) error(ERR_SEM_UNDEF,"Identifikator lokalnej premennej '%s' uz bol definovany\n", dataID->lex);  //  AK NAJDE TAK ERROR
@@ -364,10 +364,10 @@ void SEM_createLeaf(PTStructLex lexema){
             error(ERR_SEM_UNDEF,"Nedeklarovana premenna '%s'.\n", lexema->lex);
             
         if ((node->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0)                  // CHYBOVA HLASKA AK SA POUZIL IDENTIFIKATOR FUNKCIE
-           error(ERR_SEM_OTHERS,"Nepovolene pouzitie identifikatora funkcie '%s'.\n", lexema->lex);
+           error(ERR_SEM_UNDEF,"Nepovolene pouzitie identifikatora funkcie '%s'.\n", lexema->lex);
         
         if (node == pointers->CURRENTFUNCT)
-           error(ERR_SEM_OTHERS,"Nepovolene pouzitie identifikatora funkcie '%s'.\n", lexema->lex);
+           error(ERR_SEM_UNDEF,"Nepovolene pouzitie identifikatora funkcie '%s'.\n", lexema->lex);
         
         //if ((node->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
         //   error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", lexema->lex);        
@@ -492,10 +492,8 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
         if(pNode == NULL) error(ERR_SEM_UNDEF,"Nedefinovany parameter funkcie '%s'.\n", paramID->lex);  //  AK SA NENAJDE TAK JE NEDEFINOVANY
     
         if((pNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) != 0) 
-            error(ERR_SEM_UNDEF,"Parametrom funkcie je identifikator funkcie '%s'.\n", paramID->lex);    // AK SA NAJDE A JE TO IDENTIFIKATOR FUNKCIE TAK ERROR
+            error(ERR_SEM_TYPE,"Parametrom funkcie je identifikator funkcie '%s'.\n", paramID->lex);    // AK SA NAJDE A JE TO IDENTIFIKATOR FUNKCIE TAK ERROR
         
-        //if ((pNode->data->flags & LEX_FLAGS_INIT) == 0)                           // CHYBOVA HLASKA, VOLA SA NEINICIALIZOVANA PREMENNA
-         //  error(ERR_SEM_UNDEF,"Neinicializovana hodnota '%s'.\n", paramID->lex);    
         
         if(functID != NULL)      // AK NIE JE WRITE, TAK SA ROBI TYPOVA KONTROLA
         switch(pNode->data->value->type){   // INAK SA ROBI TYPOVA KONTROLA
@@ -631,7 +629,6 @@ void SEM_assignValue(PTStructLex lexema){
         if(retType != node->data->value->type)                                     // AK NIE JE TYP LAVEJ STRANY ZHODNY S TYPOM PRAVEJ TAK CHYBA
         error(ERR_SEM_TYPE,"Typ pravej strany je iny nez typ lavej strany '%s'.", lexema->lex);   
     }
-    //node->data->flags = (LEX_FLAGS_INIT | node->data->flags);                       // LAVA STRANA JE V KAZDOM PRIPADE INICIALIZOVANA
     
     SEM_generate(OP_POP, NULL, NULL, pointers->ACCREG);
     if(node != pointers->CURRENTFUNCT)                                             //  AK NIE JE NA LAVEJ STRANE SUCASNA FUNKCIA TAK SA JEDNA O PRIRADENIE PRIAMO DO STROMU
@@ -949,8 +946,6 @@ void SEM_readln(PTStructLex paramID){
     }
     
     SEM_generate(OP_CALL, &EMBreadln,NULL,NULL);
-    
-    //pNode->data->flags = (pNode->data->flags | LEX_FLAGS_INIT);
     
 }
 
