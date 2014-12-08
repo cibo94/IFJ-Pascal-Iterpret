@@ -144,7 +144,7 @@ void SEM_defineFunction(PTStructLex dataID){
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNCTION) == 0)       //  AK NAJDENY UZOL NIE JE FUNKCIA -> ERROR, ID FUNKCIE = GLOBALNEJ PREMENNEJ
             error(ERR_SEM_UNDEF,"Chyba pri definicii funkcie '%s'. Existuje premenna s rovnakym nazvom.\n", dataID->lex);
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0)       //  AK JE NAJDENY UZOL FUNKCIA, KTORA UZ BOLA DEKLAROVANA -> ERROR, REDEFINICIA FUNKCIE
-            error(ERR_SEM_UNDEF,"Funkcia '%s' uz bola deklarovana.\n", dataID->lex);
+            error(ERR_SEM_UNDEF,"Pokus o redefiniciu funkcie '%s'.\n", dataID->lex);
         free(dataID->lex);
         free(dataID);
     }
@@ -158,7 +158,7 @@ void SEM_defineFunction(PTStructLex dataID){
         newNode->data->flags = LEX_FLAGS_TYPE_FUNCTION;                 //  OZNACENIE ZE SA JEDNA O FUNKCIU
         newNode->data->value->name = dataID->lex;
         newNode->data->value->index = false;
-        newNode->data->value->value = dataID->value->value;
+        /*newNode->data->value->value = dataID->value->value;*/   //!< ZMENA TU
     }
     pointers->CURRENTFUNCT = newNode;               //  NASTAVENIE SUCASNEJ FUNKCIE
     pointers->SCOPE = newNode->loc_table;           //  NASTAVENIE JEJ PODSTROMU
@@ -263,7 +263,6 @@ void SEM_defFuntionType(PTStructLex dataType){
     }    
     
     pointers->CURRENTFUNCT->data->value->value.address = pointers->PROGRAMINDEX;    //  NASTAVENIE ADRESY SKOKU NA NASLEDUJUCU INSTRUKCIU
-    
     return;
 }
 
@@ -331,8 +330,6 @@ void SEM_endFunctionDef(PTStructLex lexema){
         SEM_generate(OP_RET, pocetLokalnych, pocetParametrov, NULL);
         
         data->flags = (data->flags | LEX_FLAGS_TYPE_FUNC_DEF);  // OZNACENIE FUNKCIE AKO DEFINOVANEJ
-        //if((pointers->CURRENTFUNCT->data->flags & LEX_FLAGS_INIT) == 0)                                         //  AK NIE JE FUNKCIA INICIALIZOVANA, TAK ERROR, MUSI NIECO VRACAT
-        //    error(ERR_SEM_OTHERS,"Funkcii '%s' nebol priradeny vystup.\n", pointers->CURRENTFUNCT->data->lex);
     }
     
     if ((strcmp(data->lex, "find")==0)||(strcmp(data->lex, "sort")==0))
@@ -581,7 +578,7 @@ void SEM_functionParam(PTStructLex functID, PTStructLex paramID){
 
 void SEM_functionCall(PTStructLex functID){
     TSbinstrom node = BS_Find(pointers->SYM_TABLE, functID);
-    if     ((strcmp(functID->lex, "length") == 0))
+    /*if     ((strcmp(functID->lex, "length") == 0))
         SEM_generate(OP_CALL, &EMBlength, NULL, NULL);
     else if((strcmp(functID->lex, "copy") == 0))
         SEM_generate(OP_CALL, &EMBcopy, NULL, NULL);
@@ -589,7 +586,7 @@ void SEM_functionCall(PTStructLex functID){
         SEM_generate(OP_CALL, &EMBsort, NULL, NULL);
     else if((strcmp(functID->lex, "find") == 0))
         SEM_generate(OP_CALL, &EMBfind, NULL, NULL);
-    else
+    else*/
         SEM_generate(OP_CALL, node->data->value, NULL, NULL);                       //  SKOK NA FUNKCIU 
                        //  SKOK NA FUNKCIU 
     if ( ((node->data->param)[pointers->PARAMCOUNT]=='i')||
@@ -657,7 +654,7 @@ void SEM_assignValue(PTStructLex lexema){
 }
 
 
-//!< FUNKCIE PRE IF-THEN-ELSE STATEMENT
+//!< FUNKCIE PRE IF-THEN(-ELSE) STATEMENT
 void SEM_thenStat(){
     ETermType condition = SEM_popSS(pointers->EXPRSTACK);                               //  VYSLEDOK PODMIENKY JE NA VRCHOLE ZASOBNIKA
     if(condition != TERM_BOOL)                                                          //  ERROR AK NIE JE BOOL
@@ -681,6 +678,14 @@ void SEM_thenStat(){
     SEM_pushLS(pointers->LABELSTACK, labelEnd);
     SEM_addCL(pointers->CONSTLIST, labelEnd);
     SEM_generate(OP_JTRUE, pointers->ACCREG, labelElse, NULL);              //  AK JE PODMIENKA FALSE, TAK SA SKACE NA LABEL ELSE           
+}
+
+
+void SEM_noElse(){
+    TTerm *labelEnd = SEM_popLS(pointers->LABELSTACK);
+    TTerm *labelElse = SEM_popLS(pointers->LABELSTACK);
+    labelElse->value.address = pointers->PROGRAMINDEX;
+    labelEnd->value.address = pointers->PROGRAMINDEX;
 }
 
 
@@ -741,55 +746,64 @@ void SEM_whileEnd(){
 }
 
 
+//!< FUNKCIE PRE REPEAT-UNTIL
+void SEM_repeatStat(){
+    TTerm * labelRepeat = malloc(sizeof(struct STerm));
+    if(labelRepeat == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+    labelRepeat->type = TERM_EIP;
+    labelRepeat->value.address = pointers->PROGRAMINDEX;                     //  NASTAVENIE ADRESY
+    labelRepeat->index = false;
+    
+    SEM_addCL(pointers->CONSTLIST, labelRepeat);                             //  PRIDANIE NA VRCHOL ZASOBNIKA A DO ZOZNAMU KONSTANT
+    SEM_pushLS(pointers->LABELSTACK, labelRepeat);    
+}
+
+
+void SEM_repeatEnd(){
+    ETermType condition = SEM_popSS(pointers->EXPRSTACK);                   //  NA VRCHOLE ZASOBNIKA JE VYSLEDOK VYHODNOTENIA PODMIENKY
+    if(condition != TERM_BOOL)                                              //  AK NIE JE BOOL TAK CHYBA PODMIENKY
+        error(ERR_SEM_TYPE,"Podmienka v cykle REPEAT-UNTIL nie je typu boolean\n");
+    
+    TTerm * labelRepeat = SEM_popLS(pointers->LABELSTACK);
+    
+    SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);                      //  VYGENEROVANIE INSTRUKCII KTORE VYHODNOTIA PODMIENKU
+    SEM_generate(OP_NOT, pointers->SREG1, NULL, pointers->ACCREG);   
+    SEM_generate(OP_JTRUE, pointers->ACCREG, labelRepeat, NULL);
+}
+
+
 //!< DALSIE FUNKCIE
-void SEM_insertEmbFunc(){
-    PTStructLex forward = malloc(sizeof( TStructLex));
-        if(forward == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    forward->lex = "forward";
-    forward->type = KEY_FORWARD;
-    
-    PTStructLex strednik = malloc(sizeof( TStructLex));
-        if(strednik == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    strednik->lex = ";";
-    strednik->type = STREDNIK;
-    
-    PTStructLex fType = malloc(sizeof( TStructLex));
-        if(fType == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pType1 = malloc(sizeof( TStructLex));
-        if(pType1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pType2 = malloc(sizeof( TStructLex));
-        if(pType2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-    PTStructLex pType3 = malloc(sizeof( TStructLex));
-        if(pType3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
+void SEM_insertEmbFunc(){     
+    TSbinstrom functNode;
+    TSbinstrom paramNode;
     
     // Funkcia length
     PTStructLex fLength = malloc(sizeof( TStructLex));
     if(fLength == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     PTStructLex pLength1 = malloc(sizeof( TStructLex));
     if(pLength1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
-
+    
         
-        fLength->value = &EMBlength;
-        fLength->lex = malloc(7);
+        fLength->value = &EMBlength;                // VALUE FUNKCIE JE IMPLICITNE EMBlength 
+        fLength->lex = malloc(7);                   // NAZOV V TABULKE SYMBOLOV = LENGTH
         memcpy (fLength->lex, "length", 7);    
-        fLength->param = NULL;
-        //fLength->flags = LEX_FLAGS_INIT;
-        pLength1->lex = malloc(2);
+        fLength->param = malloc(2);                 // FUNKCIA MA JEDEN PARAMETER TYPU STRING
+        memcpy (fLength->param, "s", 2);  
+        fLength->flags = LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_INT | LEX_FLAGS_TYPE_FUNC_DEK;  //  JEDNA SA O FUNKCIU, KTORA JE LEN DEKLAROVANA A JE TYPU INT
+        
+        pLength1->lex = malloc(2);                  // PARAMETER S NAZVOM = S
         memcpy(pLength1->lex, "s", 2);
         pLength1->type = IDENTIFICATOR;
         pLength1->param = NULL;
-        pLength1->value = NULL;
-        pType1->lex = "string";
-        pType1->type = KEY_STRING;
-        fType->lex = "integer";
-        fType->type = KEY_INTEGER;
+        pLength1->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pLength1->value->value.offset = -2;             // OFFSET PRVEHO PARAMETRA = -2
+        pLength1->value->type = TERM_STRING;            // PARAMETER TYPU STRING
 
-    SEM_defineFunction(fLength);   
-    SEM_defineParam(pLength1, pType1);
-    SEM_defFuntionType(fType);
-    SEM_endFunctionDef(forward);    // FUNKCIA JE REDEKLAROVATELNA
-    
-    
+
+    functNode = BS_Add(pointers->SYM_TABLE, fLength);
+    paramNode = BS_Add(functNode->loc_table, pLength1);
+
+   
     // FUNKCIA COPY   
     PTStructLex fCopy = malloc(sizeof( TStructLex));
         if(fCopy == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
@@ -801,42 +815,43 @@ void SEM_insertEmbFunc(){
         if(pCopy3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     
         
-        fCopy->value = &EMBcopy;
-        fCopy->lex = malloc(5);
-        memcpy(fCopy->lex, "copy", 5);
-        fCopy->param = NULL;
-        //fCopy->flags = LEX_FLAGS_INIT;        
-        pCopy1->lex = malloc(2);
-        memcpy(pCopy1->lex, "s",2);
-        pCopy1->type = IDENTIFICATOR; 
+        fCopy->value = &EMBlength;                // VALUE FUNKCIE JE IMPLICITNE EMBcopy
+        fCopy->lex = malloc(5);                   // NAZOV V TABULKE SYMBOLOV = COPY
+        memcpy (fCopy->lex, "copy", 5);    
+        fCopy->param = malloc(4);                 // FUNKCIA MA TRI PARAMETRE TYPU STRING INT INT
+        memcpy (fCopy->param, "sii", 4);  
+        fCopy->flags = LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_STRING | LEX_FLAGS_TYPE_FUNC_DEK;  //  JEDNA SA O FUNKCIU, KTORA JE LEN DEKLAROVANA A JE TYPU STRING
+        
+        pCopy1->lex = malloc(2);                  // PARAMETER S NAZVOM = S
+        memcpy(pCopy1->lex, "s", 2);
+        pCopy1->type = IDENTIFICATOR;
         pCopy1->param = NULL;
-        pCopy1->value = NULL;        
-        pType1->lex = "string";
-        pType1->type = KEY_STRING;       
-        pCopy2->lex = malloc(2);
-        memcpy(pCopy2->lex,"i",2);
-        pCopy2->type = IDENTIFICATOR;      
+        pCopy1->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pCopy1->value->value.offset = -4;             // OFFSET TRETIEHO PARAMETRA = -4
+        pCopy1->value->type = TERM_STRING;            // PARAMETER TYPU STRING
+
+        pCopy2->lex = malloc(2);                  // PARAMETER S NAZVOM = I
+        memcpy(pCopy2->lex, "i", 2);
+        pCopy2->type = IDENTIFICATOR;
         pCopy2->param = NULL;
-        pCopy2->value = NULL;        
-        pType2->lex = "string";
-        pType2->type = KEY_INTEGER;
-        pCopy3->lex = malloc(2);
-        memcpy(pCopy3->lex, "n", 2); 
+        pCopy2->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pCopy2->value->value.offset = -3;             // OFFSET DRUHEHO PARAMETRA = -3
+        pCopy2->value->type = TERM_INT;            // PARAMETER TYPU INT
+        
+        pCopy3->lex = malloc(2);                  // PARAMETER S NAZVOM = N
+        memcpy(pCopy3->lex, "n", 2);
         pCopy3->type = IDENTIFICATOR;
         pCopy3->param = NULL;
-        pCopy3->value = NULL;        
-        pType3->lex = "string";
-        pType3->type = KEY_INTEGER;        
-        fType->lex = "string";
-        fType->type = KEY_STRING;
+        pCopy3->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pCopy3->value->value.offset = -2;             // OFFSET PRVEHO PARAMETRA = -2
+        pCopy3->value->type = TERM_INT;            // PARAMETER TYPU INT
+
+    functNode = BS_Add(pointers->SYM_TABLE, fCopy);
+    paramNode = BS_Add(functNode->loc_table, pCopy1);
+    paramNode = BS_Add(functNode->loc_table, pCopy2);
+    paramNode = BS_Add(functNode->loc_table, pCopy3);    
+
     
-    SEM_defineFunction(fCopy); 
-    SEM_defineParam(pCopy1, pType1);
-    SEM_defineParam(pCopy2, pType2);
-    SEM_defineParam(pCopy3, pType3);
-    SEM_defFuntionType(fType);
-    SEM_endFunctionDef(forward);   // FUNKCIA JE REDEKLAROVATELNA
-   
     // FUNKCIA FIND
     PTStructLex fFind = malloc(sizeof( TStructLex));
     if(fFind == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
@@ -845,68 +860,61 @@ void SEM_insertEmbFunc(){
     PTStructLex pFind2 = malloc(sizeof( TStructLex));
     if(pFind2 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
 
- 
-        fFind->value = &EMBfind;
-        fFind->lex = malloc(5);
-        memcpy(fFind->lex, "find", 5);
-        fFind->param = NULL;
-        //fFind->flags = LEX_FLAGS_INIT;         
-        pFind1->lex = malloc(2);
-        memcpy(pFind1->lex, "s", 2);   
-        pFind1->type = IDENTIFICATOR;  
+        fFind->value = &EMBfind;                // VALUE FUNKCIE JE IMPLICITNE EMBfind 
+        fFind->lex = malloc(5);                   // NAZOV V TABULKE SYMBOLOV = FIND
+        memcpy (fFind->lex, "find", 5);    
+        fFind->param = malloc(3);                 // FUNKCIA MA 2 PARAMETRE TYPU STRING
+        memcpy (fFind->param, "ss", 3);  
+        fFind->flags = LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_INT | LEX_FLAGS_TYPE_FUNC_DEF;  //  JEDNA SA O FUNKCIU, KTORA JE DEFINOVANA A JE TYPU INT
+        
+        pFind1->lex = malloc(2);                  // PARAMETER S NAZVOM = S
+        memcpy(pFind1->lex, "s", 2);
+        pFind1->type = IDENTIFICATOR;
         pFind1->param = NULL;
-        pFind1->value = NULL;        
-        pType1->lex = "string";
-        pType1->type = KEY_STRING;       
-        pFind2->lex = malloc(7);
-        memcpy(pFind2->lex, "search", 7);   
-        pFind2->type = IDENTIFICATOR; 
+        pFind1->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pFind1->value->value.offset = -3;             // OFFSET DRUHEHO PARAMETRA = -3
+        pFind1->value->type = TERM_STRING;            // PARAMETER TYPU STRING
+
+
+        pFind2->lex = malloc(7);                      // PARAMETER S NAZVOM = SEARCH
+        memcpy(pFind2->lex, "search", 7);
+        pFind2->type = IDENTIFICATOR;
         pFind2->param = NULL;
-        pFind2->value = NULL;        
-        pType2->lex = "string";
-        pType2->type = KEY_STRING;
-        fType->lex = "integer";
-        fType->type = KEY_INTEGER;
- 
-    SEM_defineFunction(fFind);
-    SEM_defineParam(pFind1, pType1);    
-    SEM_defineParam(pFind2, pType2);       
-    SEM_defFuntionType(fType);
-    SEM_endFunctionDef(strednik);       // FUNKCIU NIE JE MOZNE REDEKLAROVAT
+        pFind2->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pFind2->value->value.offset = -2;             // OFFSET PRVEHO PARAMETRA = -2
+        pFind2->value->type = TERM_STRING;            // PARAMETER TYPU STRING
+        
+    functNode = BS_Add(pointers->SYM_TABLE, fFind);
+    paramNode = BS_Add(functNode->loc_table, pFind1);
+    paramNode = BS_Add(functNode->loc_table, pFind2);
+    
     
     // FUNCKIA SORT
     PTStructLex fSort = malloc(sizeof(TStructLex));
         if(fSort == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     PTStructLex pSort1 = malloc(sizeof(TStructLex));
         if(pSort1 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");   
-    
-        fSort->value = &EMBsort;
-        fSort->lex = malloc(5);
-        memcpy(fSort->lex, "sort", 5);
-        fSort->param = NULL;
-        //fSort->flags = LEX_FLAGS_INIT;        
-        pSort1->lex = malloc(2);
-        memcpy(pSort1->lex, "s", 2); 
+        
+        
+        fSort->value = &EMBsort;                // VALUE FUNKCIE JE IMPLICITNE EMBsort 
+        fSort->lex = malloc(5);                   // NAZOV V TABULKE SYMBOLOV = SORT
+        memcpy (fSort->lex, "sort", 5);    
+        fSort->param = malloc(2);                 // FUNKCIA MA JEDEN PARAMETER TYPU STRING
+        memcpy (fSort->param, "s", 2);  
+        fSort->flags = LEX_FLAGS_TYPE_FUNCTION | LEX_FLAGS_TYPE_STRING | LEX_FLAGS_TYPE_FUNC_DEF;  //  JEDNA SA O FUNKCIU, KTORA JE DEFINOVANA A JE TYPU STRING
+        
+        pSort1->lex = malloc(2);                  // PARAMETER S NAZVOM = S
+        memcpy(pSort1->lex, "s", 2);
         pSort1->type = IDENTIFICATOR;
         pSort1->param = NULL;
-        pSort1->value = NULL;          
-        pType1->lex = "string";
-        pType1->type = KEY_STRING;       
-        fType->lex = "string";
-        fType->type = KEY_STRING;
-        
-    SEM_defineFunction(fSort);
-    SEM_defineParam(pSort1, pType1);       
-    SEM_defFuntionType(fType);
-    SEM_endFunctionDef(strednik);    
-   
-    
-    free(fType);
-    free(pType1);
-    free(pType2);
-    free(pType3);
-    free(forward);
-    free(strednik);
+        pSort1->value = malloc(sizeof(struct STerm)); // JEHO TERM
+        pSort1->value->value.offset = -2;             // OFFSET PRVEHO PARAMETRA = -2
+        pSort1->value->type = TERM_STRING;            // PARAMETER TYPU STRING
+
+
+    functNode = BS_Add(pointers->SYM_TABLE, fSort);
+    paramNode = BS_Add(functNode->loc_table, pSort1);    
+    paramNode->loc_table = NULL;                //!< to len aby nebol warning na unused
 }
 
 

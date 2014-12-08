@@ -203,6 +203,16 @@ void SEM_thenStat();
  * @return: VYTVORENIE POTREBNYCH LABELOV A INSTRUKCII PRE INTERPRET
  */ 
  
+
+void SEM_noElse();
+/**
+ * SEM_noElse
+ * ----------
+ * @brief:FUNKCIA, KTORU VOLA SYNTAX AK SA UKONCI PRIKAZ IF-THEN
+ * @return: NAPLNENIE LABELOV TAK AKO JE TO TREBA
+ */ 
+
+ 
  
 void SEM_elseStat();
 /**
@@ -248,6 +258,25 @@ void SEM_whileEnd();
  * @return: UKONCENIE CYKLU WHILE
  */ 
  
+ 
+void SEM_repeatStat();
+/**
+* SEM_repeatStat
+* --------------
+* @brief:FUNKCIA, KTORU VOLA SYNTAX PO NAJDENI LEXEMY REPEAT
+* @return: VYTVORENIE A NAPLNENIE LABELU SKOKU NA REPEAT
+*/ 
+
+
+void SEM_repeatEnd();
+/**
+* SEM_repeatEnd
+* -------------
+* @brief:FUNKCIA, KTORU VOLA SYNTAX PO VYHODNOTENI PODMIENKY ZA LEXEMEOU UNTIL
+* @return: SKOK NA LABEL REPEAT AK NIE JE PODMIENKA SPLNENA
+*/ 
+  
+ 
 void SEM_readln(PTStructLex paramID);
 /**
  * SEM_whileBegin
@@ -255,6 +284,7 @@ void SEM_readln(PTStructLex paramID);
  * @brief:FUNKCIA, KTORU VOLA SYNTAX NAD PARAMETROM FUNKCIE READLN
  * @return: 3AK
  */  
+ 
  
 void SEM_writeCall();
 /**
