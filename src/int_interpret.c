@@ -45,10 +45,9 @@ int EMB_length(char *s){
 static PTSStack SInit () {
     PTSStack ret;
     if ((ret       = malloc(sizeof(TSStack)))   == NULL ||
-        (ret->term = malloc(sizeof(TTerm*)*32)) == NULL)
+        (ret->term = malloc(sizeof(TTerm)*BASE_STACK_SIZE)) == NULL)
         error (ERR_INTERNAL, "Chyba alokacie zasobnika\n");
     ret->top = ret->term;
-    *ret->top = NULL;
     ret->size = 0;
     return ret;
 }
@@ -60,8 +59,8 @@ static bool SEmpty (PTSStack S) {
 
 static void SPush (PTSStack S, TTerm *add) {
     uint32_t size = S->size;       //!< velkost pola
-    if ((size+2)%32 == 0) {
-        if ((S->term = realloc(S->term, sizeof(TTerm*)*(size+2+32))) == NULL)
+    if ((size+2)%BASE_STACK_SIZE == 0) {
+        if ((S->term = realloc(S->term, sizeof(TTerm)*(size+2+BASE_STACK_SIZE))) == NULL)
             error(ERR_INTERNAL, "Chyba realokacie\n");
         S->top  = S->term + size;           //!< posunutie na spravnu poziciu
                                             //!< realloc moze hodit inu adresu
@@ -69,36 +68,28 @@ static void SPush (PTSStack S, TTerm *add) {
         EBP->value.ebp->term = S->term;
     }
     S->top++;
-    *S->top = malloc (sizeof(TTerm));
-    if (*S->top == NULL) error(ERR_INTERNAL, "Chyba realokacie!\n");
-    memcpy(*S->top, add, sizeof(TTerm));
+    memcpy(S->top, add, sizeof(TTerm));
     S->size++;
 }
 
 __attribute__((unused))
 static TTerm *STop (PTSStack S) {
-    return *S->top;
+    return S->top;
 }
 
 static TTerm *SPop (PTSStack S) {
-    TTerm *ret = *S->top;
+    TTerm *ret = S->top;
     S->top--;
     S->size--;
     return ret;
 }
 
 static TTerm *SPick (PTSStack S, int offset) {
-    //log("Picking Term on %d offset from %d/%d long stack\n", offset, EBP->value.ebp->size, ESP->value.esp->size);
-    return S->term[S->size+offset];
+    return S->term + S->size + offset;
 }
 
 static void SFree (PTSStack S) {
-    void *ptr = S->term;
-    while (SEmpty(S)) {
-        free(*S->top);
-        S->top--;
-    }
-    free(ptr);
+    free(S->term);
     free(S);
 }
 
@@ -390,7 +381,6 @@ __attribute__ ((unused)) TTerm *ret) {
     memcpy(ESP->value.esp, EBP->value.ebp, sizeof(TSStack));
     TTerm *ptr = SPop(ESP->value.esp);
     size_t s = ptr->value.address;
-    free(ptr);
     EBP->value.ebp->top  = s + ESP->value.esp->term;
     EBP->value.ebp->size = s;
     EBP->value.ebp->term = ESP->value.ebp->term;
@@ -403,18 +393,17 @@ __attribute__ ((unused)) TTerm *ret) {
     op2 = op2->index ? SPick(EBP->value.ebp, op2->value.offset) : op2;
     // Local variable cleaning
     for (int i = 0; i < op1->value.integer; i++) {
-        free(SPop(ESP->value.esp));
+        SPop(ESP->value.esp);
     }
     popebp(NULL, NULL, NULL);
     
     TTerm *add = SPop(ESP->value.esp);
     P3AC *pom = &EIP[add->value.address];
-    free(add);
-   // //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
+    //log("RETURN: on address:%u op1:%d op2:%d\n", (uint32_t)(pom-EIP), op1->value.integer, op2->value.integer);
     PEIP = pom;
     // Arguments cleaning
     for (int i = 0; i < op2->value.integer; i++)
-        free(SPop(ESP->value.esp));
+        SPop(ESP->value.esp);
 }
 
 static void push (       TTerm *op1,
@@ -433,8 +422,6 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
             TTerm *pom = SPop(ESP->value.esp);
             if (pom == NULL) error(ERR_INTERNAL, "Pop vratil NULL, ??????");
             memcpy(ret, pom, sizeof(TTerm));
-            ret->index = false;
-            free(pom); 
         } else 
             error (ERR_INTERNAL, "Stack is empty");
     } else {

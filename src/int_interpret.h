@@ -7,6 +7,13 @@
 #ifndef h_INT_PAR
 #define h_INT_PAR
 
+#ifndef BASE_STACK_SIZE
+# define BASE_STACK_SIZE 512
+#endif
+#ifndef EIP_SIZE
+# define EIP_SIZE        100
+#endif
+
 #define EMBsort    embededFunc[0]  //!< zabudovana funkcia na sort retazca
 #define EMBcopy    embededFunc[1]  //!< zabudovana funkcia na kopirovanie retazca
 #define EMBlength  embededFunc[2]  //!< zabudovana funkcia na dlzku retazca
@@ -76,9 +83,9 @@ typedef struct STerm {
 } TTerm;                    //!< Term -> struktura premennej
 
 struct SStack {
-    TTerm     **term;       //!< TERM
-    TTerm     **top;        //!< Top term na zasobniku
-    size_t      size;       //!< size of stack
+    TTerm       *term;      //!< TERM
+    TTerm       *top;       //!< Top term na zasobniku
+    size_t       size;      //!< size of stack
 };
 
 struct S3AC {

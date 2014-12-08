@@ -43,7 +43,7 @@ constructor static void __init__ (void) {
     pointers->CONSTLIST = SEM_initCL();
     pointers->PARAMCOUNT = 0;
     pointers->PROGRAMINDEX = 0;
-    if ((PEIP = EIP = malloc (sizeof(P3AC)*42)) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
+    if ((PEIP = EIP = malloc (sizeof(P3AC)*EIP_SIZE)) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     *PEIP = NULL;
    // log("Initialization");
 }
