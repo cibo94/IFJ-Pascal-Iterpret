@@ -145,8 +145,8 @@ void SEM_defineFunction(PTStructLex dataID){
             error(ERR_SEM_UNDEF,"Chyba pri definicii funkcie '%s'. Existuje premenna s rovnakym nazvom.\n", dataID->lex);
         if((newNode->data->flags & LEX_FLAGS_TYPE_FUNC_DEF) != 0)       //  AK JE NAJDENY UZOL FUNKCIA, KTORA UZ BOLA DEKLAROVANA -> ERROR, REDEFINICIA FUNKCIE
             error(ERR_SEM_UNDEF,"Pokus o redefiniciu funkcie '%s'.\n", dataID->lex);
-        free(dataID->lex);
-        free(dataID);
+        //free(dataID->lex);
+        //free(dataID);
     }
     else {                                                              //  INAK SA VKLADA NOVA FUNKCIA
         newNode = BS_Add(pointers->SYM_TABLE,dataID);                   //  PRIDAVA SA NA GLOBALNU UROVEN      
@@ -182,7 +182,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
 #if 0
         funcParam->data->value->name = dataID->lex;
 #else
-        free(dataID->lex);
+        //free(dataID->lex);
 #endif
         switch(dataType->type){                                                                 // AK SA NASIEL A SEDI JEHO POZICIA, ALE NESEDI TYP = CHYBA
             case KEY_INTEGER: if(funcParam->data->value->type != TERM_INT) 
@@ -195,7 +195,7 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
                                 error(ERR_SEM_TYPE,"Chybne parametre pri deklaracii funkcie (chybny typ parametra '%s')\n", dataID->lex);    break;    
             default : break;
         }
-        free(dataID);
+        //free(dataID);
         (pointers->PARAMCOUNT)++;
         return; // INAK OK
     }
