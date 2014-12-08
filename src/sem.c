@@ -800,6 +800,7 @@ void SEM_insertEmbFunc(){
 
 
     functNode = BS_Add(pointers->SYM_TABLE, fLength);
+    pointers->CURRENTFUNCT = functNode;
     paramNode = BS_Add(functNode->loc_table, pLength1);
 
    
@@ -846,6 +847,7 @@ void SEM_insertEmbFunc(){
         pCopy3->value->type = TERM_INT;            // PARAMETER TYPU INT
 
     functNode = BS_Add(pointers->SYM_TABLE, fCopy);
+    pointers->CURRENTFUNCT = functNode;
     paramNode = BS_Add(functNode->loc_table, pCopy1);
     paramNode = BS_Add(functNode->loc_table, pCopy2);
     paramNode = BS_Add(functNode->loc_table, pCopy3);    
@@ -884,6 +886,7 @@ void SEM_insertEmbFunc(){
         pFind2->value->type = TERM_STRING;            // PARAMETER TYPU STRING
         
     functNode = BS_Add(pointers->SYM_TABLE, fFind);
+    pointers->CURRENTFUNCT = functNode;
     paramNode = BS_Add(functNode->loc_table, pFind1);
     paramNode = BS_Add(functNode->loc_table, pFind2);
     
@@ -912,6 +915,7 @@ void SEM_insertEmbFunc(){
 
 
     functNode = BS_Add(pointers->SYM_TABLE, fSort);
+    pointers->CURRENTFUNCT = functNode;
     paramNode = BS_Add(functNode->loc_table, pSort1);    
     paramNode->loc_table = NULL;                //!< to len aby nebol warning na unused
 }
