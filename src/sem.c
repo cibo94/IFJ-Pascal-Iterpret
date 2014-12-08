@@ -222,7 +222,6 @@ void SEM_defineParam(PTStructLex dataID, PTStructLex dataType){
         } 
         funcParam->data->value->index = true;                                           // PARAMETER JE INDEXOVY UKAZATEL DO ZASOBNIKA
         SEM_pushLS(pointers->LABELSTACK, funcParam->data->value);
-        // funcParam->data->value->value.offset = (pointers->PARAMCOUNT+1)*(-1);                  // UKAZUJE TAM KAM PARAMCOUNT  
         funcParam->data->value->init = false; 
         return;       
     }
