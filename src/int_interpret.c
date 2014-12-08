@@ -85,7 +85,7 @@ static TTerm *SPop (PTSStack S) {
 }
 
 static TTerm *SPick (PTSStack S, int offset) {
-    return S->term + S->size + offset;
+    return S->top + offset;
 }
 
 static void SFree (PTSStack S) {
