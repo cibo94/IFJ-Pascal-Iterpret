@@ -15,10 +15,10 @@ STACK_STEPS=32
 CYCLES=50
 
 # TMP variables
-MIN_TICKS=99999999999999
+MIN_TICKS=50000
 BEST_EIP=0
 BEST_STACK=0
-TICKS=0
+TICKS=60000
 COUNTER=0
 PERCENT=0
 FIRST=0
@@ -45,35 +45,35 @@ function logBest {
 }
 
 function log {
-    if [[ ${FIRST} -eq 1 ]]; then
-       for ((b=0; b<62; b++)); do
-           printf '\b'
-       done 
-    fi
+#    if [[ ${FIRST} -eq 1 ]]; then
+#       for ((b=0; b<64; b++)); do
+#           printf '\b'
+#       done 
+#    fi
+    printf '\r'
     FIRST=1
     printf " \e[1;31m%3d%%\e[m: \e[1;34mTICKS\e[m: %5d \e[1;34mSTACK_SIZE\e[m: %5d \e[1;34mEIP_SIZE\e[m: %5d" ${PERCENT} ${TICKS} ${STACK_SIZE} ${EIP_SIZE}
 }
 function main {
     for ((i=0; i<${STACK_STEPS}; i++)); do
         for ((j=0; j<${EIP_STEPS}; j++)); do
-            make --always-make DEFINES=-DTICK\ -DEIP_SIZE=${EIP_SIZE}\ -DBASE_STACK_SIZE=${STACK_SIZE} >/dev/null 2>&1
-            TICKS=0
-            COUNTER=0
-            for ((k=0; k<${CYCLES}; k++)); do
-                COUNTER=$((${COUNTER}+1))
-                TICKS=$(($(echo "${SRC}" | ./proj 2>&1)+${TICKS}))
-            done
-            TICKS=$((${TICKS}/${COUNTER}))
             if [[ ${TICKS} -lt ${MIN_TICKS} ]]; then
                 POR=$((${POR}+1))
                 MIN_TICKS=${TICKS}
                 BEST_EIP=${EIP_SIZE}
                 BEST_STACK=${STACK_SIZE}
                 logBest
-            else
-                PERCENT=$(((100*((${i}*${EIP_STEPS})+${j}))/(${EIP_STEPS}*${STACK_STEPS})))
-                log
             fi
+            make --always-make DEFINES=-DTICK\ -DEIP_SIZE=${EIP_SIZE}\ -DBASE_STACK_SIZE=${STACK_SIZE} >/dev/null 2>&1
+            TICKS=0
+            COUNTER=0
+            for ((k=1; k<=${CYCLES}; k++)); do
+                COUNTER=$((${COUNTER}+1))
+                TICKS=$(($(echo "${SRC}" | ./proj 2>&1)+${TICKS}))
+            done
+            TICKS=$((${TICKS}/${COUNTER}))
+            PERCENT=$(((100*((${i}*${EIP_STEPS})+${j}))/(${EIP_STEPS}*${STACK_STEPS})))
+            log
             EIP_SIZE=$((${EIP_SIZE}+${EIP_STEP}))
         done
         EIP_SIZE=32

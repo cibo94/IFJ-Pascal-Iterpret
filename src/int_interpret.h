@@ -97,11 +97,10 @@ struct S3AC {
 
 
 __attribute__ ((unused))
-void INT_interpret ();      //!< zakladna funkcia -> spusti interpret, musi byt vyplneny EIP a ukonceny NULLom
 extern P3AC *EIP,           //!< EIP -> globalne pole intrukcii
             *PEIP;          //!< PEIP -> ukazatel do pola instrukcii -> koli skokom a pod
 extern TTerm *EBP, *ESP;
-extern TTerm embededFunc[]; //!< zabudovane funkcie -> readln, write, sort, length, ...
+extern TTerm *embededFunc;  //!< zabudovane funkcie -> readln, write, sort, length, ...
 
 /** Copy function
 * \brief Embeded function for copy string
@@ -119,4 +118,13 @@ char *EMB_copy(char *in, int from, int size);
  */
 int EMB_length(char *s);
 
+/** Base interpret function
+ * \brief spusti interpret, musi byt vyplneny EIP a ukonceny NULLom
+ */
+void INT_interpret ();
+
+/** EMBInit function
+ * \brief Nainicializuje emb pole
+ */
+void embInit();
 #endif

@@ -674,6 +674,28 @@ static void ____readln () {
     ret(&zero, &one, NULL);
 }
 
+TTerm *embededFunc;
+
+void embInit() {
+    embededFunc[0].value.emb_function = &__sort;
+    embededFunc[0].type = TERM_EMB;
+    embededFunc[0].name = "sort";
+    embededFunc[1].value.emb_function = &__copy;
+    embededFunc[1].type = TERM_EMB;
+    embededFunc[1].name = "copy";
+    embededFunc[2].value.emb_function = &__length;
+    embededFunc[2].type = TERM_EMB;
+    embededFunc[2].name = "length";
+    embededFunc[3].value.emb_function = &__find;
+    embededFunc[3].type = TERM_EMB;
+    embededFunc[3].name = "find";
+    embededFunc[4].value.emb_function = &__write;
+    embededFunc[4].type = TERM_EMB;
+    embededFunc[4].name = "write";
+    embededFunc[5].value.emb_function = &____readln;
+    embededFunc[5].type = TERM_EMB;
+    embededFunc[5].name = "readln";
+}
 
 __attribute__ ((unused))
 static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
@@ -685,41 +707,6 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     &pushebp, &popebp
     // TODO: Pridat dalsie funkcie!
 };
-
-TTerm embededFunc[6] = {
-    {
-        .value.emb_function = &__sort,
-        .type = TERM_EMB,
-        .name = "sort"
-    },
-    {
-        .value.emb_function = &__copy,
-        .type = TERM_EMB,
-        .name = "copy" 
-    },
-    {
-        .value.emb_function = &__length,
-        .type = TERM_EMB,
-        .name = "length" 
-    },
-    {
-        .value.emb_function = &__find,
-        .type = TERM_EMB,
-        .name = "find" 
-    }, 
-    {
-        .value.emb_function = &__write,
-        .type = TERM_EMB,
-        .name = "write" 
-    }, 
-    {
-        .value.emb_function = &____readln,
-        .type = TERM_EMB,
-        .name = "readln" 
-    }
-};
-
-
 void INT_interpret () {
     /// Instruction pointer
     PEIP = EIP;

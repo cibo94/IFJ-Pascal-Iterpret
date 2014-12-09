@@ -52,7 +52,7 @@ typedef struct SconstList {
 
     extern PGLOB_DEST pointers;
     extern P3AC *EIP, *PEIP;
-    extern TTerm embededFunc[];
+    extern TTerm *embededFunc;
     
 // FUNKCIE PRE ZASOBNIK TYPOV
 TSemStack SEM_initSS();

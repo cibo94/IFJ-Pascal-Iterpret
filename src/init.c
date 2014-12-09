@@ -45,6 +45,8 @@ constructor static void __init__ (void) {
     pointers->PROGRAMINDEX = 0;
     if ((PEIP = EIP = malloc (sizeof(P3AC)*EIP_SIZE)) == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!\n");
     *PEIP = NULL;
+    embededFunc = malloc(sizeof(TTerm)*6);
+    embInit();
    // log("Initialization");
 }
 destructor static void __free__ (void) {
@@ -61,6 +63,7 @@ destructor static void __free__ (void) {
     free(EIP);
     free(pointers);
     free(FILE_NAME);
+    free(embededFunc);
     FILE_NAME = NULL;
     //log("Destruction");
 }
