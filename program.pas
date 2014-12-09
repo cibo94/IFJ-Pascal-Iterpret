@@ -152,6 +152,11 @@ begin
     end
 end;
 
+function length(x: integer): string;
+begin
+    sort:='Waaaaat'
+end;
+
 function asin(z: real): real;
 var yNext:  real;
     result: real;

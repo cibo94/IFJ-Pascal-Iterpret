@@ -18,6 +18,8 @@ TTerm  __ebp = {
 __attribute__ ((unused))
 P3AC *EIP, *PEIP;
 
+TTerm *embededFunc;
+
 
 /***************************************
  *      EMBEDDED function              *
@@ -674,28 +676,6 @@ static void ____readln () {
     ret(&zero, &one, NULL);
 }
 
-TTerm *embededFunc;
-
-void embInit() {
-    embededFunc[0].value.emb_function = &__sort;
-    embededFunc[0].type = TERM_EMB;
-    embededFunc[0].name = "sort";
-    embededFunc[1].value.emb_function = &__copy;
-    embededFunc[1].type = TERM_EMB;
-    embededFunc[1].name = "copy";
-    embededFunc[2].value.emb_function = &__length;
-    embededFunc[2].type = TERM_EMB;
-    embededFunc[2].name = "length";
-    embededFunc[3].value.emb_function = &__find;
-    embededFunc[3].type = TERM_EMB;
-    embededFunc[3].name = "find";
-    embededFunc[4].value.emb_function = &__write;
-    embededFunc[4].type = TERM_EMB;
-    embededFunc[4].name = "write";
-    embededFunc[5].value.emb_function = &____readln;
-    embededFunc[5].type = TERM_EMB;
-    embededFunc[5].name = "readln";
-}
 
 __attribute__ ((unused))
 static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
@@ -741,4 +721,31 @@ void INT_interpret () {
     SFree(ESP->value.esp);
     free(ptr);
     return;
+}
+
+void embInit() {
+    embededFunc[0].value.emb_function = &__sort;
+    embededFunc[0].type = TERM_EMB;
+    embededFunc[0].name = "sort";
+    embededFunc[0].index = false;
+    embededFunc[1].value.emb_function = &__copy;
+    embededFunc[1].type = TERM_EMB;
+    embededFunc[1].name = "copy";
+    embededFunc[1].index = false;
+    embededFunc[2].value.emb_function = &__length;
+    embededFunc[2].type = TERM_EMB;
+    embededFunc[2].name = "length";
+    embededFunc[2].index = false;
+    embededFunc[3].value.emb_function = &__find;
+    embededFunc[3].type = TERM_EMB;
+    embededFunc[3].name = "find";
+    embededFunc[3].index = false;
+    embededFunc[4].value.emb_function = &__write;
+    embededFunc[4].type = TERM_EMB;
+    embededFunc[4].name = "write";
+    embededFunc[4].index = false;
+    embededFunc[5].value.emb_function = &____readln;
+    embededFunc[5].type = TERM_EMB;
+    embededFunc[5].name = "readln";
+    embededFunc[5].index = false;
 }
