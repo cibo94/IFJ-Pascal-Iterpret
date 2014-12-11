@@ -685,20 +685,17 @@ static void (*INST[])(TTerm *op1, TTerm *op2, TTerm *ret) = {
     &push, &pop, &jtrue, &jmp, 
     &nop, &load, &not, &store, 
     &pushebp, &popebp
-    // TODO: Pridat dalsie funkcie!
-};
-void INT_interpret () {
-    /// Instruction pointer
-    PEIP = EIP;
+};  //!< V tomto poli su ulozene jednoduche funkcie ktore sa vyberaju podla typu operaciu
+    //!< Maju presne dane parametre
 
-    /// Stack pointer
+void INT_interpret () {
+    /// Stack pointer init
     ESP->value.esp  = SInit ();
     void * ptr = EBP->value.ebp  = malloc (sizeof(TSStack));
-    // TODO: 
-    //      * pridat volanie semantiky
-    //      * pridat dealokacie: snad DONE
-    ////log("Runtime disasembly\n");
-    for (int i = 0; *PEIP != NULL; i++) {
+    for (PEIP = EIP; *PEIP != NULL; PEIP++) {
+        /*
+         * Hlavny cyklus, ktory splna instrukcie ktore mu dojdu zo semantiky
+         */
 #ifdef RUN_EIP
        printf("#%08u:\t%s\t%s%s%s%s%s\t{%f, %f, %f}\n",
           (unsigned int)(PEIP-EIP)+1,
@@ -708,15 +705,12 @@ void INT_interpret () {
           (*PEIP)->op2 != NULL ? (*PEIP)->op2->name            : "", 
           (*PEIP)->ret != NULL &&((*PEIP)->op2 != NULL || (*PEIP)->op1 != NULL) ?  ", "   : "",
           (*PEIP)->ret != NULL ? (*PEIP)->ret->name            : "",
-          (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.real   : 0, 
-          (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.real   : 0,
-          (*PEIP)->ret != NULL ? (*PEIP)->ret->value.real   : 0);
+          (*PEIP)->op1 != NULL ? (*PEIP)->op1->value.integer   : 0, 
+          (*PEIP)->op2 != NULL ? (*PEIP)->op2->value.integer   : 0,
+          (*PEIP)->ret != NULL ? (*PEIP)->ret->value.integer   : 0);
 #endif
 
         INST[(*PEIP)->op]((*PEIP)->op1, (*PEIP)->op2, (*PEIP)->ret);
-
-
-        PEIP++;
     }
     SFree(ESP->value.esp);
     free(ptr);

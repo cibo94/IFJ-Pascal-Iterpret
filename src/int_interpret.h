@@ -8,10 +8,10 @@
 #define h_INT_PAR
 
 #ifndef BASE_STACK_SIZE
-# define BASE_STACK_SIZE 512
+# define BASE_STACK_SIZE 128
 #endif
 #ifndef EIP_SIZE
-# define EIP_SIZE        100
+# define EIP_SIZE        64
 #endif
 
 #define EMBsort    embededFunc[0]  //!< zabudovana funkcia na sort retazca
