@@ -564,11 +564,18 @@ bool SYN_whileStatemnet(FILE *f){
 
 bool SYN_elseStatemnet(FILE *f){
   
-  if (lexema->type!=KEY_ELSE) return false;
-  SYN_readLexem(f,true);
-  SEM_elseStat();
-  if (SYN_comStatement(f)) return true;
-  else return false;
+  switch (lexema->type) {
+    case KEY_END:
+	case STREDNIK:
+      return true;
+	case KEY_ELSE:  
+	  SYN_readLexem(f,true);
+      SEM_elseStat();
+      if (SYN_comStatement(f)) return true;
+      else return false;
+	default:
+	  return false;
+  }
 }
 
 bool SYN_ifStatemnet(FILE *f){
