@@ -624,6 +624,9 @@ bool SYN_statement(FILE *f){
   	  SYN_readLexem(f,true);
   	  if (SYN_writeStatemnet(f)) return true;
   	  else return false;
+	case KEY_BEGIN:
+	   if SYN_comStatement(f) return true;
+	   else return false;
   	default:
   	  return false;
   }
