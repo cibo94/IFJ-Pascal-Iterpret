@@ -497,9 +497,6 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 
 static void load (       TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-  /*  op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;*/
- 
     /// nacita zo zasobnika nti prvok
     TTerm *pom = SPick(EBP->value.ebp,op1->value.integer);
     if (pom == NULL) error(ERR_INTERNAL, "Load popol NULL, %d\n\
@@ -510,8 +507,6 @@ __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
 
 static void store (      TTerm *op1,
 __attribute__ ((unused)) TTerm *op2, TTerm *ret) {
-    op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
-    ret = ret->index ? SPick(EBP->value.ebp, ret->value.offset) : ret;
     /// ulozi na zasobnik na presne miesto data do termu
     memcpy(SPick(EBP->value.ebp,ret->value.offset), op1, sizeof(TTerm));
 }
