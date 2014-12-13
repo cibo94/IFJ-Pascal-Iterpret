@@ -625,7 +625,7 @@ bool SYN_statement(FILE *f){
   	  if (SYN_writeStatemnet(f)) return true;
   	  else return false;
 	case KEY_BEGIN:
-	   if SYN_comStatement(f) return true;
+	   if (SYN_comStatement(f)) return true;
 	   else return false;
   	default:
   	  return false;
