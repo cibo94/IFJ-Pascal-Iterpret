@@ -421,9 +421,11 @@ void SEM_createTree(PTStructLex lexema){
     pointers->ACCREG->index = false;
     pointers->ACCREG->init = true;
     pointers->SREG1->index = false;
+    pointers->SREG1->init  = true;
     pointers->SREG1->type  = typeRight;
     pointers->SREG2->index = false;
     pointers->SREG2->type  = typeRight;
+    pointers->SREG2->init  = true;
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
     switch(lexema->type){
