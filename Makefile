@@ -33,16 +33,18 @@ CERR=$(CC).err
 .PHONY: clean doc help
 
 $(TARGET): $(OBJECT)
-	@bash -c "echo -e \"\e[34mLD\e[39m \e[32m\e[1mLinking \e[21m\e[39m ... \e[31m100%\e[39m: 	$(LD) $(LDFLAGS) $^ -o $@ \e[m\""
+	@bash -c "printf \"\e[34mLD\e[39m \e[32m\e[1mLinking \e[21m\e[39m ... \e[31m%3d%%\e[39m: %5s %s %s -o %s \e[m\" \"100\" \"$(LD)\" \"$(LDFLAGS)\" \"$^\" \"$@\""
 	@$(LD) $(LDFLAGS)	$^ -o $@ 
+	@printf "\r%5s %s -o %s -c %s\n" "$(LD)" "$(LDFLAGS)" "$^" "$@"
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	+@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
 	$(eval NthSRC=$(shell echo $(NthSRC)+1 | bc))
 	$(eval PERCENT=$(shell echo 100\*$(NthSRC)/$(NSRC) | bc))
-	@bash -c "echo -e \"\e[39m\e[34mCC\e[39m \e[32m\e[1mBuilding\e[21m\e[39m ... \e[31m$(PERCENT)%\e[39m: 	$(CC) $(CFLAGS) -o $@ -c $< \e[m\""
+	@bash -c "printf \"\e[39m\e[34mCC\e[39m \e[32m\e[1mBuilding\e[21m\e[39m ... \e[31m%3d%%\e[39m: %5s %s -o %25s -c %25s \e[m\" \"$(PERCENT)\" \"$(CC)\" \"$(CFLAGS)\" \"$<\" \"$@\""
 	@$(CC)	$(CFLAGS)	-o $@	-c $<
 	@$(CC) $< -MM | sed "s/^\(.*\.o\)/$(BUILDDIR)\/\1/g" > $@.d
+	@printf "\r%5s %s -o %25s -c %25s\n" "$(CC)" "$(CFLAGS)" "$<" "$@"
 
 -include $(wildcard $(BUILDDIR)/*.d)
 
