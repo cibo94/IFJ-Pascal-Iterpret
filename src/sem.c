@@ -156,9 +156,9 @@ void SEM_defineFunction(PTStructLex dataID){
     }
     else {                                                              //  INAK SA VKLADA NOVA FUNKCIA
         newNode = BS_Add(pointers->SYM_TABLE,dataID);                   //  PRIDAVA SA NA GLOBALNU UROVEN      
+        //free(newNode->data->param);
         newNode->data->param = malloc(32);                              //  PRIPRAVA STRINGU PARAMETROV
         if(newNode->data->param == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
-        newNode->data->param = "";
         newNode->data->value = malloc(sizeof(struct STerm));            //  PRIPRAVA TERMU, VOLANEJ ADRESY PRI VOLANI FUNKCIE
         if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->value->type = TERM_EIP;                          //  NASTAVENIE TYPU ADRESY
