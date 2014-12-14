@@ -55,3 +55,7 @@ doc:
 	@bash -c "echo -e \"\e[34mDOXYGEN\e[39m \e[32m\e[1mBuilding documentation\e[21m\e[m ...\""
 	@doxygen $(DOXCONF)
 
+zip:
+	@bash -c "echo -e \"\e[34mZipping src files to \e[32mxselec01.zip\e[m\""
+	@zip xselec01.zip *.c *.h *.pdf Makefile rozdeleni
+

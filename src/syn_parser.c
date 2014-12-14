@@ -1,5 +1,10 @@
-#include "inc.h"
+/**
+ * \file SYN_parser.h
+ * \brief Kniznica pracujuca so syntaxom
+ * \author Palo Vican - xvican01, Filip Luptak - xlupta03
+ */ 
 
+#include "inc.h"
 
 static PTStructLex lexema;
 

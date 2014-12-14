@@ -1,4 +1,10 @@
+/**
+ * \file ial.h
+ * \author Roman Selecky - xselec01, Miroslav Cibulka - xcibul10, Lukas Slouka - xslouk02
+ * \brief Tabulka symbolov
+ */
 #include "inc.h"
+
 extern PGLOB_DEST pointers;
 
 static uint32_t hash (char *key) {

@@ -1,7 +1,6 @@
 /**
- * \file LEX_lexem.h
- * \brief Kniznica pracujuca s lexemami
- * \author 69DreamTeam
+ * \file lex_lexem.h
+ * \author Filip Luptak - xlupta03, Lukas Slouka - xslouk02, Miroslav Cibulka - xcibul10
  */
 
 #ifndef h_LEX_lexem
@@ -44,23 +43,18 @@ typedef enum {
     KEY_ELSE,
     KEY_END,
     KEY_FALSE,
-//    KEY_FIND,
     KEY_FORWARD,
     KEY_FUNCTION,
     KEY_IF,
     KEY_INTEGER,
     KEY_READLN,
     KEY_REAL,
-//    KEY_SORT,
     KEY_STRING,
     KEY_THEN,
     KEY_TRUE,
     KEY_VAR,
     KEY_WHILE,
     KEY_WRITE,
-//    KEY_ARRAY,
-//    KEY_REPEAT,
-//    KEY_UNTIL,                      
     IDENTIFICATOR,                  //!< identifikator
     LBRACKET,                       //!< lava zatvorka        (
     RBRACKET,                       //!< prava zatvorka       )
@@ -114,11 +108,10 @@ static char *KEY_WORDS[] = {
     "begin", "boolean", "do", "else", "end", "false", "forward",
     "function", "if", "integer", "readln", "real", "string",
     "then", "true", "var", "while", "write", 
-//    "array", "repeat", "until", "sort", "find"
     NULL
-};
+};                                  //!< Array klucovych slov
 
-extern unsigned int LINE_NUM;     //!< pozicia v subore podla riadkov
+extern unsigned int LINE_NUM;       //!< pozicia v subore podla riadkov
 
 /** LEX_string
  * \brief Funkcia, ktora plni string nazvom lexemy

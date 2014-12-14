@@ -1,6 +1,6 @@
 /**
  * \file INT_parser.c
- * \author Miroslav Cibulka
+ * \author Miroslav Cibulka - xcibul10
  * \brief Interpret trojadresneho kodu
  */
 

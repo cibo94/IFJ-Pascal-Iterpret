@@ -1,3 +1,9 @@
+/**
+ * \file sem.c
+ * \brief Kniznica definujuca struktury a funkcie potrebne pre semanticku analyzu
+ * \author Lukas Slouka - xslouk02
+ */
+
 #include "inc.h"
 
 //!<  GLOBALNE PREMENNE

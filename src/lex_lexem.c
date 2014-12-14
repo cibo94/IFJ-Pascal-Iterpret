@@ -1,3 +1,9 @@
+/**
+ * \file lex_lexem.c
+ * \author Filip Luptak - xlupta03, Lukas Slouka - xslouk02, Miroslav Cibulka - xcibul10
+ * \brief Modul nacitava lexemy
+ */
+
 #include "inc.h"
 
 unsigned int LINE_NUM = 1;

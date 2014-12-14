@@ -1,3 +1,8 @@
+/** Inicialization
+ * \file init.h
+ * \author Miroslav Cibulka - xcibul10, Lukas Slouka - xslouk02
+ */
+
 #include "inc.h"
 
 char * FILE_NAME;

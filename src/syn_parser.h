@@ -1,12 +1,14 @@
 /**
  * \file SYN_parser.h
  * \brief Kniznica pracujuca so syntaxom
- * \author Palo Vican a Filip Luptak
+ * \author Palo Vican - xvican01, Filip Luptak - xlupta03
  */ 
+
 #ifndef h_SYN_parser
 #define h_SYN_parser
-#include<stdbool.h>
-#include<stdio.h>
+
+#include <stdbool.h>
+#include <stdio.h>
 #include "lex_lexem.h"
 
 typedef enum {
@@ -14,7 +16,7 @@ typedef enum {
     GLOBAL,
     PARAM,
     FUNCTION
-} TTypeIdentEnum;
+} TTypeIdentEnum;           //!< Typ identifikatora
 
 typedef enum {
     TERM,
@@ -27,22 +29,22 @@ typedef enum {
     COMMA,
     NONTERMINAL,
     ZARAZKA
-} TStackEnum;
+} TStackEnum;               //!< Enumerator urcujuci typ lexemy/oddelovaca
 
 typedef struct SItem {
-    TStructLex* data;
-    TStackEnum type;
-    struct SItem *next;
-} TItem;
+    TStructLex* data;       //!< data zasobnika
+    TStackEnum type;        //!< typ premennej v zasobniku
+    struct SItem *next;     //!< dalsi prvok
+} TItem;                    //!< prvok syntaktickeho zasobnika
 
 typedef struct {
-    TItem* top;
-} TSynStack;
+    TItem* top;             //!< vrchol zasobnika
+} TSynStack;                //!< Syntakticky zasobnik
 
-typedef struct {
-    TStackEnum *RSide;
-    int length;
-} TRule;
+typedef struct {            
+    TStackEnum *RSide;      //!< Enumerator pravidla
+    int length;             //!< Dlzka pravidla
+} TRule;                    //!< Pravidlo
 
 /** SYN_decPrem
  * \brief Pravidlo na deklaraciu premenu (2,3 pravidlo) 

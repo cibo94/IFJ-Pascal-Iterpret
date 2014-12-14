@@ -1,7 +1,7 @@
 /**
  * \file error.h                       
  * \copyright 69DeamTeam
- * \author Miroslav Cibulka             
+ * \author Miroslav Cibulka - xcibul10
  * \brief          
  * Modul, ktory sluzi na:               
  * Logovanie, Error, Warningy<BR>
@@ -10,8 +10,10 @@
 
 #ifndef h_ERROR
 #define h_ERROR
+
 #include "lex_lexem.h"
 #include "int_interpret.h"
+
 /**
  * \brief Error function
  * \param retCode navratova hodnota
@@ -23,6 +25,7 @@
  */
 static inline void error (const int retCode, const char *format, ...) 
     __attribute__ ((unused, format(printf, 2, 3)));
+
 /**
  * \brief Warning function
  * \param format text
@@ -33,6 +36,7 @@ static inline void error (const int retCode, const char *format, ...)
  */
 static inline void warning (const char *format, ...) 
     __attribute__ ((unused, format(printf, 1, 2)));
+
 /**
  * \brief Funkcia vypise dekodovane instrukcie
  * \param __EIP ukazatel na EIP
@@ -42,6 +46,7 @@ static inline void warning (const char *format, ...)
  */
 static inline void print_EIP (P3AC *__EIP)
     __attribute__ ((unused));
+
 /**
  * \brief Logging function -> Do not use this function use log() instead
  * \param line Argument for define log(...)
@@ -165,6 +170,9 @@ error(const int retCode,
               "\nExitCode %d\n",
               retCode);
      va_end(args);
+#ifndef __GNUC__
+     __free__();
+#endif
      exit(retCode);
 }
 
@@ -219,8 +227,8 @@ __log(const int   line,
     fclose(f);
 }
 
-#ifdef h_INT_PAR
 static inline void print_EIP (P3AC *__EIP) {
+#ifdef h_INT_PAR
     for (P3AC *POS=__EIP;*__EIP!=NULL;__EIP++) {
         printf("#%08u:\t%s\t%s%s%s%s%s\t{%d, %d, %d}\n",
           (unsigned int)(__EIP-POS+1),
@@ -234,8 +242,7 @@ static inline void print_EIP (P3AC *__EIP) {
           (*__EIP)->op2 != NULL ? (*__EIP)->op2->value.integer   : 0,
           (*__EIP)->ret != NULL ? (*__EIP)->ret->value.integer   : 0);
     }
-}
-#else  /*if defined(h_INT_PAR)*/
-
 #endif /*if defined(h_INT_PAR)*/
+}
+
 #endif /*defined(h_ERROR)*/
