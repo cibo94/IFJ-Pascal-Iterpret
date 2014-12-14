@@ -188,17 +188,11 @@ char *EMB_sort(char *in, int size) {
     char *out = malloc(size+1);                             // alokovanie navratoveho pola
     if (out == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!");
     memcpy(out, in, size);                                  // vytvorenie kopie
-    int krok = size / 2;                                    // nastavenie kroku na polovicu velkosti pola
-    while (krok > 0) {                                      // Kazdy cyklus sa krok zmensi o polovicu
-        for (int j = krok; j < size; j++) {
-            for (int i = j-krok;
-                 i >= 0 && out[i] > out[i+krok];
-                 i = i - krok) {                            // kazdym cyklom sa porovnaju hodnoty obkrok dozadu
+    for (int krok = size / 2; krok > 0; krok = krok / 2)    // Kazdy cyklus sa krok zmensi o polovicu
+        for (int j = krok; j < size; j++) 
+            for (int i = j-krok; i >= 0 && out[i] > out[i+krok]; i = i - krok) 
+                                                            // kazdym cyklom sa porovnaju hodnoty obkrok dozadu
                 arr_swap(&out[i], &out[i+krok]);            // a vymenia sa
-            }
-        }
-        krok = krok / 2;
-    }
     out[size] = '\0';                                       // ukoncovacia nula ... ta sa nezoradovala
     return out;
 }
