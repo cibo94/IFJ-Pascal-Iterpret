@@ -180,18 +180,23 @@ static void division (TTerm *op1, TTerm *op2, TTerm *ret) {
         case TERM_INT    :
             if (op2->value.integer == 0)
                 error(ERR_RNTM_ZERO, "Delenie 0 %d/%d\n", op1->value.integer, op2->value.integer);
-            ret->value.integer = op1->value.integer / op2->value.integer;
-            ret->type = op1->type;
+            if (op2->type == TERM_REAL)
+                ret->value.real = ((float)op1->value.integer) / op2->value.real;
+            else
+                ret->value.real = ((float)op1->value.integer) / ((float)op2->value.integer);
         break;
         case TERM_REAL   :
             if (op2->value.real == 0)
                  error(ERR_RNTM_ZERO, "Delenie 0 %f/%f\n", op1->value.real, op2->value.real);
-            ret->value.real = op1->value.real / op2->value.real;
-            ret->type = op1->type;
+
+            if (op2->type == TERM_REAL)
+                ret->value.real = op1->value.real / op2->value.real;
+            else
+                ret->value.real = op1->value.real / ((float)op2->value.integer);
         break;
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_REAL;
     ret->init = true;
 }
 
@@ -228,9 +233,13 @@ static void less (TTerm *op1, TTerm *op2, TTerm *ret) {
             ret->value.boolean = strcmp(op1->value.string, op2->value.string) < 0;
         break;
 
+        case TERM_BOOL   :
+            ret->value.boolean = op1->value.boolean < op2->value.boolean;
+        break;
+
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_BOOL;
     ret->init = true;
 }
 
@@ -254,9 +263,13 @@ static void greater (TTerm *op1, TTerm *op2, TTerm *ret) {
             ret->value.boolean = strcmp(op1->value.string, op2->value.string) > 0;
         break;
 
+        case TERM_BOOL   :
+            ret->value.boolean = op1->value.boolean > op2->value.boolean;
+        break;
+
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_BOOL;
     ret->init = true;
 }
 
@@ -280,9 +293,13 @@ static void lesseq (TTerm *op1, TTerm *op2, TTerm *ret) {
             ret->value.boolean = strcmp(op1->value.string, op2->value.string) <= 0;
         break;
 
+        case TERM_BOOL   :
+            ret->value.boolean = op1->value.boolean <= op2->value.boolean;
+        break;
+
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_BOOL;
     ret->init = true;
 }
 
@@ -306,9 +323,13 @@ static void greateq (TTerm *op1, TTerm *op2, TTerm *ret) {
             ret->value.boolean = strcmp(op1->value.string, op2->value.string) >= 0;
         break;
 
+        case TERM_BOOL   :
+            ret->value.boolean = op1->value.boolean >= op2->value.boolean;
+        break;
+
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_BOOL;
     ret->init = true;
 }
 
@@ -332,9 +353,13 @@ static void equal (TTerm *op1, TTerm *op2, TTerm *ret) {
             ret->value.boolean = strcmp(op1->value.string, op2->value.string) == 0;
         break;
 
+        case TERM_BOOL   :
+            ret->value.boolean = op1->value.boolean == op2->value.boolean;
+        break;
+
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_BOOL;
     ret->init = true;
 }
 
@@ -358,9 +383,13 @@ static void nequal (TTerm *op1, TTerm *op2, TTerm *ret) {
             ret->value.boolean = strcmp(op1->value.string, op2->value.string) != 0;
         break;
 
+        case TERM_BOOL   :
+            ret->value.boolean = op1->value.boolean != op2->value.boolean;
+        break;
+
         default          : break;
     }
-    ret->type = op1->type;
+    ret->type = TERM_BOOL;
     ret->init = true;
 }
 
@@ -436,6 +465,7 @@ static void jmp (        TTerm *op1,
 __attribute__ ((unused)) TTerm *op2,
 __attribute__ ((unused)) TTerm *ret) {
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
+    if (op1->value.address == 0) return;
     PEIP = &EIP[op1->value.address-1];
     ////log("JMP on adress %u with offset %u\n", (uint32_t)(PEIP-EIP), (*PEIP)->op);
 }
@@ -523,7 +553,7 @@ static void __sort () {
                .type = TERM_INT
            };
     if (!str->init) 
-        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
+        error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", str->name);
     out->type = TERM_STRING;
     out->init = true;
     out->value.string = EMB_sort (str->value.string, EMB_length(str->value.string));
@@ -543,11 +573,11 @@ static void __copy () {
                .type = TERM_INT
            };
     if (!str->init) 
-        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
+        error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", str->name);
     if (!from->init) 
-        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", from->name);
+        error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", from->name);
     if (!size->init) 
-        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", size->name);
+        error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", size->name);
     out->type = TERM_STRING;
     out->init = true;
     out->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
@@ -565,8 +595,8 @@ static void __length () {
                .value.integer = 1
            };
     if (!str->init) 
-        error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
-    out->type = TERM_STRING;
+        error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", str->name);
+    out->type = TERM_INT;
     out->init = true;
     out->value.integer = EMB_length(str->value.string);
     ret(&zero, &one, NULL);
@@ -597,7 +627,7 @@ static void __write () {
     int pocet = SPick(EBP->value.ebp,-2)->value.integer;
     for (int i = pocet; i > 0; i--) {
         n = SPick(EBP->value.ebp, -(2+i));
-        if (!n->init) error(ERR_SEM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", n->name);
+        if (!n->init) error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", n->name);
         switch (n->type) {
             case TERM_INT : 
                 printf ("%d", n->value.integer);

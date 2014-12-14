@@ -428,9 +428,7 @@ void SEM_createTree(PTStructLex lexema){
     pointers->ACCREG->init = true;
     pointers->SREG1->index = false;
     pointers->SREG1->init  = true;
-    pointers->SREG1->type  = typeRight;
     pointers->SREG2->index = false;
-    pointers->SREG2->type  = typeRight;
     pointers->SREG2->init  = true;
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
     SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
@@ -446,9 +444,10 @@ void SEM_createTree(PTStructLex lexema){
                                  else 
                                     error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
                                  break;
-        case OPERATOR_DIV      : if(typeRight != TERM_STRING)
+        case OPERATOR_DIV      : if(typeRight != TERM_STRING) {
                                     SEM_generate(OP_DIV, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-                                 else 
+                                    pointers->ACCREG->type = TERM_REAL;
+                                 } else 
                                     error(ERR_SEM_TYPE, "Retazec nie je mozne delit retazcom");
                                  break;
         case OPERATOR_GREATER  : relOperator = OP_GREAT;   break;

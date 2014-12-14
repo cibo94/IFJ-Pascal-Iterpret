@@ -50,7 +50,6 @@ void SPop(TSynStack *S) {
 	TItem *pom = S->top;
 	S->top = S->top->next;
 	if (pom->data!=NULL){
-        free(pom->data->lex);          //fuftak
         free(pom->data); 
     }                 //fuftak
 	free(pom);
