@@ -439,7 +439,7 @@ void SEM_createTree(PTStructLex lexema){
     switch(lexema->type){
         case OPERATOR_PLUS     : if(typeRight == TERM_BOOL)
                                     error(ERR_SEM_TYPE, "Operacia plus nad typmi boolean");
-                                 if(typeRight == TERM_REAL)||(typeLeft == TERM_REAL)    
+                                 if((typeRight == TERM_REAL)||(typeLeft == TERM_REAL))   
                                     pointers->ACCREG->type = TERM_REAL;
                                  SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);   
                                  break;      
@@ -448,7 +448,7 @@ void SEM_createTree(PTStructLex lexema){
                                     error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
                                  if(typeRight == TERM_BOOL)
                                     error(ERR_SEM_TYPE, "Operacia minus nad typmi boolean");
-                                 if(typeRight == TERM_REAL)||(typeLeft == TERM_REAL)    
+                                 if((typeRight == TERM_REAL)||(typeLeft == TERM_REAL))
                                     pointers->ACCREG->type = TERM_REAL;
                                  
                                  SEM_generate(OP_MINUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
@@ -458,7 +458,7 @@ void SEM_createTree(PTStructLex lexema){
                                     error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
                                  if(typeRight == TERM_BOOL)
                                     error(ERR_SEM_TYPE, "Operacia krat nad typmi boolean");
-                                 if(typeRight == TERM_REAL)||(typeLeft == TERM_REAL)    
+                                 if((typeRight == TERM_REAL)||(typeLeft == TERM_REAL)) 
                                     pointers->ACCREG->type = TERM_REAL;  
                                  SEM_generate(OP_MUL, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
                                  break;
@@ -558,8 +558,13 @@ void SEM_fCallPrologue(PTStructLex functID){
     
     pointers->ACCREG->init = false;
     pointers->ACCREG->index = false;
-    SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);  // PRIPRAVA HODNOTY VYSLEDKU
+    TTerm *ret = malloc(sizeof(TTerm));
+    ret->name = functID->lex;
+    ret->init = false;
+    ret->index = false;
+    SEM_generate(OP_PUSH, ret, NULL, NULL);  // PRIPRAVA HODNOTY VYSLEDKU
     pointers->PARAMCOUNT = 0;            //  VYNULOVANIE POCITADLA PARAMETROV
+    SEM_addCL(pointers->CONSTLIST, ret);
 }
 
 

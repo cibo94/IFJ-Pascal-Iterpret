@@ -100,6 +100,7 @@ static void SFree (PTSStack S) {
  ***********************************/
 
 static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
+    size_t size_op1;
     if (!op1->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op1->name);
     if (!op2->init) error(ERR_RNTM_UNDEF, "Praca s neinicializovanou premennou %s", op2->name);
     op1 = op1->index ? SPick(EBP->value.ebp, op1->value.offset) : op1;
@@ -117,7 +118,12 @@ static void plus (TTerm *op1, TTerm *op2, TTerm *ret) {
         break;
 
         case TERM_STRING :
-            ret->value.string = strcat(op1->value.string, op2->value.string);
+            size_op1 = strlen(op1->value.string);
+            ret->value.string = malloc(size_op1+strlen(op2->value.string)+1);
+            if (memcpy(ret->value.string, op1->value.string, size_op1) == NULL)
+                error(ERR_RNTM_OTHERS, "Chyba spajania stringov: '%s' + '%s'", op1->value.string, op2->value.string);
+            if (strcat(ret->value.string, op2->value.string) == NULL)
+                error(ERR_RNTM_OTHERS, "Chyba spajania stringov: '%s' + '%s'", op1->value.string, op2->value.string);
         break;
 
         default          : break;
@@ -580,6 +586,9 @@ static void __copy () {
         error(ERR_RNTM_UNDEF, "Pouzitie neinicializovanej premennej %s\n", size->name);
     out->type = TERM_STRING;
     out->init = true;
+    if (from->value.integer <= 0) error(ERR_RNTM_OTHERS, "String sa indexuje od 1, zadany index %d\n", from->value.integer);
+    if (strlen(str->value.string) < (unsigned)(from->value.integer + size->value.integer-1)) 
+        error(ERR_RNTM_OTHERS, "Copy '%s' velkosti %u z %d do %d siaha za hranice pola", str->value.string, (unsigned)strlen(str->value.string), from->value.integer, from->value.integer + size->value.integer);
     out->value.string = EMB_copy(str->value.string, from->value.integer, size->value.integer);
    // //log ("%s", out->value.string);
     ret(&zero, &three, NULL);
@@ -616,7 +625,7 @@ static void __find () {
         error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", str->name);
     if (!fstr->init) 
         error(ERR_INTERNAL, "Pouzitie neinicializovanej premennej %s\n", fstr->name);
-    out->type = TERM_STRING;
+    out->type = TERM_INT;
     out->init = true;
     out->value.integer = EMB_find(str->value.string, fstr->value.string);
     ret(&zero, &one, NULL);
