@@ -819,7 +819,7 @@ void SEM_insertEmbFunc(){
         if(pCopy3 == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate\n");
     
         
-        fCopy->value = &EMBlength;                // VALUE FUNKCIE JE IMPLICITNE EMBcopy
+        fCopy->value = &EMBcopy;                  // VALUE FUNKCIE JE IMPLICITNE EMBcopy
         fCopy->lex = malloc(5);                   // NAZOV V TABULKE SYMBOLOV = COPY
         memcpy (fCopy->lex, "copy", 5);    
         fCopy->param = malloc(4);                 // FUNKCIA MA TRI PARAMETRE TYPU STRING INT INT
