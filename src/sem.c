@@ -113,7 +113,7 @@ void SEM_disposeCL(TSconstList list){
     while (list->first != NULL){
         toDelete = list->first;
         list->first = toDelete->next;
-        if (toDelete->constTerm != NULL && toDelete->constTerm->type == TERM_STRING)
+        if ((toDelete->constTerm != NULL) && (toDelete->constTerm->type == TERM_STRING))
             free(toDelete->constTerm->value.string);
         free(toDelete->constTerm);
         free(toDelete);
@@ -157,7 +157,8 @@ void SEM_defineFunction(PTStructLex dataID){
     else {                                                              //  INAK SA VKLADA NOVA FUNKCIA
         newNode = BS_Add(pointers->SYM_TABLE,dataID);                   //  PRIDAVA SA NA GLOBALNU UROVEN      
         newNode->data->param = malloc(32);                              //  PRIPRAVA STRINGU PARAMETROV
-        if(newNode->data->param == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");   
+        if(newNode->data->param == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
+        newNode->data->param = "";
         newNode->data->value = malloc(sizeof(struct STerm));            //  PRIPRAVA TERMU, VOLANEJ ADRESY PRI VOLANI FUNKCIE
         if(newNode->data->value == NULL) error(ERR_INTERNAL,"Chyba alokacia pamate!.\n");
         newNode->data->value->type = TERM_EIP;                          //  NASTAVENIE TYPU ADRESY
@@ -394,7 +395,8 @@ void SEM_createLeaf(PTStructLex lexema){
                                  term->type = TERM_INT; break;
             case REAL_CONST   :  term->value.real = atof(lexema->lex);
                                  term->type = TERM_REAL; break;  
-            case STRING_CONST :  term->value.string = lexema->lex;
+            case STRING_CONST :  term->value.string = malloc(sizeof(lexema->lex)+1);
+                                 memcpy(term->value.string, lexema->lex, strlen(lexema->lex)+1);
                                  term->type = TERM_STRING; break;           
             case KEY_TRUE   :    term->value.boolean = true;
                                  term->type = TERM_BOOL; break;           
@@ -491,62 +493,6 @@ void SEM_createTree(PTStructLex lexema){
         SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
 }
 
-
-/* 
-void SEM_createTree(PTStructLex lexema){
-    
-    E_OP relOperator = 0;
-    ETermType typeRight = SEM_popSS(pointers->EXPRSTACK);
-    ETermType typeLeft  = SEM_popSS(pointers->EXPRSTACK);
-    
-    if(typeLeft != typeRight)
-        error(ERR_SEM_TYPE,"Nekompatibilne datove typy vo vyraze.");
-    
-    pointers->ACCREG->type = typeRight;
-    pointers->ACCREG->index = false;
-    pointers->ACCREG->init = true;
-    pointers->SREG1->index = false;
-    pointers->SREG1->init  = true;
-    pointers->SREG2->index = false;
-    pointers->SREG2->init  = true;
-    SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
-    SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
-    switch(lexema->type){
-        case OPERATOR_PLUS     : SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);   break;                                                                                 
-        case OPERATOR_MINUS    : if(typeRight != TERM_STRING)
-                                    SEM_generate(OP_MINUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-                                 else 
-                                    error(ERR_SEM_TYPE, "Retazce nie je mozne odcitat");
-                                 break;       
-        case OPERATOR_TIMES    : if(typeRight != TERM_STRING)
-                                    SEM_generate(OP_MUL, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-                                 else 
-                                    error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
-                                 break;
-        case OPERATOR_DIV      : if(typeRight != TERM_STRING) {
-                                    SEM_generate(OP_DIV, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
-                                    pointers->ACCREG->type = TERM_REAL;
-                                 } else 
-                                    error(ERR_SEM_TYPE, "Retazec nie je mozne delit retazcom");
-                                 break;
-        case OPERATOR_GREATER  : relOperator = OP_GREAT;   break;
-        case OPERATOR_SMALLER  : relOperator = OP_LESS;    break;
-        case OPERATOR_GREATEQ  : relOperator = OP_GREATEQ; break;
-        case OPERATOR_SMALLEQ  : relOperator = OP_LESSEQ;  break;
-        case OPERATOR_EQUAL    : relOperator = OP_EQUAL;   break;
-        case OPERATOR_NEQUAL   : relOperator = OP_NEQUAL;  break;    
-        default             :   break;
-        }     
-    
-        if(relOperator != 0){
-            pointers->ACCREG->type = TERM_BOOL;
-            SEM_generate(relOperator, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);  
-        }
-    
-        SEM_pushSS(pointers->EXPRSTACK, pointers->ACCREG->type);
-        SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
-}
-*/
 
 //!< VOLANIE FUNKCII
 void SEM_fCallPrologue(PTStructLex functID){
