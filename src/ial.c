@@ -7,7 +7,7 @@
 
 extern PGLOB_DEST pointers;
 
-static uint32_t hash (char *key) {
+static uint32_t hash (char *key) {                //<! Jenkins hash vid referencie v dokumentacii
     uint32_t hash, i;
     size_t len = strlen(key);
     for(hash = i = 0; i < len; ++i) {
@@ -29,7 +29,7 @@ TSbinstrom BS_New(PTStructLex data){
  		error(ERR_INTERNAL,"Chyba alokacia pamate!\n");
  	}
 
- 	novy->lptr=NULL;
+ 	novy->lptr=NULL;                                //!< nastavenie defaultu
  	novy->rptr=NULL;
     novy->loc_table=NULL;
  	novy->data=data;
@@ -39,22 +39,14 @@ TSbinstrom BS_New(PTStructLex data){
 }
 
 TSbinstrom BS_Add(TSbinstrom root,PTStructLex data){
-/*
-TSbinstrom pom_root;
 
-    if (root != pointers->SYM_TABLE)
-        pom_root=root->loc_table;
-    else
-        pom_root=root;
-*/
-// NIE som si uplne isty ci ich netreba vymenit, v tom pripade vsak ma valgrind problem s neinicializovanym LEFT
-    if (root==NULL){
+    if (root==NULL){                            //!< pri vkladanie prveho prvku do TS
     TSbinstrom Uk=BS_New(data);
     if( pointers->SYM_TABLE==NULL){
         pointers->SYM_TABLE=Uk;
     }
     else
-        pointers->CURRENTFUNCT->loc_table=Uk;
+        pointers->CURRENTFUNCT->loc_table=Uk;  //!< zmena scopu
     pointers->SCOPE=Uk;
 
     return Uk;
@@ -68,7 +60,7 @@ TSbinstrom pom_root;
 
     
 
- 	while (pom!=NULL){				//!< kym neprideme na vrchol stromu
+ 	while (pom!=NULL){				            //!< kym neprideme na vrchol stromu
  		if (key==pom->key &&
            !(c=strcmp(data->lex, pom->data->lex))){
             error(ERR_SEM_UNDEF, "Pokus o redefiniciu: '%s'\n", data->lex);
@@ -105,25 +97,25 @@ if (root == NULL)
     TSbinstrom pom=root;
     int c;
     
-    while (pom!=NULL){							//!< kym neprejdeme na koniec stromu
+    while (pom!=NULL){							                    //!< kym neprejdeme na koniec stromu
         if (key==pom->key && !(c=strcmp(dat->lex, pom->data->lex)))	//!< ak sa rovnaju kluce a aj stringy nasli sme hladany uzol
 		return pom;  							
-      	if (key > pom->key)                                             //!< porovnavam kluce
+      	if (key > pom->key)                                         //!< porovnavam kluce
         	pom=pom->rptr;                                          //!< ak je hladany kluc ostro vacsi - doprava
         else
-                pom=pom->lptr;                                          //!< ak je hladany kluc mensi alebo rovny - dolava       
+                pom=pom->lptr;                                      //!< ak je hladany kluc mensi alebo rovny - dolava       
     }
- 	return NULL;							//!< na konci ak sa nic nenaslo vrati NULL 
+ 	return NULL;                        							//!< na konci ak sa nic nenaslo vrati NULL 
 }												
 
 
-void BS_Free(TSbinstrom root){
+void BS_Free(TSbinstrom root){                                      //!< klasicky postORDER
 	if (root == NULL)
 		return;
 	BS_Free(root->lptr);
 	BS_Free(root->rptr);
 	BS_Free(root->loc_table);
-    if (root->data!= NULL){
+    if (root->data!= NULL){                                        //!< free struktur v TS
         if (root->data->lex != NULL)
             free(root->data->lex);
         if (root->data->value != NULL) 
@@ -135,46 +127,6 @@ void BS_Free(TSbinstrom root){
     }
 	free(root);
 
-}
-
-static void Print_tree2(TSbinstrom TempTree, char* sufix, char fromdir) {
-    if (TempTree != NULL) {
-        char* suf2 = (char*) malloc(strlen(sufix) + 4);
-        strcpy(suf2, sufix);
-        if (fromdir == 'L'){
-            suf2 = strcat(suf2, "  |");
-            printf("%s\n", suf2);
-	    }else
-	        suf2 = strcat(suf2, "   ");
-	    Print_tree2(TempTree->rptr, suf2, 'R'); 
-        if (TempTree->data != NULL)
-            printf("%s  +-[%s, %d]\n", sufix, ((PTStructLex)TempTree->data)->lex, TempTree->data->value->type);
-	    else
-            printf("%s  +-[NULL, %d]\n", sufix, TempTree->data->value->type);
-        strcpy(suf2, sufix);
-        if (fromdir == 'R')
-	        suf2 = strcat(suf2, "  |");	
-	    else
-	        suf2 = strcat(suf2, "   ");
-	    Print_tree2(TempTree->lptr, suf2, 'L');
-	    if (fromdir == 'R') printf("%s\n", suf2);
-	        free(suf2);
-    }
-}
-
-static void Print_tree(TSbinstrom TempTree) {
-    printf("Struktura binarniho stromu:\n");
-    printf("\n");
-    if (TempTree != NULL)
-        Print_tree2(TempTree, "", 'X');
-    else
-        printf("strom je prazdny\n");
-    printf("\n");
-    printf("=================================================\n");
-} 
-
-void BS_Print(TSbinstrom root){
-    Print_tree(root);
 }
 
  void BS_checkFunction(TSbinstrom root){
