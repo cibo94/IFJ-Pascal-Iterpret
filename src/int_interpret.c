@@ -26,10 +26,10 @@ TTerm *embededFunc;
  **************************************/
 
 char *EMB_copy(char *in, int from, int size) {
-    char *out = malloc((size-from+1)*sizeof(char) +1);                  // Alokovanie navratoveho pola
+    char *out = malloc(size +1);                  // Alokovanie navratoveho pola
     if (out == NULL) error(ERR_INTERNAL, "Chyba alokacie pamete!");
-    memcpy(out, in + from-1, (size_t)size-from+1);                 // Kopirovanie z pozicie from do from+size do out
-    out[size-from+1]=0;
+    memcpy(out, in + from-1, (size_t)size);                 // Kopirovanie z pozicie from do from+size do out
+    out[size]=0;
     return out;
 }
 
@@ -633,13 +633,13 @@ static void __write () {
                 printf ("%d", n->value.integer);
             break;
             case TERM_REAL :
-                printf ("%f", n->value.real);
+                printf ("%g", n->value.real);
             break;
             case TERM_STRING :
                 printf ("%s", n->value.string);
             break;
             case TERM_BOOL :
-                printf ("%s", n->value.boolean ? "true" : "false");
+                printf ("%s", n->value.boolean ? "TRUE" : "FALSE");
             break;
 
             default :
