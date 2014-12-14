@@ -505,7 +505,8 @@ void SEM_fCallPrologue(PTStructLex functID){
     pointers->ACCREG->init = false;
     pointers->ACCREG->index = false;
     TTerm *ret = malloc(sizeof(TTerm));
-    ret->name = functID->lex;
+    ret->name = malloc(1);
+    ret->name[0] = 0;
     ret->init = false;
     ret->index = false;
     SEM_generate(OP_PUSH, ret, NULL, NULL);  // PRIPRAVA HODNOTY VYSLEDKU
