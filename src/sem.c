@@ -413,7 +413,86 @@ void SEM_createLeaf(PTStructLex lexema){
  
  }
 
- 
+
+void SEM_createTree(PTStructLex lexema){
+    
+    E_OP relOperator = 0;
+    ETermType typeRight = SEM_popSS(pointers->EXPRSTACK);
+    ETermType typeLeft  = SEM_popSS(pointers->EXPRSTACK);
+         
+    if(typeLeft != typeRight)
+        if(!(((typeLeft == TERM_INT)&&(typeRight == TERM_REAL))||((typeLeft == TERM_REAL)&&(typeRight == TERM_INT))))
+            error(ERR_SEM_TYPE,"Nekompatibilne datove typy vo vyraze.");
+    
+    pointers->ACCREG->type = typeRight;
+    pointers->ACCREG->index = false;
+    pointers->ACCREG->init = true;
+    pointers->SREG1->index = false;
+    pointers->SREG1->init  = true;
+    pointers->SREG1->type  = typeLeft;
+    pointers->SREG2->index = false;
+    pointers->SREG2->type  = typeRight;
+    pointers->SREG2->init  = true;
+    SEM_generate(OP_POP, NULL, NULL, pointers->SREG2);
+    SEM_generate(OP_POP, NULL, NULL, pointers->SREG1);
+    
+    switch(lexema->type){
+        case OPERATOR_PLUS     : if(typeRight == TERM_BOOL)
+                                    error(ERR_SEM_TYPE, "Operacia plus nad typmi boolean");
+                                 if(typeRight == TERM_REAL)||(typeLeft == TERM_REAL)    
+                                    pointers->ACCREG->type = TERM_REAL;
+                                 SEM_generate(OP_PLUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);   
+                                 break;      
+                                 
+        case OPERATOR_MINUS    : if(typeRight == TERM_STRING)
+                                    error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
+                                 if(typeRight == TERM_BOOL)
+                                    error(ERR_SEM_TYPE, "Operacia minus nad typmi boolean");
+                                 if(typeRight == TERM_REAL)||(typeLeft == TERM_REAL)    
+                                    pointers->ACCREG->type = TERM_REAL;
+                                 
+                                 SEM_generate(OP_MINUS, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
+                                 break;     
+                                 
+        case OPERATOR_TIMES    : if(typeRight == TERM_STRING)
+                                    error(ERR_SEM_TYPE, "Retazce nie je mozne nasobit");
+                                 if(typeRight == TERM_BOOL)
+                                    error(ERR_SEM_TYPE, "Operacia krat nad typmi boolean");
+                                 if(typeRight == TERM_REAL)||(typeLeft == TERM_REAL)    
+                                    pointers->ACCREG->type = TERM_REAL;  
+                                 SEM_generate(OP_MUL, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
+                                 break;
+                                 
+        case OPERATOR_DIV      : if(typeRight == TERM_STRING)
+                                    error(ERR_SEM_TYPE, "Retazec nie je mozne delit retazcom");
+                                 if(typeRight == TERM_BOOL)
+                                    error(ERR_SEM_TYPE, "Operacia deleno nad typmi boolean");                                   
+                                 pointers->ACCREG->type = TERM_REAL;
+                                 SEM_generate(OP_DIV, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);
+                                 break;
+                                 
+        case OPERATOR_GREATER  : relOperator = OP_GREAT;   break;
+        case OPERATOR_SMALLER  : relOperator = OP_LESS;    break;
+        case OPERATOR_GREATEQ  : relOperator = OP_GREATEQ; break;
+        case OPERATOR_SMALLEQ  : relOperator = OP_LESSEQ;  break;
+        case OPERATOR_EQUAL    : relOperator = OP_EQUAL;   break;
+        case OPERATOR_NEQUAL   : relOperator = OP_NEQUAL;  break;    
+        default             :   break;
+        }     
+    
+        if(relOperator != 0){
+            if(typeRight != typeLeft)
+                error(ERR_SEM_TYPE,"Nekompatibilne datove typy v porovnani.");
+            pointers->ACCREG->type = TERM_BOOL;
+            SEM_generate(relOperator, pointers->SREG1, pointers->SREG2,  pointers->ACCREG);  
+        }
+    
+        SEM_pushSS(pointers->EXPRSTACK, pointers->ACCREG->type);
+        SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
+}
+
+
+/* 
 void SEM_createTree(PTStructLex lexema){
     
     E_OP relOperator = 0;
@@ -467,7 +546,7 @@ void SEM_createTree(PTStructLex lexema){
         SEM_pushSS(pointers->EXPRSTACK, pointers->ACCREG->type);
         SEM_generate(OP_PUSH, pointers->ACCREG, NULL, NULL);
 }
-
+*/
 
 //!< VOLANIE FUNKCII
 void SEM_fCallPrologue(PTStructLex functID){
