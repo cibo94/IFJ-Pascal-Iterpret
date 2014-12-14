@@ -73,14 +73,9 @@ TSbinstrom BS_Find(TSbinstrom root, PTStructLex dat);
  */
 void BS_Free(TSbinstrom root);
  
-/**
- * \brief prejde stromom a vypise kluce vsetkych uzlov 
- * \param root Koren
- */
-void BS_Print(TSbinstrom root);
 
 /**
- * \brief ???
+ * \brief 
  * \param root Koren
  */
 void BS_checkFunction(TSbinstrom root);
